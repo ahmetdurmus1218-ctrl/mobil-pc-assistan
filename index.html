@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobil PC Asistanı</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        /* MOBİL FIRST CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+        
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        /* NAV BOTTOM */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid #e5e5e7;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #8e8e93;
+            flex: 1;
+            padding: 8px 0;
+        }
+        
+        .nav-item.active {
+            color: #007aff;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .nav-text {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* CARD STYLES */
+        .card {
+            background: white;
+            margin: 16px;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+        }
+        
+        .card:active {
+            transform: scale(0.98);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+        }
+        
+        .card-desc {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        /* BUTTON */
+        .btn {
+            background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin: 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:active {
+            transform: translateY(2px);
+            opacity: 0.9;
+        }
+        
+        /* COMPATIBILITY BADGE */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* SWIPE SECTION */
+        .swipe-container {
+            overflow-x: auto;
+            display: flex;
+            padding: 0 16px;
+            gap: 12px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .swipe-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .swipe-card {
+            flex: 0 0 280px;
+            scroll-snap-align: start;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        /* LOADING */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 374px) {
+            .header h1 { font-size: 20px; }
+            .card { margin: 12px; padding: 16px; }
+            .btn { padding: 14px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <h1>📱 Mobil PC Asistanı</h1>
+        <p>İkinci el parçalarla PC topla • %100 Mobil</p>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="app">
+        <!-- ADIM 1: İŞLEMCİ SEÇ -->
+        <div class="card" id="step1">
+            <h2 class="card-title">1️⃣ İşlemci Seç</h2>
+            <p class="card-desc">AMD veya Intel işlemci seçerek başla</p>
+            
+            <div class="swipe-container">
+                <div class="swipe-card">
+                    <h3>AMD Ryzen 5 5600X</h3>
+                    <div class="badge badge-success">Uyumlu</div>
+                    <p>6 Çekirdek • 3.7GHz • 65W</p>
+                    <p><strong>İkinci el: 2.800₺</strong></p>
+                    <button onclick="selectCPU('ryzen5')" class="btn">✓ SEÇ</button>
+                </div>
+                
+                <div class="swipe-card">
+                    <h3>Intel i5-12400F</h3>
+                    <div class="badge badge-success">Uyumlu</div>
+                    <p>6 Çekirdek • 2.5GHz • 65W</p>
+                    <p><strong>İkinci el: 3.100₺</strong></p>
+                    <button onclick="selectCPU('i5')" class="btn">✓ SEÇ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADIM 2: ANAKART -->
+        <div class="card" id="step2" style="display:none;">
+            <h2 class="card-title">2️⃣ Anakart Seç</h2>
+            <p class="card-desc">Seçtiğin işlemciye uygun anakartlar</p>
+            <div id="motherboard-list"></div>
+        </div>
+
+        <!-- GÜVEN PUANI -->
+        <div class="card">
+            <h2 class="card-title">🛡️ Güven Puanı</h2>
+            <p class="card-desc">Satıcı ve ilan güvenilirliği</p>
+            
+            <div style="display:flex; align-items:center; gap:15px; margin:20px 0;">
+                <div style="font-size:48px; font-weight:bold; color:#007aff;">85</div>
+                <div>
+                    <div style="height:10px; background:#e5e5e7; border-radius:5px; width:200px; overflow:hidden;">
+                        <div style="height:100%; width:85%; background:linear-gradient(90deg, #34c759, #007aff);"></div>
+                    </div>
+                    <p style="font-size:13px; color:#8e8e93; margin-top:5px;">Yüksek Güvenilirlik</p>
+                </div>
+            </div>
+            
+            <div class="badge badge-success">Telefon Doğrulu</div>
+            <div class="badge badge-success">10+ Satış</div>
+            <div class="badge badge-warning">Yeni Üye</div>
+        </div>
+
+        <!-- HIZLI BAŞLANGIÇ -->
+        <div class="card">
+            <h2 class="card-title">🚀 Hızlı Başla</h2>
+            <button onclick="startWizard()" class="btn">
+                <span>🎮</span> Oyun PC'si Topla
+            </button>
+            <button onclick="startOffice()" class="btn" style="background:linear-gradient(135deg, #34c759 0%, #2ecc71 100%);">
+                <span>💼</span> Ofis Bilgisayarı
+            </button>
+            <button onclick="checkCompatibility()" class="btn" style="background:linear-gradient(135deg, #8e8e93 0%, #aeaeb2 100%);">
+                <span>🔧</span> Uyumluluk Kontrolü
+            </button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-text">Ana Sayfa</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon">🔧</div>
+            <div class="nav-text">PC Topla</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon">🛒</div>
+            <div class="nav-text">Piyasa</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon">⭐</div>
+            <div class="nav-text">Favoriler</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-text">Ayarlar</div>
+        </a>
+    </div>
+
+    <script>
+        // UYUMLULUK VERİSİ
+        const compatibilityData = {
+            ryzen5: {
+                socket: "AM4",
+                compatible: ["B550", "X570", "B450"],
+                incompatible: ["Intel soketler"],
+                motherboards: [
+                    { name: "ASUS TUF B550-PLUS", price: "1.800₺", trust: 88 },
+                    { name: "MSI B450 TOMAHAWK", price: "1.400₺", trust: 82 },
+                    { name: "Gigabyte X570 AORUS", price: "2.200₺", trust: 91 }
+                ]
+            },
+            i5: {
+                socket: "LGA1700",
+                compatible: ["B660", "H670", "Z690"],
+                incompatible: ["AMD soketler"],
+                motherboards: [
+                    { name: "ASUS PRIME B660-PLUS", price: "2.100₺", trust: 85 },
+                    { name: "MSI PRO H610M", price: "1.600₺", trust: 79 },
+                    { name: "Gigabyte Z690 UD", price: "2.800₺", trust: 90 }
+                ]
+            }
+        };
+
+        // JAVASCRIPT FONKSİYONLARI
+        let selectedCPU = null;
+
+        function selectCPU(cpuType) {
+            selectedCPU = cpuType;
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            
+            const mbList = document.getElementById('motherboard-list');
+            mbList.innerHTML = '';
+            
+            compatibilityData[cpuType].motherboards.forEach(mb => {
+                mbList.innerHTML += `
+                    <div style="background:#f8f9fa; border-radius:12px; padding:15px; margin:10px 0;">
+                        <h3 style="margin-bottom:8px;">${mb.name}</h3>
+                        <div class="badge ${mb.trust > 85 ? 'badge-success' : 'badge-warning'}">
+                            Güven: ${mb.trust}/100
+                        </div>
+                        <p style="margin:8px 0;"><strong>Fiyat: ${mb.price}</strong></p>
+                        <button onclick="selectMotherboard('${mb.name}')" class="btn" style="padding:12px;">
+                            🛒 Bu Anakartı Seç
+                        </button>
+                    </div>
+                `;
+            });
+            
+            // Mobilde yukarı kaydır
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function selectMotherboard(mbName) {
+            alert(`✅ Seçildi: ${mbName}\n\nBir sonraki adım: Ekran Kartı seçimi`);
+            // Burada sonraki adıma geçilecek
+        }
+
+        function startWizard() {
+            alert("🎮 Oyun PC'si sihirbazı başlatılıyor...\nÖnerilen bütçe: 5.000-8.000₺");
+            // Sihirbaz başlatma kodu
+        }
+
+        function startOffice() {
+            alert("💼 Ofis bilgisayarı sihirbazı başlatılıyor...\nÖnerilen bütçe: 2.000-3.500₺");
+        }
+
+        function checkCompatibility() {
+            alert("🔧 Uyumluluk kontrolü:\n1. İşlemci ↔ Anakart soketi\n2. RAM tipi\n3. Güç kaynağı watt\n4. Kasa boyutu");
+        }
+
+        // PWA YÜKLEME
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(() => console.log('PWA hazır'))
+                    .catch(err => console.log('PWA hatası:', err));
+            });
+        }
+
+        // OFFLINE MOD
+        window.addEventListener('offline', () => {
+            alert('⚠️ İnternet bağlantısı yok. Offline modda çalışıyorsunuz.');
+        });
+
+        // MOBİL DOKUNMA OLAYLARI
+        let touchStartY = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].clientY;
+            const diff = touchStartY - touchEndY;
+            
+            if (Math.abs(diff) > 50) {
+                // Kaydırma işlemleri
+            }
+        });
+    </script>
+</body>
+</html>
