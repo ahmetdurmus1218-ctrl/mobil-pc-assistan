@@ -1,0 +1,259 @@
+{
+  "last_updated": "2024-01-20",
+  "sources": ["sahibinden", "dolap", "trendyol", "n11"],
+  "parts": {
+    "cpus": [
+      {
+        "id": 1,
+        "brand": "AMD",
+        "model": "Ryzen 5 5600X",
+        "socket": "AM4",
+        "cores": 6,
+        "threads": 12,
+        "base_clock": "3.7GHz",
+        "boost_clock": "4.6GHz",
+        "tdp": 65,
+        "release_year": 2020,
+        "market_price": {"new": 4200, "used_min": 2800, "used_max": 3200},
+        "compatibility": ["B550", "X570", "B450", "A520"],
+        "common_listings": 24
+      },
+      {
+        "id": 2,
+        "brand": "Intel",
+        "model": "Core i5-12400F",
+        "socket": "LGA1700",
+        "cores": 6,
+        "threads": 12,
+        "base_clock": "2.5GHz",
+        "boost_clock": "4.4GHz",
+        "tdp": 65,
+        "release_year": 2022,
+        "market_price": {"new": 4500, "used_min": 3100, "used_max": 3500},
+        "compatibility": ["B660", "H670", "Z690", "H610"],
+        "common_listings": 18
+      },
+      {
+        "id": 3,
+        "brand": "AMD",
+        "model": "Ryzen 7 5800X3D",
+        "socket": "AM4",
+        "cores": 8,
+        "threads": 16,
+        "base_clock": "3.4GHz",
+        "boost_clock": "4.5GHz",
+        "tdp": 105,
+        "release_year": 2022,
+        "market_price": {"new": 7200, "used_min": 5200, "used_max": 5800},
+        "compatibility": ["B550", "X570", "B450"],
+        "common_listings": 9
+      },
+      {
+        "id": 4,
+        "brand": "Intel",
+        "model": "Core i3-12100F",
+        "socket": "LGA1700",
+        "cores": 4,
+        "threads": 8,
+        "base_clock": "3.3GHz",
+        "boost_clock": "4.3GHz",
+        "tdp": 58,
+        "release_year": 2022,
+        "market_price": {"new": 2800, "used_min": 1800, "used_max": 2200},
+        "compatibility": ["B660", "H610", "H670"],
+        "common_listings": 32
+      },
+      {
+        "id": 5,
+        "brand": "AMD",
+        "model": "Ryzen 5 3600",
+        "socket": "AM4",
+        "cores": 6,
+        "threads": 12,
+        "base_clock": "3.6GHz",
+        "boost_clock": "4.2GHz",
+        "tdp": 65,
+        "release_year": 2019,
+        "market_price": {"new": 3500, "used_min": 1800, "used_max": 2200},
+        "compatibility": ["B450", "X470", "B550", "X570"],
+        "common_listings": 45
+      }
+    ],
+    "motherboards": [
+      {
+        "id": 101,
+        "brand": "ASUS",
+        "model": "TUF GAMING B550-PLUS",
+        "socket": "AM4",
+        "chipset": "B550",
+        "form_factor": "ATX",
+        "ram_slots": 4,
+        "max_ram": 128,
+        "ram_speed": 5100,
+        "price": {"new": 3200, "used_min": 1800, "used_max": 2200},
+        "common_listings": 12
+      },
+      {
+        "id": 102,
+        "brand": "MSI",
+        "model": "PRO B660M-A DDR4",
+        "socket": "LGA1700",
+        "chipset": "B660",
+        "form_factor": "Micro-ATX",
+        "ram_slots": 2,
+        "max_ram": 64,
+        "ram_speed": 4800,
+        "price": {"new": 2900, "used_min": 1700, "used_max": 2100},
+        "common_listings": 15
+      },
+      {
+        "id": 103,
+        "brand": "Gigabyte",
+        "model": "B450 AORUS ELITE",
+        "socket": "AM4",
+        "chipset": "B450",
+        "form_factor": "ATX",
+        "ram_slots": 4,
+        "max_ram": 128,
+        "ram_speed": 3600,
+        "price": {"new": 2200, "used_min": 1100, "used_max": 1500},
+        "common_listings": 28
+      }
+    ],
+    "gpus": [
+      {
+        "id": 201,
+        "brand": "NVIDIA",
+        "model": "RTX 3060 12GB",
+        "vram": 12,
+        "power_consumption": 170,
+        "length": 242,
+        "price": {"new": 9500, "used_min": 6500, "used_max": 7500},
+        "common_listings": 22
+      },
+      {
+        "id": 202,
+        "brand": "AMD",
+        "model": "RX 6600 XT 8GB",
+        "vram": 8,
+        "power_consumption": 160,
+        "length": 235,
+        "price": {"new": 8500, "used_min": 5200, "used_max": 6000},
+        "common_listings": 18
+      },
+      {
+        "id": 203,
+        "brand": "NVIDIA",
+        "model": "RTX 3070 8GB",
+        "vram": 8,
+        "power_consumption": 220,
+        "length": 267,
+        "price": {"new": 14500, "used_min": 9500, "used_max": 11000},
+        "common_listings": 14
+      }
+    ],
+    "rams": [
+      {
+        "id": 301,
+        "brand": "Corsair",
+        "model": "Vengeance LPX 16GB (2x8GB) 3200MHz",
+        "type": "DDR4",
+        "speed": 3200,
+        "size": 16,
+        "price": {"new": 1500, "used_min": 800, "used_max": 1000},
+        "common_listings": 40
+      },
+      {
+        "id": 302,
+        "brand": "Kingston",
+        "model": "FURY Beast 32GB (2x16GB) 3600MHz",
+        "type": "DDR4",
+        "speed": 3600,
+        "size": 32,
+        "price": {"new": 2800, "used_min": 1800, "used_max": 2200},
+        "common_listings": 25
+      }
+    ],
+    "psus": [
+      {
+        "id": 401,
+        "brand": "Corsair",
+        "model": "RM750x 750W 80+ Gold",
+        "wattage": 750,
+        "efficiency": "80+ Gold",
+        "modular": "Full",
+        "price": {"new": 2200, "used_min": 1400, "used_max": 1700},
+        "common_listings": 18
+      }
+    ],
+    "storages": [
+      {
+        "id": 501,
+        "brand": "Samsung",
+        "model": "970 EVO Plus 1TB NVMe M.2 SSD",
+        "type": "NVMe SSD",
+        "capacity": 1000,
+        "read_speed": 3500,
+        "write_speed": 3300,
+        "price": {"new": 2500, "used_min": 1500, "used_max": 1800},
+        "common_listings": 35
+      }
+    ],
+    "cases": [
+      {
+        "id": 601,
+        "brand": "NZXT",
+        "model": "H510 Flow",
+        "type": "Mid Tower",
+        "max_gpu_length": 365,
+        "max_cpu_cooler": 165,
+        "price": {"new": 1800, "used_min": 1100, "used_max": 1400},
+        "common_listings": 20
+      }
+    ],
+    "coolers": [
+      {
+        "id": 701,
+        "brand": "Cooler Master",
+        "model": "Hyper 212 RGB Black Edition",
+        "type": "Air Cooler",
+        "height": 158,
+        "tdp_support": 150,
+        "price": {"new": 900, "used_min": 500, "used_max": 700},
+        "common_listings": 30
+      }
+    ]
+  },
+  "compatibility_rules": {
+    "sockets": {
+      "AM4": ["B550", "X570", "B450", "A520", "X470"],
+      "LGA1700": ["B660", "H670", "Z690", "H610"],
+      "LGA1200": ["B560", "H570", "Z490", "H510"]
+    },
+    "ram_types": {
+      "DDR4": ["DDR4"],
+      "DDR5": ["DDR5"]
+    },
+    "form_factors": {
+      "ATX": ["ATX", "Micro-ATX", "Mini-ITX"],
+      "Micro-ATX": ["Micro-ATX", "Mini-ITX"],
+      "Mini-ITX": ["Mini-ITX"]
+    }
+  },
+  "trust_score_weights": {
+    "seller_verification": 25,
+    "account_age": 15,
+    "listing_photos": 20,
+    "description_detail": 15,
+    "price_reasonableness": 15,
+    "response_rate": 10
+  },
+  "red_flags": [
+    "no_photos",
+    "too_cheap",
+    "new_account_high_value",
+    "contact_only_whatsapp",
+    "no_location",
+    "stock_photos"
+  ]
+}
