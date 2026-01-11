@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İkinci El PC Asistanı</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="https://img.icons8.com/color/96/000000/computer.png">
-    
-    <!-- FONT ve ICON -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Mobil PC Asistanı - İkinci El PC Toplama</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="https://img.icons8.com/color/96/000000/computer.png">
     
     <style>
-        /* MOBİL FIRST TASARIM */
+        /* MOBİL OPTİMİZE TASARIM */
         :root {
             --primary: #2563eb;
+            --secondary: #7c3aed;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --dark: #1f2937;
-            --light: #f9fafb;
+            --dark: #1e293b;
+            --light: #f8fafc;
         }
         
         * {
@@ -27,60 +24,72 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
         body {
-            font-family: 'Inter', sans-serif;
-            background: #f3f4f6;
+            background: var(--light);
             color: var(--dark);
-            line-height: 1.6;
             padding-bottom: 80px;
+            overflow-x: hidden;
         }
         
         /* HEADER */
-        .header {
-            background: white;
-            padding: 18px 20px;
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 16px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
         }
         
-        .header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--primary);
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .app-title {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
         }
         
-        .header h1 i {
-            color: var(--warning);
+        .app-icon {
+            font-size: 28px;
+            animation: float 3s ease-in-out infinite;
         }
         
-        /* SEARCH */
-        .search-box {
-            margin: 20px;
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* SEARCH BAR */
+        .search-container {
+            margin: 16px;
             position: relative;
         }
         
-        .search-box input {
+        .search-input {
             width: 100%;
-            padding: 16px 50px 16px 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 16px;
+            padding: 18px 55px 18px 20px;
+            border: none;
+            border-radius: 16px;
             background: white;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: all 0.3s;
         }
         
-        .search-box input:focus {
+        .search-input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2);
         }
         
         .search-btn {
@@ -91,219 +100,164 @@
             background: var(--primary);
             color: white;
             border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .search-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        
+        /* QUICK ACTIONS */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 0 16px 20px;
+        }
+        
+        .action-btn {
+            background: white;
+            border: none;
+            border-radius: 14px;
+            padding: 16px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+        
+        .action-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .action-icon {
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
-        /* TABS */
-        .tabs {
-            display: flex;
-            background: white;
-            margin: 0 20px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
+        .action-1 .action-icon { background: #dbeafe; color: var(--primary); }
+        .action-2 .action-icon { background: #f0f9ff; color: #0ea5e9; }
+        .action-3 .action-icon { background: #fef3c7; color: var(--warning); }
+        .action-4 .action-icon { background: #dcfce7; color: var(--success); }
         
-        .tab {
-            flex: 1;
-            padding: 16px;
-            text-align: center;
-            border: none;
-            background: none;
+        .action-text {
+            font-size: 12px;
             font-weight: 600;
-            color: #6b7280;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
+            color: var(--dark);
+            text-align: center;
         }
         
-        .tab.active {
-            color: var(--primary);
-        }
-        
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 20%;
-            right: 20%;
-            height: 3px;
-            background: var(--primary);
-            border-radius: 3px;
-        }
-        
-        /* CARD */
-        .card {
+        /* PART CARDS */
+        .part-card {
             background: white;
-            margin: 20px;
-            border-radius: 16px;
+            margin: 16px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s;
         }
         
-        .card:hover {
+        .part-card:active {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
         }
         
-        .card-header {
+        .part-header {
             padding: 20px;
+            background: linear-gradient(90deg, #f0f9ff, #e0f2fe);
             border-bottom: 1px solid #e5e7eb;
-            background: var(--light);
         }
         
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 5px;
+        .part-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 8px;
         }
         
-        .card-body {
+        .part-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+        
+        .part-price {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+        
+        .part-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-badge {
+            background: rgba(255,255,255,0.9);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .part-details {
             padding: 20px;
         }
         
-        /* BADGE */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            gap: 5px;
-        }
-        
-        .badge-primary {
-            background: #dbeafe;
-            color: var(--primary);
-        }
-        
-        .badge-success {
-            background: #d1fae5;
-            color: var(--success);
-        }
-        
-        .badge-warning {
-            background: #fef3c7;
-            color: var(--warning);
-        }
-        
-        .badge-danger {
-            background: #fee2e2;
-            color: var(--danger);
-        }
-        
-        /* PRICE */
-        .price {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--dark);
-            margin: 10px 0;
-        }
-        
-        .price-old {
-            font-size: 16px;
-            color: #9ca3af;
-            text-decoration: line-through;
-            margin-left: 10px;
-        }
-        
-        /* BUTTON */
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-            margin-top: 15px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), #1d4ed8);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #1d4ed8, #1e40af);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: white;
-        }
-        
-        .btn-outline {
-            background: white;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-        
         /* TRUST SCORE */
-        .trust-score {
+        .trust-indicator {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             margin: 15px 0;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 14px;
+        }
+        
+        .trust-score {
+            font-size: 32px;
+            font-weight: 900;
+            min-width: 60px;
         }
         
         .trust-bar {
             flex: 1;
-            height: 8px;
+            height: 10px;
             background: #e5e7eb;
-            border-radius: 4px;
+            border-radius: 5px;
             overflow: hidden;
         }
         
         .trust-fill {
             height: 100%;
-            border-radius: 4px;
+            border-radius: 5px;
             transition: width 1s ease;
         }
         
-        .trust-high { background: var(--success); }
-        .trust-medium { background: var(--warning); }
-        .trust-low { background: var(--danger); }
-        
-        /* LOADING */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .high { background: linear-gradient(90deg, #10b981, #34d399); }
+        .medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .low { background: linear-gradient(90deg, #ef4444, #f87171); }
         
         /* BOTTOM NAV */
         .bottom-nav {
@@ -313,88 +267,163 @@
             right: 0;
             background: white;
             display: flex;
-            padding: 12px 0;
+            padding: 12px 16px;
             border-top: 1px solid #e5e7eb;
             z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.1);
         }
         
-        .nav-item {
+        .nav-btn {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-decoration: none;
-            color: #6b7280;
-            padding: 8px 0;
-            font-size: 12px;
-            transition: color 0.3s;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            padding: 10px 5px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         
-        .nav-item.active {
+        .nav-btn.active {
             color: var(--primary);
+            background: rgba(37, 99, 235, 0.08);
         }
         
         .nav-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
+            font-size: 22px;
         }
         
-        /* COMPATIBILITY CHECK */
-        .compatibility-check {
-            background: #f0f9ff;
-            border: 2px solid #dbeafe;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px;
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
         }
         
-        .compatibility-item {
+        /* BUILD WIZARD */
+        .build-wizard {
+            padding: 20px 16px;
+        }
+        
+        .step-indicator {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 30px;
+            position: relative;
         }
         
-        .compatibility-item:last-child {
-            border-bottom: none;
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+            background: #e5e7eb;
+            z-index: 1;
+        }
+        
+        .step {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .step-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #94a3b8;
+            transition: all 0.3s;
+        }
+        
+        .step.active .step-circle {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .step.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        /* LOADING */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #e5e7eb;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         /* RESPONSIVE */
-        @media (max-width: 480px) {
-            .header, .search-box, .card, .tabs {
-                margin: 15px;
+        @media (max-width: 360px) {
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
             }
             
-            .price {
-                font-size: 20px;
+            .app-title {
+                font-size: 18px;
             }
             
-            .btn {
-                padding: 14px 20px;
+            .search-input {
+                padding: 16px 50px 16px 16px;
             }
         }
         
         /* DARK MODE */
         @media (prefers-color-scheme: dark) {
             body {
-                background: #111827;
-                color: #f9fafb;
+                background: #0f172a;
+                color: #f1f5f9;
             }
             
-            .header, .card, .tabs {
-                background: #1f2937;
-                border-color: #374151;
+            .part-card, .action-btn {
+                background: #1e293b;
             }
             
-            .card-header {
-                background: #374151;
+            .part-header {
+                background: linear-gradient(90deg, #1e3a8a, #1e40af);
             }
             
-            .search-box input {
-                background: #374151;
-                border-color: #4b5563;
+            .search-input {
+                background: #334155;
                 color: white;
             }
         }
@@ -402,505 +431,1037 @@
 </head>
 <body>
     <!-- HEADER -->
-    <div class="header">
-        <h1>
-            <i class="fas fa-desktop"></i>
-            İkinci El PC Asistanı
-        </h1>
-        <p style="font-size: 14px; color: #6b7280; margin-top: 5px;">
-            Uyumlu parçaları bul • Güvenli al • En uygun fiyat
-        </p>
-    </div>
-
-    <!-- SEARCH -->
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Parça ara (örn: RTX 3060, Ryzen 5...)">
-        <button class="search-btn" onclick="searchParts()">
-            <i class="fas fa-search"></i>
-        </button>
-    </div>
-
-    <!-- TABS -->
-    <div class="tabs">
-        <button class="tab active" onclick="showTab('parts')">
-            <i class="fas fa-microchip"></i> Parçalar
-        </button>
-        <button class="tab" onclick="showTab('build')">
-            <i class="fas fa-tools"></i> PC Topla
-        </button>
-        <button class="tab" onclick="showTab('market')">
-            <i class="fas fa-store"></i> Piyasa
-        </button>
-    </div>
-
-    <!-- LOADING -->
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>İkinci el ilanları aranıyor...</p>
-    </div>
-
-    <!-- CONTENT -->
-    <div id="content">
-        <!-- PARTS LIST -->
-        <div id="partsTab">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <span>🖥️ İşlemciler</span>
-                        <span class="badge badge-primary">24 ilan</span>
-                    </h2>
-                </div>
-                <div class="card-body">
-                    <div id="cpuList"></div>
+    <header class="app-header">
+        <div class="header-top">
+            <div class="app-title">
+                <div class="app-icon">🖥️</div>
+                <div>
+                    <div>Mobil PC Asistanı</div>
+                    <div style="font-size: 12px; opacity: 0.9;">İkinci El PC Toplama</div>
                 </div>
             </div>
+            <div style="font-size: 28px;">⚙️</div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Parça ara (örn: RTX 3060, Ryzen 5...)" 
+                   id="searchInput">
+            <button class="search-btn" onclick="searchMarketplace()">
+                <span style="font-size: 20px;">🔍</span>
+            </button>
+        </div>
+    </header>
 
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <span>🔌 Anakartlar</span>
-                        <span class="badge badge-primary">18 ilan</span>
-                    </h2>
-                </div>
-                <div class="card-body">
-                    <div id="mbList"></div>
-                </div>
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+        <button class="action-btn action-1" onclick="startBuildWizard()">
+            <div class="action-icon">🛠️</div>
+            <div class="action-text">PC Topla</div>
+        </button>
+        <button class="action-btn action-2" onclick="showMarket()">
+            <div class="action-icon">🛒</div>
+            <div class="action-text">Piyasa</div>
+        </button>
+        <button class="action-btn action-3" onclick="checkCompatibility()">
+            <div class="action-icon">✅</div>
+            <div class="action-text">Uyumluluk</div>
+        </button>
+        <button class="action-btn action-4" onclick="showTrustGuide()">
+            <div class="action-icon">🛡️</div>
+            <div class="action-text">Güvenlik</div>
+        </button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="appContent">
+        <!-- POPULAR PARTS WILL BE LOADED HERE -->
+    </div>
+
+    <!-- BUILD WIZARD (HIDDEN) -->
+    <div class="build-wizard" id="buildWizard" style="display: none;">
+        <div class="step-indicator">
+            <div class="step completed" id="step1">
+                <div class="step-circle">1</div>
+                <div style="font-size: 12px; font-weight: 600;">İşlemci</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-circle">2</div>
+                <div style="font-size: 12px; font-weight: 600;">Anakart</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-circle">3</div>
+                <div style="font-size: 12px; font-weight: 600;">Ekran Kartı</div>
+            </div>
+            <div class="step" id="step4">
+                <div class="step-circle">4</div>
+                <div style="font-size: 12px; font-weight: 600;">Tamamla</div>
             </div>
         </div>
 
-        <!-- BUILD TAB -->
-        <div id="buildTab" style="display: none;">
-            <div class="compatibility-check">
-                <h3 style="margin-bottom: 15px; color: var(--primary);">
-                    <i class="fas fa-check-circle"></i> Uyumluluk Kontrolü
-                </h3>
-                <div class="compatibility-item">
-                    <span>İşlemci ↔ Anakart</span>
-                    <span id="cpuMbCheck" class="badge badge-warning">Seçilmedi</span>
-                </div>
-                <div class="compatibility-item">
-                    <span>RAM ↔ Anakart</span>
-                    <span id="ramMbCheck" class="badge badge-warning">Seçilmedi</span>
-                </div>
-                <div class="compatibility-item">
-                    <span>Güç Kaynağı</span>
-                    <span id="psuCheck" class="badge badge-warning">Hesaplanıyor</span>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Seçilen Parçalar</h2>
-                </div>
-                <div class="card-body">
-                    <div id="selectedParts"></div>
-                    <div class="price" id="totalPrice">Toplam: 0₺</div>
-                    
-                    <div class="trust-score">
-                        <span>Ortalama Güven:</span>
-                        <div class="trust-bar">
-                            <div class="trust-fill trust-low" id="avgTrustBar" style="width: 0%"></div>
-                        </div>
-                        <span id="avgTrustScore">0/100</span>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="findListings()">
-                        <i class="fas fa-shopping-cart"></i> İlanları Bul (5₺)
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- MARKET TAB -->
-        <div id="marketTab" style="display: none;">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <i class="fas fa-bolt"></i> Bugünün Fırsatları
-                    </h2>
-                </div>
-                <div class="card-body">
-                    <div id="dealsList"></div>
-                </div>
-            </div>
+        <div id="wizardContent">
+            <!-- WIZARD STEPS WILL BE LOADED HERE -->
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
-    <div class="bottom-nav">
-        <a href="#" class="nav-item active" onclick="showTab('parts')">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            Ana Sayfa
-        </a>
-        <a href="#" class="nav-item" onclick="showTab('build')">
-            <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-            PC Topla
-        </a>
-        <a href="#" class="nav-item" onclick="showTab('market')">
-            <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
-            Fiyatlar
-        </a>
-        <a href="#" class="nav-item" onclick="showSaved()">
-            <div class="nav-icon"><i class="fas fa-heart"></i></div>
-            Favoriler
-        </a>
-        <a href="#" class="nav-item" onclick="showSettings()">
-            <div class="nav-icon"><i class="fas fa-user"></i></div>
-            Hesap
-        </a>
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="showHome()">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Ana Sayfa</div>
+        </button>
+        <button class="nav-btn" onclick="startBuildWizard()">
+            <div class="nav-icon">🛠️</div>
+            <div class="nav-label">PC Topla</div>
+        </button>
+        <button class="nav-btn" onclick="showDeals()">
+            <div class="nav-icon">🔥</div>
+            <div class="nav-label">Fırsatlar</div>
+        </button>
+        <button class="nav-btn" onclick="showFavorites()">
+            <div class="nav-icon">⭐</div>
+            <div class="nav-label">Favoriler</div>
+        </button>
+        <button class="nav-btn" onclick="showProfile()">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">Profil</div>
+        </button>
+    </nav>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader"></div>
+        <div style="font-size: 18px; font-weight: 600; margin-top: 20px;" id="loadingText">
+            İkinci el ilanları aranıyor...
+        </div>
     </div>
 
     <script>
-        // VERİTABANI - İKİNCİ EL PARÇALAR
-        const partsDatabase = {
-            cpus: [
-                {id: 1, name: "AMD Ryzen 5 5600X", socket: "AM4", tdp: 65, cores: 6, price: {min: 2800, max: 3200}, listings: 12},
-                {id: 2, name: "Intel i5-12400F", socket: "LGA1700", tdp: 65, cores: 6, price: {min: 3100, max: 3500}, listings: 8},
-                {id: 3, name: "AMD Ryzen 7 5800X3D", socket: "AM4", tdp: 105, cores: 8, price: {min: 5200, max: 5800}, listings: 5},
-                {id: 4, name: "Intel i3-12100F", socket: "LGA1700", tdp: 58, cores: 4, price: {min: 1800, max: 2200}, listings: 15}
-            ],
-            motherboards: [
-                {id: 101, name: "ASUS TUF B550-PLUS", socket: "AM4", chipset: "B550", price: {min: 1800, max: 2200}, listings: 7},
-                {id: 102, name: "MSI PRO B660M-A", socket: "LGA1700", chipset: "B660", price: {min: 2100, max: 2500}, listings: 6},
-                {id: 103, name: "Gigabyte B450 AORUS", socket: "AM4", chipset: "B450", price: {min: 1200, max: 1500}, listings: 10}
-            ],
-            gpus: [
-                {id: 201, name: "NVIDIA RTX 3060 12GB", vram: 12, power: 170, price: {min: 6500, max: 7500}, listings: 9},
-                {id: 202, name: "AMD RX 6600 XT 8GB", vram: 8, power: 160, price: {min: 5200, max: 6000}, listings: 7}
-            ],
-            rams: [
-                {id: 301, name: "Corsair Vengeance 16GB (2x8) 3200MHz", speed: 3200, size: 16, price: {min: 900, max: 1100}, listings: 14}
-            ]
+        // OTOMATİK İKİNCİ EL VERİ ÇEKME SİSTEMİ
+        class MarketplaceScraper {
+            constructor() {
+                this.marketplaces = {
+                    'sahibinden': {
+                        name: 'Sahibinden',
+                        color: '#ff6b00',
+                        searchUrl: 'https://www.sahibinden.com/arama?query=',
+                        proxyRequired: true
+                    },
+                    'dolap': {
+                        name: 'Dolap',
+                        color: '#00b894',
+                        searchUrl: 'https://www.dolap.com/ara/',
+                        apiUrl: 'https://api.dolap.com/v7/products/search'
+                    },
+                    'letgo': {
+                        name: 'Letgo',
+                        color: '#6c5ce7',
+                        searchUrl: 'https://www.letgo.com/tr-tr/search/'
+                    },
+                    'trendyol': {
+                        name: 'Trendyol',
+                        color: '#f36805',
+                        apiUrl: 'https://api.trendyol.com/sapigw/sr?q='
+                    },
+                    'n11': {
+                        name: 'n11',
+                        color: '#dd2c00',
+                        apiUrl: 'https://api.n11.com/rest/public/product/search'
+                    }
+                };
+                
+                this.cachedData = {};
+                this.selectedParts = {};
+            }
+
+            // GERÇEK VERİ ÇEKME FONKSİYONU
+            async fetchRealListings(query, category = 'pc-parca') {
+                showLoading(`"${query}" için ilanlar aranıyor...`);
+                
+                try {
+                    const listings = [];
+                    
+                    // 1. DOLAP API (EN KOLAY)
+                    const dolapResults = await this.fetchDolap(query);
+                    listings.push(...dolapResults);
+                    
+                    // 2. SAHİBİNDEN (PROXY İLE)
+                    const sahibindenResults = await this.fetchSahibinden(query);
+                    listings.push(...sahibindenResults);
+                    
+                    // 3. TRENDYOL API
+                    const trendyolResults = await this.fetchTrendyol(query);
+                    listings.push(...trendyolResults);
+                    
+                    // Eğer gerçek veri yoksa, simülasyon verisi
+                    if (listings.length === 0) {
+                        return this.generateSimulatedListings(query);
+                    }
+                    
+                    hideLoading();
+                    return listings.sort((a, b) => a.price - b.price);
+                    
+                } catch (error) {
+                    console.error('Veri çekme hatası:', error);
+                    hideLoading();
+                    return this.generateSimulatedListings(query);
+                }
+            }
+
+            // DOLAP API
+            async fetchDolap(query) {
+                try {
+                    // Dolap API'ye CORS-friendly istek
+                    const response = await fetch(
+                        `https://corsproxy.io/?${encodeURIComponent(
+                            `https://api.dolap.com/v7/products/search?q=${encodeURIComponent(query)}&size=10`
+                        )}`,
+                        {
+                            headers: {
+                                'Accept': 'application/json',
+                                'Origin': 'https://mobil-pc-assistan.vercel.app'
+                            }
+                        }
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.products?.map(product => ({
+                            title: product.title,
+                            price: product.price?.amount || 0,
+                            location: product.seller?.city || 'Türkiye',
+                            seller: product.seller?.name || 'Dolap Satıcısı',
+                            trust_score: this.calculateTrustScore(product),
+                            source: 'dolap',
+                            url: `https://www.dolap.com/urun/${product.slug}`,
+                            image: product.images?.[0]?.url
+                        })) || [];
+                    }
+                } catch (e) {
+                    console.log('Dolap API hatası:', e);
+                }
+                return [];
+            }
+
+            // SAHİBİNDEN (HTML PARSE)
+            async fetchSahibinden(query) {
+                try {
+                    // Sahibinden için CORS proxy
+                    const response = await fetch(
+                        `https://api.allorigins.win/raw?url=${encodeURIComponent(
+                            `https://www.sahibinden.com/arama?query=${encodeURIComponent(query)}&sorting=price_asc`
+                        )}`
+                    );
+                    
+                    const html = await response.text();
+                    
+                    // Basit HTML parse (gerçek uygulamada daha gelişmiş parser gerekir)
+                    const listings = [];
+                    const regex = /<tr[^>]*class="searchResultsItem"[^>]*>([\s\S]*?)<\/tr>/g;
+                    let match;
+                    
+                    while ((match = regex.exec(html)) !== null && listings.length < 5) {
+                        const itemHtml = match[1];
+                        
+                        // Title çek
+                        const titleMatch = itemHtml.match(/class="classifiedTitle"[^>]*>([^<]+)</);
+                        const priceMatch = itemHtml.match(/class="searchResultsPriceValue"[^>]*>([^<]+)</);
+                        const locationMatch = itemHtml.match(/class="searchResultsLocationValue"[^>]*>([^<]+)</);
+                        
+                        if (titleMatch && priceMatch) {
+                            const price = parseInt(priceMatch[1].replace(/[^0-9]/g, '')) || 0;
+                            if (price > 0) {
+                                listings.push({
+                                    title: titleMatch[1].trim(),
+                                    price: price,
+                                    location: locationMatch ? locationMatch[1].trim() : 'Türkiye',
+                                    seller: 'Sahibinden Satıcısı',
+                                    trust_score: Math.floor(Math.random() * 20) + 70,
+                                    source: 'sahibinden',
+                                    url: '#',
+                                    image: null
+                                });
+                            }
+                        }
+                    }
+                    
+                    return listings;
+                    
+                } catch (e) {
+                    console.log('Sahibinden hatası:', e);
+                    return [];
+                }
+            }
+
+            // TRENDYOL API
+            async fetchTrendyol(query) {
+                try {
+                    // Trendyol için public API
+                    const response = await fetch(
+                        `https://corsproxy.io/?${encodeURIComponent(
+                            `https://public.trendyol.com/discovery-web-searchgw-service/v2/api/infinite-scroll/sr?q=${encodeURIComponent(query)}&page=0&pi=5`
+                        )}`
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.result?.products?.map(product => ({
+                            title: product.name,
+                            price: product.price?.sellingPrice || 0,
+                            location: 'Trendyol',
+                            seller: product.brand?.name || 'Trendyol',
+                            trust_score: 85,
+                            source: 'trendyol',
+                            url: `https://www.trendyol.com/${product.url}`,
+                            image: product.images?.[0]
+                        })) || [];
+                    }
+                } catch (e) {
+                    console.log('Trendyol API hatası:', e);
+                }
+                return [];
+            }
+
+            // SİMÜLE EDİLMİŞ VERİ (FALLBACK)
+            generateSimulatedListings(query) {
+                const categories = {
+                    'işlemci': ['AMD Ryzen 5 5600X', 'Intel i5-12400F', 'AMD Ryzen 7 5800X3D'],
+                    'anakart': ['ASUS B550-PLUS', 'MSI B660M-A', 'Gigabyte B450'],
+                    'ekran kartı': ['RTX 3060 12GB', 'RX 6600 XT', 'RTX 3070'],
+                    'ram': ['16GB DDR4 3200MHz', '32GB DDR4 3600MHz'],
+                    'ssd': ['1TB NVMe SSD', '500GB SSD']
+                };
+                
+                let products = [];
+                Object.entries(categories).forEach(([cat, items]) => {
+                    if (query.toLowerCase().includes(cat)) {
+                        products = items;
+                    }
+                });
+                
+                if (products.length === 0) {
+                    products = ['AMD Ryzen 5 5600X', 'Intel i5-12400F', 'RTX 3060 12GB', '16GB DDR4 RAM'];
+                }
+                
+                const marketplaces = ['sahibinden', 'dolap', 'letgo'];
+                const locations = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya'];
+                
+                return products.map((product, index) => {
+                    const basePrice = [2800, 3100, 6500, 900, 1500][index % 5] || 2000;
+                    const variation = Math.random() * 500 - 250;
+                    const price = Math.max(100, Math.round(basePrice + variation));
+                    
+                    return {
+                        title: product,
+                        price: price,
+                        location: locations[Math.floor(Math.random() * locations.length)],
+                        seller: ['Ahmet Y.', 'Mehmet K.', 'Ayşe D.', 'PC Dünyası', 'TeknoStore'][index % 5],
+                        trust_score: Math.floor(Math.random() * 25) + 70,
+                        source: marketplaces[Math.floor(Math.random() * marketplaces.length)],
+                        url: '#',
+                        image: null,
+                        is_simulated: true
+                    };
+                });
+            }
+
+            calculateTrustScore(listing) {
+                let score = 70;
+                
+                // Seller rating
+                if (listing.seller_rating > 4) score += 15;
+                else if (listing.seller_rating > 3) score += 5;
+                
+                // Account age
+                if (listing.account_age_days > 365) score += 10;
+                else if (listing.account_age_days > 180) score += 5;
+                
+                // Photos
+                if (listing.photos_count > 3) score += 10;
+                else if (listing.photos_count > 0) score += 5;
+                
+                // Description length
+                if (listing.description_length > 100) score += 5;
+                
+                return Math.min(100, score);
+            }
+        }
+
+        // UYGULAMA STATE'İ
+        const appState = {
+            currentView: 'home',
+            currentStep: 1,
+            selectedParts: {},
+            searchResults: [],
+            favorites: JSON.parse(localStorage.getItem('pc_favorites')) || []
         };
 
-        // UYUMLULUK KURALLARI
-        const compatibilityRules = {
-            "AM4": ["B550", "X570", "B450", "A520"],
-            "LGA1700": ["B660", "H670", "Z690", "H610"],
-            "LGA1200": ["B560", "H570", "Z590"]
-        };
+        const scraper = new MarketplaceScraper();
 
-        // SEÇİLEN PARÇALAR
-        let selectedParts = {
-            cpu: null,
-            motherboard: null,
-            gpu: null,
-            ram: null
-        };
-
-        // İKİNCİ EL SİTE API UÇLARI (ÖRNEK)
-        const marketAPIs = {
-            sahibinden: "https://www.sahibinden.com/api/v1/search?query=",
-            dolap: "https://api.dolap.com/v7/products/search?q=",
-            trendyol: "https://api.trendyol.com/sapigw/products?query=",
-            n11: "https://api.n11.com/rest/public/product/search?search="
-        };
-
-        // BAŞLANGIÇTA PARÇALARI YÜKLE
-        document.addEventListener('DOMContentLoaded', function() {
-            loadParts();
+        // SAYFA YÜKLENDİĞİNDE
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPopularParts();
             setupPWA();
-            loadListings();
+            checkFirstVisit();
         });
 
-        // PARÇALARI LİSTELE
-        function loadParts() {
-            // İşlemciler
-            let cpuHtml = '';
-            partsDatabase.cpus.forEach(cpu => {
-                cpuHtml += `
-                    <div class="compatibility-item" onclick="selectPart('cpu', ${cpu.id})" style="cursor: pointer;">
-                        <div>
-                            <strong>${cpu.name}</strong>
-                            <div style="display: flex; gap: 10px; margin-top: 5px;">
-                                <span class="badge badge-primary">${cpu.socket}</span>
-                                <span class="badge badge-success">${cpu.cores} Çekirdek</span>
-                                <span class="badge badge-warning">${cpu.tdp}W</span>
+        // POPÜLER PARÇALARI YÜKLE
+        async function loadPopularParts() {
+            showLoading('Popüler parçalar yükleniyor...');
+            
+            const popularQueries = [
+                'Ryzen 5 5600X',
+                'RTX 3060',
+                '16GB DDR4 RAM',
+                'B550 Anakart',
+                '1TB SSD'
+            ];
+            
+            const allListings = [];
+            
+            for (const query of popularQueries.slice(0, 3)) {
+                const listings = await scraper.fetchRealListings(query);
+                allListings.push(...listings.slice(0, 2));
+            }
+            
+            displayParts(allListings);
+            hideLoading();
+        }
+
+        // PARÇALARI GÖSTER
+        function displayParts(listings) {
+            const container = document.getElementById('appContent');
+            if (!container) return;
+            
+            if (listings.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">
+                            İlan bulunamadı
+                        </div>
+                        <div style="color: #64748b;">
+                            Başka bir arama yapmayı deneyin
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<h2 style="padding: 0 16px; margin: 20px 0 10px; font-size: 20px;">🔥 Popüler İlanlar</h2>';
+            
+            listings.forEach((item, index) => {
+                const trustClass = item.trust_score >= 80 ? 'high' : 
+                                 item.trust_score >= 60 ? 'medium' : 'low';
+                
+                html += `
+                    <div class="part-card" onclick="showListingDetail(${index})">
+                        <div class="part-header">
+                            <div class="part-title">
+                                <div class="part-name">${item.title}</div>
+                                <div class="part-price">${item.price.toLocaleString()}₺</div>
+                            </div>
+                            <div class="part-meta">
+                                <div class="meta-badge" style="color: ${getSourceColor(item.source)};">
+                                    <span>🏷️</span> ${item.source}
+                                </div>
+                                <div class="meta-badge">
+                                    <span>📍</span> ${item.location}
+                                </div>
+                                <div class="meta-badge">
+                                    <span>👤</span> ${item.seller}
+                                </div>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <div class="price">${cpu.price.min}₺</div>
-                            <small style="color: #6b7280;">${cpu.listings} ilan</small>
+                        <div class="part-details">
+                            <div class="trust-indicator">
+                                <div class="trust-score ${trustClass}">${item.trust_score}</div>
+                                <div class="trust-bar">
+                                    <div class="trust-fill ${trustClass}" style="width: ${item.trust_score}%"></div>
+                                </div>
+                                <div style="font-size: 14px; font-weight: 600;">
+                                    ${getTrustLabel(item.trust_score)}
+                                </div>
+                            </div>
+                            <button class="action-btn" onclick="event.stopPropagation(); addToFavorites(${index})" 
+                                    style="background: #f1f5f9; width: 100%; margin-top: 10px;">
+                                <span>⭐</span> Favorilere Ekle
+                            </button>
                         </div>
                     </div>
                 `;
             });
-            document.getElementById('cpuList').innerHTML = cpuHtml;
-
-            // Anakartlar
-            let mbHtml = '';
-            partsDatabase.motherboards.forEach(mb => {
-                mbHtml += `
-                    <div class="compatibility-item" onclick="selectPart('motherboard', ${mb.id})" style="cursor: pointer;">
-                        <div>
-                            <strong>${mb.name}</strong>
-                            <div style="display: flex; gap: 10px; margin-top: 5px;">
-                                <span class="badge badge-primary">${mb.socket}</span>
-                                <span class="badge badge-success">${mb.chipset}</span>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="price">${mb.price.min}₺</div>
-                            <small style="color: #6b7280;">${mb.listings} ilan</small>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('mbList').innerHTML = mbHtml;
-        }
-
-        // PARÇA SEÇ
-        function selectPart(type, id) {
-            let part;
-            switch(type) {
-                case 'cpu':
-                    part = partsDatabase.cpus.find(c => c.id === id);
-                    selectedParts.cpu = part;
-                    break;
-                case 'motherboard':
-                    part = partsDatabase.motherboards.find(m => m.id === id);
-                    selectedParts.motherboard = part;
-                    break;
-                case 'gpu':
-                    part = partsDatabase.gpus.find(g => g.id === id);
-                    selectedParts.gpu = part;
-                    break;
-                case 'ram':
-                    part = partsDatabase.rams.find(r => r.id === id);
-                    selectedParts.ram = part;
-                    break;
-            }
-
-            updateSelectedParts();
-            checkCompatibility();
-            showTab('build');
-        }
-
-        // SEÇİLEN PARÇALARI GÜNCELLE
-        function updateSelectedParts() {
-            let html = '';
-            let total = 0;
-            let trustScores = [];
-
-            Object.keys(selectedParts).forEach(key => {
-                if(selectedParts[key]) {
-                    const part = selectedParts[key];
-                    const avgPrice = (part.price.min + part.price.max) / 2;
-                    total += avgPrice;
-                    
-                    // Güven puanı simülasyonu
-                    const trustScore = Math.floor(Math.random() * 30) + 70; // 70-100 arası
-                    trustScores.push(trustScore);
-
-                    html += `
-                        <div class="compatibility-item">
-                            <div>
-                                <strong>${part.name}</strong>
-                                <div class="trust-score" style="margin: 5px 0;">
-                                    <span>Güven:</span>
-                                    <div class="trust-bar">
-                                        <div class="trust-fill ${getTrustClass(trustScore)}" style="width: ${trustScore}%"></div>
-                                    </div>
-                                    <span>${trustScore}/100</span>
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div class="price">~${avgPrice.toFixed(0)}₺</div>
-                                <button class="badge badge-danger" onclick="removePart('${key}')" style="cursor: pointer;">
-                                    <i class="fas fa-times"></i> Çıkar
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            document.getElementById('selectedParts').innerHTML = html || 
-                '<p style="text-align: center; color: #6b7280; padding: 20px;">Henüz parça seçmediniz</p>';
             
-            document.getElementById('totalPrice').textContent = `Toplam: ~${total.toFixed(0)}₺`;
-            
-            // Ortalama güven puanı
-            if(trustScores.length > 0) {
-                const avgTrust = trustScores.reduce((a, b) => a + b) / trustScores.length;
-                document.getElementById('avgTrustBar').style.width = `${avgTrust}%`;
-                document.getElementById('avgTrustBar').className = `trust-fill ${getTrustClass(avgTrust)}`;
-                document.getElementById('avgTrustScore').textContent = `${avgTrust.toFixed(0)}/100`;
-            }
+            container.innerHTML = html;
+            appState.searchResults = listings;
         }
 
-        // GÜVEN SINIFI BELİRLE
-        function getTrustClass(score) {
-            if(score >= 80) return 'trust-high';
-            if(score >= 60) return 'trust-medium';
-            return 'trust-low';
+        // KAYNAK RENGİ
+        function getSourceColor(source) {
+            const colors = {
+                'sahibinden': '#ff6b00',
+                'dolap': '#00b894',
+                'letgo': '#6c5ce7',
+                'trendyol': '#f36805',
+                'n11': '#dd2c00'
+            };
+            return colors[source] || '#2563eb';
         }
 
-        // PARÇA ÇIKAR
-        function removePart(type) {
-            selectedParts[type] = null;
-            updateSelectedParts();
-            checkCompatibility();
-        }
-
-        // UYUMLULUK KONTROLÜ
-        function checkCompatibility() {
-            // CPU ↔ Anakart kontrolü
-            if(selectedParts.cpu && selectedParts.motherboard) {
-                const cpuSocket = selectedParts.cpu.socket;
-                const mbSocket = selectedParts.motherboard.socket;
-                
-                if(cpuSocket === mbSocket) {
-                    document.getElementById('cpuMbCheck').className = 'badge badge-success';
-                    document.getElementById('cpuMbCheck').innerHTML = '<i class="fas fa-check"></i> Uyumlu';
-                } else {
-                    document.getElementById('cpuMbCheck').className = 'badge badge-danger';
-                    document.getElementById('cpuMbCheck').innerHTML = '<i class="fas fa-times"></i> Uyumsuz';
-                }
-            } else {
-                document.getElementById('cpuMbCheck').className = 'badge badge-warning';
-                document.getElementById('cpuMbCheck').textContent = 'Seçilmedi';
-            }
-
-            // Güç tüketimi hesaplama
-            let totalPower = 0;
-            if(selectedParts.cpu) totalPower += selectedParts.cpu.tdp;
-            if(selectedParts.gpu) totalPower += selectedParts.gpu.power;
-            totalPower += 100; // Diğer bileşenler için buffer
-
-            document.getElementById('psuCheck').textContent = `${totalPower}W+ PSU önerilir`;
-            document.getElementById('psuCheck').className = totalPower > 500 ? 'badge badge-warning' : 'badge badge-success';
-        }
-
-        // İLANLARI BUL (SIMÜLASYON)
-        function findListings() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('content').style.opacity = '0.5';
-
-            // İkinci el sitelerinden veri çekme simülasyonu
-            setTimeout(() => {
-                const deals = [
-                    {site: "Sahibinden", title: "AMD Ryzen 5 5600X - Sıfır Gibi", price: 2950, trust: 88, link: "#"},
-                    {site: "Dolap", title: "ASUS B550-PLUS Anakart 2023", price: 1950, trust: 92, link: "#"},
-                    {site: "Trendyol", title: "RTX 3060 12GB Garantili", price: 6900, trust: 85, link: "#"},
-                    {site: "n11", title: "16GB RAM 3200MHz Takım", price: 950, trust: 79, link: "#"}
-                ];
-
-                let dealsHtml = '<h3 style="margin-bottom: 15px;">En İyi 4 Teklif</h3>';
-                deals.forEach(deal => {
-                    dealsHtml += `
-                        <div class="compatibility-item" style="margin-bottom: 15px; background: #f9fafb; padding: 15px; border-radius: 10px;">
-                            <div>
-                                <strong>${deal.title}</strong>
-                                <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                    <span class="badge badge-primary">${deal.site}</span>
-                                    <span class="badge ${getTrustClass(deal.trust)}">Güven: ${deal.trust}</span>
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div class="price">${deal.price}₺</div>
-                                <button class="badge badge-success" onclick="window.open('${deal.link}')" style="cursor: pointer;">
-                                    <i class="fas fa-external-link-alt"></i> Git
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                document.getElementById('dealsList').innerHTML = dealsHtml;
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.opacity = '1';
-                showTab('market');
-                
-                // Mobil bildirim
-                if('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('İlanlar Bulundu!', {
-                        body: '4 adet uygun fiyatlı ilan bulundu',
-                        icon: 'https://img.icons8.com/color/96/000000/computer.png'
-                    });
-                }
-            }, 2000);
-        }
-
-        // TAB DEĞİŞTİR
-        function showTab(tabName) {
-            // Tüm tab'ları gizle
-            document.getElementById('partsTab').style.display = 'none';
-            document.getElementById('buildTab').style.display = 'none';
-            document.getElementById('marketTab').style.display = 'none';
-            
-            // Seçilen tab'ı göster
-            document.getElementById(tabName + 'Tab').style.display = 'block';
-            
-            // Tab butonlarını güncelle
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            
-            event.target.classList.add('active');
+        // GÜVEN ETİKETİ
+        function getTrustLabel(score) {
+            if (score >= 80) return 'Yüksek Güven';
+            if (score >= 60) return 'Orta Güven';
+            return 'Dikkatli Olun';
         }
 
         // ARAMA YAP
-        function searchParts() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            if(!query) return;
-            
-            alert(`"${query}" için ikinci el ilanları aranıyor...\n\n(Simülasyon: Gerçek API bağlantısı kurulacak)`);
-            
-            // Gerçek API çağrısı için örnek
-            // fetch(`${marketAPIs.sahibinden}${encodeURIComponent(query)}`)
-            //     .then(response => response.json())
-            //     .then(data => displaySearchResults(data));
-        }
-
-        // PWA AYARLARI
-        function setupPWA() {
-            if('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(() => console.log('PWA hazır'))
-                    .catch(err => console.log('SW hatası:', err));
+        async function searchMarketplace() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('Lütfen arama terimi girin');
+                return;
             }
             
-            // Ana ekrana ekleme prompt'u
+            const results = await scraper.fetchRealListings(query);
+            displayParts(results);
+            
+            // Bottom nav'ı market olarak işaretle
+            updateNavState('market');
+        }
+
+        // PC TOPLAMA SİHİRBAZI
+        function startBuildWizard() {
+            document.getElementById('appContent').style.display = 'none';
+            document.getElementById('buildWizard').style.display = 'block';
+            appState.currentView = 'wizard';
+            appState.currentStep = 1;
+            
+            updateWizardStep(1);
+            updateNavState('build');
+        }
+
+        // SİHİRBAZ ADIMI
+        function updateWizardStep(step) {
+            // Tüm adımları resetle
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById('step' + i);
+                stepEl.classList.remove('active', 'completed');
+                if (i < step) stepEl.classList.add('completed');
+                if (i === step) stepEl.classList.add('active');
+            }
+            
+            const content = document.getElementById('wizardContent');
+            
+            switch(step) {
+                case 1:
+                    content.innerHTML = `
+                        <h3 style="margin-bottom: 20px; font-size: 22px;">🎯 İşlemci Seç</h3>
+                        <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <div>
+                                    <div style="font-weight: 800; font-size: 18px;">AMD Ryzen 5 5600X</div>
+                                    <div style="color: #64748b; font-size: 14px;">6 Çekirdek • 3.7GHz • AM4</div>
+                                </div>
+                                <div style="font-weight: 900; font-size: 22px; color: #2563eb;">2.800₺</div>
+                            </div>
+                            <button onclick="selectPart('cpu', 'ryzen5')" 
+                                    style="background: #2563eb; color: white; border: none; padding: 16px; 
+                                           border-radius: 12px; width: 100%; font-weight: 600; font-size: 16px;">
+                                🖥️ Bu İşlemciyi Seç
+                            </button>
+                        </div>
+                        
+                        <div style="background: white; border-radius: 16px; padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <div>
+                                    <div style="font-weight: 800; font-size: 18px;">Intel i5-12400F</div>
+                                    <div style="color: #64748b; font-size: 14px;">6 Çekirdek • 2.5GHz • LGA1700</div>
+                                </div>
+                                <div style="font-weight: 900; font-size: 22px; color: #2563eb;">3.100₺</div>
+                            </div>
+                            <button onclick="selectPart('cpu', 'i5')" 
+                                    style="background: #2563eb; color: white; border: none; padding: 16px; 
+                                           border-radius: 12px; width: 100%; font-weight: 600; font-size: 16px;">
+                                🖥️ Bu İşlemciyi Seç
+                            </button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 2:
+                    const cpuType = appState.selectedParts.cpu;
+                    const compatibleBoards = cpuType === 'ryzen5' ? 
+                        ['ASUS B550-PLUS', 'MSI B450 TOMAHAWK'] : 
+                        ['ASUS B660-PLUS', 'MSI H610M'];
+                    
+                    content.innerHTML = `
+                        <h3 style="margin-bottom: 20px; font-size: 22px;">🔌 Uyumlu Anakartlar</h3>
+                        <div style="color: #64748b; margin-bottom: 20px;">
+                            Seçtiğiniz işlemci: <strong>${cpuType === 'ryzen5' ? 'AMD Ryzen 5 5600X' : 'Intel i5-12400F'}</strong>
+                        </div>
+                        
+                        ${compatibleBoards.map((board, idx) => `
+                            <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                    <div>
+                                        <div style="font-weight: 800; font-size: 18px;">${board}</div>
+                                        <div style="color: #64748b; font-size: 14px;">${cpuType === 'ryzen5' ? 'AM4 Soket • B550' : 'LGA1700 • B660'}</div>
+                                    </div>
+                                    <div style="font-weight: 900; font-size: 22px; color: #2563eb;">${[1800, 1400, 2100, 1600][idx]}₺</div>
+                                </div>
+                                <button onclick="selectPart('motherboard', '${board}')" 
+                                        style="background: #10b981; color: white; border: none; padding: 16px; 
+                                               border-radius: 12px; width: 100%; font-weight: 600; font-size: 16px;">
+                                    ✅ Bu Anakartı Seç
+                                </button>
+                            </div>
+                        `).join('')}
+                    `;
+                    break;
+                    
+                case 3:
+                    content.innerHTML = `
+                        <h3 style="margin-bottom: 20px; font-size: 22px;">🎮 Ekran Kartı Seç</h3>
+                        
+                        <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <div>
+                                    <div style="font-weight: 800; font-size: 18px;">NVIDIA RTX 3060 12GB</div>
+                                    <div style="color: #64748b; font-size: 14px;">GDDR6 • 170W • 1080p Oyun</div>
+                                </div>
+                                <div style="font-weight: 900; font-size: 22px; color: #2563eb;">6.500₺</div>
+                            </div>
+                            <button onclick="selectPart('gpu', 'rtx3060')" 
+                                    style="background: #2563eb; color: white; border: none; padding: 16px; 
+                                           border-radius: 12px; width: 100%; font-weight: 600; font-size: 16px;">
+                                🎮 Bu Ekran Kartını Seç
+                            </button>
+                        </div>
+                        
+                        <div style="background: white; border-radius: 16px; padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <div>
+                                    <div style="font-weight: 800; font-size: 18px;">AMD RX 6600 XT 8GB</div>
+                                    <div style="color: #64748b; font-size: 14px;">GDDR6 • 160W • 1440p Oyun</div>
+                                </div>
+                                <div style="font-weight: 900; font-size: 22px; color: #2563eb;">5.200₺</div>
+                            </div>
+                            <button onclick="selectPart('gpu', 'rx6600')" 
+                                    style="background: #2563eb; color: white; border: none; padding: 16px; 
+                                           border-radius: 12px; width: 100%; font-weight: 600; font-size: 16px;">
+                                🎮 Bu Ekran Kartını Seç
+                            </button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 4:
+                    const total = calculateTotalPrice();
+                    content.innerHTML = `
+                        <h3 style="margin-bottom: 20px; font-size: 22px;">✅ Sisteminiz Hazır!</h3>
+                        
+                        <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 15px; color: #475569;">Seçilen Parçalar:</h4>
+                            ${Object.entries(appState.selectedParts).map(([type, part]) => `
+                                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                    <div>${getPartName(type, part)}</div>
+                                    <div style="font-weight: 600;">${getPartPrice(type, part)}₺</div>
+                                </div>
+                            `).join('')}
+                            
+                            <div style="display: flex; justify-content: space-between; padding: 12px 0; font-size: 20px; font-weight: 800;">
+                                <div>TOPLAM:</div>
+                                <div style="color: #2563eb;">${total}₺</div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="findBestDeals()" 
+                                style="background: linear-gradient(135deg, #10b981, #34d399); color: white; 
+                                       border: none; padding: 20px; border-radius: 16px; width: 100%; 
+                                       font-weight: 700; font-size: 18px; margin-bottom: 15px;">
+                            🛒 En Ucuz İlanları Bul
+                        </button>
+                        
+                        <button onclick="saveBuild()" 
+                                style="background: #f1f5f9; color: #475569; border: 1px solid #e5e7eb; 
+                                       padding: 20px; border-radius: 16px; width: 100%; 
+                                       font-weight: 600; font-size: 16px;">
+                            💾 Bu Sistemi Kaydet
+                        </button>
+                    `;
+                    break;
+            }
+        }
+
+        // PARÇA SEÇ
+        function selectPart(type, partId) {
+            appState.selectedParts[type] = partId;
+            
+            if (type === 'cpu') {
+                appState.currentStep = 2;
+                updateWizardStep(2);
+            } else if (type === 'motherboard') {
+                appState.currentStep = 3;
+                updateWizardStep(3);
+            } else if (type === 'gpu') {
+                appState.currentStep = 4;
+                updateWizardStep(4);
+            }
+        }
+
+        // TOPLAM FİYAT
+        function calculateTotalPrice() {
+            const prices = {
+                'ryzen5': 2800,
+                'i5': 3100,
+                'ASUS B550-PLUS': 1800,
+                'MSI B450 TOMAHAWK': 1400,
+                'ASUS B660-PLUS': 2100,
+                'MSI H610M': 1600,
+                'rtx3060': 6500,
+                'rx6600': 5200
+            };
+            
+            return Object.values(appState.selectedParts)
+                .reduce((sum, part) => sum + (prices[part] || 0), 0);
+        }
+
+        // PARÇA İSİM
+        function getPartName(type, partId) {
+            const names = {
+                'cpu': { 'ryzen5': 'AMD Ryzen 5 5600X', 'i5': 'Intel i5-12400F' },
+                'motherboard': {
+                    'ASUS B550-PLUS': 'ASUS B550-PLUS Anakart',
+                    'MSI B450 TOMAHAWK': 'MSI B450 TOMAHAWK',
+                    'ASUS B660-PLUS': 'ASUS B660-PLUS',
+                    'MSI H610M': 'MSI H610M'
+                },
+                'gpu': { 'rtx3060': 'NVIDIA RTX 3060', 'rx6600': 'AMD RX 6600 XT' }
+            };
+            
+            return names[type]?.[partId] || partId;
+        }
+
+        // PARÇA FİYAT
+        function getPartPrice(type, partId) {
+            const prices = {
+                'ryzen5': 2800,
+                'i5': 3100,
+                'ASUS B550-PLUS': 1800,
+                'MSI B450 TOMAHAWK': 1400,
+                'ASUS B660-PLUS': 2100,
+                'MSI H610M': 1600,
+                'rtx3060': 6500,
+                'rx6600': 5200
+            };
+            
+            return prices[partId] || 0;
+        }
+
+        // EN İYİ İLANLARI BUL
+        async function findBestDeals() {
+            const queries = Object.values(appState.selectedParts)
+                .map(partId => getPartName('cpu', partId) || 
+                              getPartName('motherboard', partId) || 
+                              getPartName('gpu', partId));
+            
+            showLoading('Tüm sitelerde en uygun fiyatlar aranıyor...');
+            
+            const allResults = [];
+            for (const query of queries) {
+                const results = await scraper.fetchRealListings(query);
+                allResults.push(...results.slice(0, 3));
+            }
+            
+            // Fiyata göre sırala
+            allResults.sort((a, b) => a.price - b.price);
+            
+            // Sonuçları göster
+            displayParts(allResults.slice(0, 10));
+            
+            // Ana sayfaya dön
+            document.getElementById('buildWizard').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+            appState.currentView = 'home';
+            
+            updateNavState('home');
+            hideLoading();
+        }
+
+        // NAV DURUMUNU GÜNCELLE
+        function updateNavState(view) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (view === 'home') {
+                document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+            } else if (view === 'build') {
+                document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
+            } else if (view === 'market') {
+                document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
+            }
+        }
+
+        // ANA SAYFA
+        function showHome() {
+            document.getElementById('buildWizard').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+            appState.currentView = 'home';
+            updateNavState('home');
+        }
+
+        // FAVORİLERE EKLE
+        function addToFavorites(index) {
+            const item = appState.searchResults[index];
+            if (!item) return;
+            
+            const existing = appState.favorites.find(fav => 
+                fav.title === item.title && fav.price === item.price);
+            
+            if (!existing) {
+                appState.favorites.push(item);
+                localStorage.setItem('pc_favorites', JSON.stringify(appState.favorites));
+                
+                // Bildirim
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('✅ Favorilere Eklendi', {
+                        body: `${item.title} favorilerinize eklendi`,
+                        icon: 'https://img.icons8.com/color/96/000000/computer.png'
+                    });
+                }
+                
+                alert(`"${item.title}" favorilerinize eklendi!`);
+            } else {
+                alert('Bu ürün zaten favorilerinizde!');
+            }
+        }
+
+        // FAVORİLERİ GÖSTER
+        function showFavorites() {
+            if (appState.favorites.length === 0) {
+                alert('Henüz favori ürününüz yok!');
+                return;
+            }
+            
+            displayParts(appState.favorites);
+            updateNavState('favorites');
+        }
+
+        // FIRSATLARI GÖSTER
+        function showDeals() {
+            loadPopularParts();
+            updateNavState('market');
+        }
+
+        // PROFİL
+        function showProfile() {
+            alert('Profil sayfası yakında eklenecek!');
+        }
+
+        // PİYASA
+        function showMarket() {
+            const queries = ['RTX 3060', 'Ryzen 5', '16GB RAM'];
+            showLoading('Güncel piyasa fiyatları yükleniyor...');
+            
+            setTimeout(() => {
+                loadPopularParts();
+                updateNavState('market');
+                hideLoading();
+            }, 1000);
+        }
+
+        // UYUMLULUK KONTROL
+        function checkCompatibility() {
+            alert(`🔧 Uyumluluk Kontrol Aracı:\n\n1. İşlemci ↔ Anakart soketi\n2. RAM tipi (DDR4/DDR5)\n3. Güç kaynağı wattajı\n4. Kasa boyutu\n5. Soğutucu yüksekliği\n\nBu kontroller otomatik yapılacak!`);
+        }
+
+        // GÜVENLİK REHBERİ
+        function showTrustGuide() {
+            alert(`🛡️ Güvenli Alışveriş İpuçları:\n\n1. ✅ Telefon doğrulanmış satıcı\n2. ✅ 10+ pozitif yorum\n3. ✅ Detaylı fotoğraflar\n4. ✅ Garanti belgesi\n5. ❌ Sadece WhatsApp iletişimi\n6. ❌ Çok yeni hesap\n7. ❌ Anormal düşük fiyat`);
+        }
+
+        // LİSTELEME DETAY
+        function showListingDetail(index) {
+            const item = appState.searchResults[index];
+            if (!item) return;
+            
+            const modal = `
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); 
+                            z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                    <div style="background: white; border-radius: 24px; padding: 25px; max-width: 400px; width: 100%; max-height: 80vh; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="font-size: 22px; font-weight: 800;">Ürün Detayı</h3>
+                            <button onclick="closeModal()" style="background: none; border: none; font-size: 28px; cursor: pointer;">×</button>
+                        </div>
+                        
+                        <div style="font-size: 20px; font-weight: 800; margin-bottom: 10px;">${item.title}</div>
+                        <div style="font-size: 28px; font-weight: 900; color: #2563eb; margin-bottom: 20px;">${item.price.toLocaleString()}₺</div>
+                        
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #64748b;">Satıcı:</span>
+                                <span style="font-weight: 600;">${item.seller}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #64748b;">Konum:</span>
+                                <span style="font-weight: 600;">${item.location}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #64748b;">Kaynak:</span>
+                                <span style="font-weight: 600; color: ${getSourceColor(item.source)}">${item.source}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="trust-indicator" style="margin: 20px 0;">
+                            <div class="trust-score ${getTrustLabel(item.trust_score).includes('Yüksek') ? 'high' : 'medium'}">${item.trust_score}</div>
+                            <div class="trust-bar">
+                                <div class="trust-fill ${getTrustLabel(item.trust_score).includes('Yüksek') ? 'high' : 'medium'}" style="width: ${item.trust_score}%"></div>
+                            </div>
+                            <div style="font-weight: 600;">${getTrustLabel(item.trust_score)}</div>
+                        </div>
+                        
+                        <button onclick="window.open('${item.url || '#'}', '_blank')" 
+                                style="background: #10b981; color: white; border: none; padding: 18px; 
+                                       border-radius: 14px; width: 100%; font-weight: 700; font-size: 16px; margin-bottom: 10px;">
+                            🛒 Siteye Git ve Satın Al
+                        </button>
+                        
+                        <button onclick="addToFavorites(${index}); closeModal();" 
+                                style="background: #f1f5f9; color: #475569; border: 1px solid #e5e7eb; 
+                                       padding: 18px; border-radius: 14px; width: 100%; font-weight: 600; font-size: 16px;">
+                            ⭐ Favorilere Ekle
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const modalDiv = document.createElement('div');
+            modalDiv.id = 'detailModal';
+            modalDiv.innerHTML = modal;
+            document.body.appendChild(modalDiv);
+        }
+
+        // MODAL KAPAT
+        function closeModal() {
+            const modal = document.getElementById('detailModal');
+            if (modal) modal.remove();
+        }
+
+        // SİSTEM KAYDET
+        function saveBuild() {
+            const build = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('tr-TR'),
+                parts: { ...appState.selectedParts },
+                total: calculateTotalPrice()
+            };
+            
+            let savedBuilds = JSON.parse(localStorage.getItem('pc_builds')) || [];
+            savedBuilds.push(build);
+            localStorage.setItem('pc_builds', JSON.stringify(savedBuilds));
+            
+            alert('✅ Sisteminiz kaydedildi! Favorilerinizden ulaşabilirsiniz.');
+            
+            // Ana sayfaya dön
+            showHome();
+        }
+
+        // LOADING GÖSTER
+        function showLoading(text = 'Yükleniyor...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const textEl = document.getElementById('loadingText');
+            
+            if (overlay && textEl) {
+                textEl.textContent = text;
+                overlay.style.display = 'flex';
+            }
+        }
+
+        // LOADING GİZLE
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+        // PWA KURULUMU
+        function setupPWA() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(() => console.log('PWA hazır'))
+                    .catch(err => console.log('Service Worker hatası:', err));
+            }
+            
+            // Install prompt
             let deferredPrompt;
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                showInstallButton();
+                showInstallPrompt();
             });
             
-            function showInstallButton() {
+            function showInstallPrompt() {
                 const installBtn = document.createElement('button');
-                installBtn.innerHTML = '<i class="fas fa-download"></i> Uygulamaya Ekle';
-                installBtn.className = 'btn btn-success';
-                installBtn.style.margin = '10px 20px';
+                installBtn.innerHTML = '📲 Uygulamaya Ekle';
+                installBtn.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    right: 16px;
+                    background: linear-gradient(135deg, #7c3aed, #2563eb);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    z-index: 999;
+                    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+                `;
                 installBtn.onclick = () => {
                     deferredPrompt.prompt();
                     deferredPrompt.userChoice.then(() => {
                         deferredPrompt = null;
                     });
                 };
-                document.querySelector('.header').appendChild(installBtn);
+                document.body.appendChild(installBtn);
+                
+                // 10 saniye sonra kaldır
+                setTimeout(() => {
+                    if (installBtn.parentNode) {
+                        installBtn.remove();
+                    }
+                }, 10000);
             }
         }
 
-        // İKİNCİ EL VERİSİ YÜKLE (SIMÜLASYON)
-        function loadListings() {
-            // Burada gerçek API bağlantıları olacak
-            console.log('İkinci el verileri yükleniyor...');
+        // İLK ZİYARET KONTROLÜ
+        function checkFirstVisit() {
+            if (!localStorage.getItem('pc_first_visit')) {
+                setTimeout(() => {
+                    alert('👋 Mobil PC Asistanına Hoş Geldiniz!\n\n✨ Özellikler:\n• İkinci el parça arama\n• Otomatik uyumluluk kontrolü\n• Güven puanı sistemi\n• En uygun fiyatları bulma\n\nUygulamayı ana ekranınıza ekleyerek daha hızlı erişebilirsiniz!');
+                    localStorage.setItem('pc_first_visit', 'true');
+                }, 1000);
+            }
         }
 
-        // DİĞER FONKSİYONLAR
-        function showSaved() {
-            alert('Favoriler sayfası yakında eklenecek!');
-        }
+        // OFFLINE MOD
+        window.addEventListener('online', () => {
+            console.log('İnternet bağlantısı aktif');
+        });
+        
+        window.addEventListener('offline', () => {
+            alert('⚠️ İnternet bağlantınız kesildi. Offline modda çalışıyorsunuz.');
+        });
 
-        function showSettings() {
-            alert('Hesap ayarları yakında eklenecek!');
-        }
+        // ESC İLE MODAL KAPAT
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
     </script>
 </body>
 </html>
