@@ -1,0 +1,31 @@
+{
+  "name": "Mobil PC Asistanı",
+  "short_name": "PC Asistan",
+  "description": "İkinci el PC parçaları ile bilgisayar toplama asistanı",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#007aff",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/96/000000/computer.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/144/000000/computer.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/192/000000/computer.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/000000/computer.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
