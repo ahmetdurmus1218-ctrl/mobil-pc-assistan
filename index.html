@@ -3,10 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobil PC Asistanı</title>
-    <link rel="manifest" href="/manifest.json">
+    <title>İkinci El PC Asistanı</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="https://img.icons8.com/color/96/000000/computer.png">
+    
+    <!-- FONT ve ICON -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* MOBİL FIRST CSS */
+        /* MOBİL FIRST TASARIM */
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -15,186 +30,274 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f7;
-            color: #1d1d1f;
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            color: var(--dark);
+            line-height: 1.6;
             padding-bottom: 80px;
-            overflow-x: hidden;
         }
         
         /* HEADER */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 16px;
+            background: white;
+            padding: 18px 20px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #e5e7eb;
         }
         
         .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        /* NAV BOTTOM */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            border-top: 1px solid #e5e5e7;
-            z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            color: #8e8e93;
-            flex: 1;
-            padding: 8px 0;
-        }
-        
-        .nav-item.active {
-            color: #007aff;
-        }
-        
-        .nav-icon {
             font-size: 22px;
-            font-weight: bold;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .nav-text {
-            font-size: 12px;
-            font-weight: 500;
+        .header h1 i {
+            color: var(--warning);
         }
         
-        /* CARD STYLES */
-        .card {
+        /* SEARCH */
+        .search-box {
+            margin: 20px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 16px 50px 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
             background: white;
-            margin: 16px;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease;
+            transition: all 0.3s;
         }
         
-        .card:active {
-            transform: scale(0.98);
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #1d1d1f;
-        }
-        
-        .card-desc {
-            font-size: 14px;
-            color: #8e8e93;
-            margin-bottom: 16px;
-            line-height: 1.5;
-        }
-        
-        /* BUTTON */
-        .btn {
-            background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+        .search-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 16px 24px;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
-            margin: 8px 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            transition: all 0.3s ease;
         }
         
-        .btn:active {
-            transform: translateY(2px);
-            opacity: 0.9;
+        /* TABS */
+        .tabs {
+            display: flex;
+            background: white;
+            margin: 0 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
-        /* COMPATIBILITY BADGE */
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            border: none;
+            background: none;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        /* CARD */
+        .card {
+            background: white;
+            margin: 20px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: var(--light);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* BADGE */
         .badge {
             display: inline-flex;
             align-items: center;
             padding: 6px 12px;
             border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: 600;
             margin-right: 8px;
             margin-bottom: 8px;
+            gap: 5px;
+        }
+        
+        .badge-primary {
+            background: #dbeafe;
+            color: var(--primary);
         }
         
         .badge-success {
-            background: #d4edda;
-            color: #155724;
+            background: #d1fae5;
+            color: var(--success);
         }
         
         .badge-warning {
-            background: #fff3cd;
-            color: #856404;
+            background: #fef3c7;
+            color: var(--warning);
         }
         
-        .badge-error {
-            background: #f8d7da;
-            color: #721c24;
+        .badge-danger {
+            background: #fee2e2;
+            color: var(--danger);
         }
         
-        /* SWIPE SECTION */
-        .swipe-container {
-            overflow-x: auto;
+        /* PRICE */
+        .price {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+            margin: 10px 0;
+        }
+        
+        .price-old {
+            font-size: 16px;
+            color: #9ca3af;
+            text-decoration: line-through;
+            margin-left: 10px;
+        }
+        
+        /* BUTTON */
+        .btn {
             display: flex;
-            padding: 0 16px;
-            gap: 12px;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 15px;
         }
         
-        .swipe-container::-webkit-scrollbar {
-            display: none;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
         }
         
-        .swipe-card {
-            flex: 0 0 280px;
-            scroll-snap-align: start;
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+        
+        .btn-outline {
             background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            color: var(--primary);
+            border: 2px solid var(--primary);
         }
+        
+        /* TRUST SCORE */
+        .trust-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .trust-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .trust-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        
+        .trust-high { background: var(--success); }
+        .trust-medium { background: var(--warning); }
+        .trust-low { background: var(--danger); }
         
         /* LOADING */
         .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #007aff;
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
         
         @keyframes spin {
@@ -202,215 +305,602 @@
             100% { transform: rotate(360deg); }
         }
         
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            padding: 12px 0;
+            border-top: 1px solid #e5e7eb;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #6b7280;
+            padding: 8px 0;
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        
+        /* COMPATIBILITY CHECK */
+        .compatibility-check {
+            background: #f0f9ff;
+            border: 2px solid #dbeafe;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px;
+        }
+        
+        .compatibility-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .compatibility-item:last-child {
+            border-bottom: none;
+        }
+        
         /* RESPONSIVE */
-        @media (max-width: 374px) {
-            .header h1 { font-size: 20px; }
-            .card { margin: 12px; padding: 16px; }
-            .btn { padding: 14px 20px; }
+        @media (max-width: 480px) {
+            .header, .search-box, .card, .tabs {
+                margin: 15px;
+            }
+            
+            .price {
+                font-size: 20px;
+            }
+            
+            .btn {
+                padding: 14px 20px;
+            }
+        }
+        
+        /* DARK MODE */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #111827;
+                color: #f9fafb;
+            }
+            
+            .header, .card, .tabs {
+                background: #1f2937;
+                border-color: #374151;
+            }
+            
+            .card-header {
+                background: #374151;
+            }
+            
+            .search-box input {
+                background: #374151;
+                border-color: #4b5563;
+                color: white;
+            }
         }
     </style>
 </head>
 <body>
     <!-- HEADER -->
     <div class="header">
-        <h1>📱 Mobil PC Asistanı</h1>
-        <p>İkinci el parçalarla PC topla • %100 Mobil</p>
+        <h1>
+            <i class="fas fa-desktop"></i>
+            İkinci El PC Asistanı
+        </h1>
+        <p style="font-size: 14px; color: #6b7280; margin-top: 5px;">
+            Uyumlu parçaları bul • Güvenli al • En uygun fiyat
+        </p>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div id="app">
-        <!-- ADIM 1: İŞLEMCİ SEÇ -->
-        <div class="card" id="step1">
-            <h2 class="card-title">1️⃣ İşlemci Seç</h2>
-            <p class="card-desc">AMD veya Intel işlemci seçerek başla</p>
-            
-            <div class="swipe-container">
-                <div class="swipe-card">
-                    <h3>AMD Ryzen 5 5600X</h3>
-                    <div class="badge badge-success">Uyumlu</div>
-                    <p>6 Çekirdek • 3.7GHz • 65W</p>
-                    <p><strong>İkinci el: 2.800₺</strong></p>
-                    <button onclick="selectCPU('ryzen5')" class="btn">✓ SEÇ</button>
+    <!-- SEARCH -->
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Parça ara (örn: RTX 3060, Ryzen 5...)">
+        <button class="search-btn" onclick="searchParts()">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('parts')">
+            <i class="fas fa-microchip"></i> Parçalar
+        </button>
+        <button class="tab" onclick="showTab('build')">
+            <i class="fas fa-tools"></i> PC Topla
+        </button>
+        <button class="tab" onclick="showTab('market')">
+            <i class="fas fa-store"></i> Piyasa
+        </button>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>İkinci el ilanları aranıyor...</p>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+        <!-- PARTS LIST -->
+        <div id="partsTab">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>🖥️ İşlemciler</span>
+                        <span class="badge badge-primary">24 ilan</span>
+                    </h2>
                 </div>
-                
-                <div class="swipe-card">
-                    <h3>Intel i5-12400F</h3>
-                    <div class="badge badge-success">Uyumlu</div>
-                    <p>6 Çekirdek • 2.5GHz • 65W</p>
-                    <p><strong>İkinci el: 3.100₺</strong></p>
-                    <button onclick="selectCPU('i5')" class="btn">✓ SEÇ</button>
+                <div class="card-body">
+                    <div id="cpuList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>🔌 Anakartlar</span>
+                        <span class="badge badge-primary">18 ilan</span>
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div id="mbList"></div>
                 </div>
             </div>
         </div>
 
-        <!-- ADIM 2: ANAKART -->
-        <div class="card" id="step2" style="display:none;">
-            <h2 class="card-title">2️⃣ Anakart Seç</h2>
-            <p class="card-desc">Seçtiğin işlemciye uygun anakartlar</p>
-            <div id="motherboard-list"></div>
-        </div>
+        <!-- BUILD TAB -->
+        <div id="buildTab" style="display: none;">
+            <div class="compatibility-check">
+                <h3 style="margin-bottom: 15px; color: var(--primary);">
+                    <i class="fas fa-check-circle"></i> Uyumluluk Kontrolü
+                </h3>
+                <div class="compatibility-item">
+                    <span>İşlemci ↔ Anakart</span>
+                    <span id="cpuMbCheck" class="badge badge-warning">Seçilmedi</span>
+                </div>
+                <div class="compatibility-item">
+                    <span>RAM ↔ Anakart</span>
+                    <span id="ramMbCheck" class="badge badge-warning">Seçilmedi</span>
+                </div>
+                <div class="compatibility-item">
+                    <span>Güç Kaynağı</span>
+                    <span id="psuCheck" class="badge badge-warning">Hesaplanıyor</span>
+                </div>
+            </div>
 
-        <!-- GÜVEN PUANI -->
-        <div class="card">
-            <h2 class="card-title">🛡️ Güven Puanı</h2>
-            <p class="card-desc">Satıcı ve ilan güvenilirliği</p>
-            
-            <div style="display:flex; align-items:center; gap:15px; margin:20px 0;">
-                <div style="font-size:48px; font-weight:bold; color:#007aff;">85</div>
-                <div>
-                    <div style="height:10px; background:#e5e5e7; border-radius:5px; width:200px; overflow:hidden;">
-                        <div style="height:100%; width:85%; background:linear-gradient(90deg, #34c759, #007aff);"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Seçilen Parçalar</h2>
+                </div>
+                <div class="card-body">
+                    <div id="selectedParts"></div>
+                    <div class="price" id="totalPrice">Toplam: 0₺</div>
+                    
+                    <div class="trust-score">
+                        <span>Ortalama Güven:</span>
+                        <div class="trust-bar">
+                            <div class="trust-fill trust-low" id="avgTrustBar" style="width: 0%"></div>
+                        </div>
+                        <span id="avgTrustScore">0/100</span>
                     </div>
-                    <p style="font-size:13px; color:#8e8e93; margin-top:5px;">Yüksek Güvenilirlik</p>
+                    
+                    <button class="btn btn-primary" onclick="findListings()">
+                        <i class="fas fa-shopping-cart"></i> İlanları Bul (5₺)
+                    </button>
                 </div>
             </div>
-            
-            <div class="badge badge-success">Telefon Doğrulu</div>
-            <div class="badge badge-success">10+ Satış</div>
-            <div class="badge badge-warning">Yeni Üye</div>
         </div>
 
-        <!-- HIZLI BAŞLANGIÇ -->
-        <div class="card">
-            <h2 class="card-title">🚀 Hızlı Başla</h2>
-            <button onclick="startWizard()" class="btn">
-                <span>🎮</span> Oyun PC'si Topla
-            </button>
-            <button onclick="startOffice()" class="btn" style="background:linear-gradient(135deg, #34c759 0%, #2ecc71 100%);">
-                <span>💼</span> Ofis Bilgisayarı
-            </button>
-            <button onclick="checkCompatibility()" class="btn" style="background:linear-gradient(135deg, #8e8e93 0%, #aeaeb2 100%);">
-                <span>🔧</span> Uyumluluk Kontrolü
-            </button>
+        <!-- MARKET TAB -->
+        <div id="marketTab" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-bolt"></i> Bugünün Fırsatları
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div id="dealsList"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- BOTTOM NAVIGATION -->
+    <!-- BOTTOM NAV -->
     <div class="bottom-nav">
-        <a href="#" class="nav-item active">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-text">Ana Sayfa</div>
+        <a href="#" class="nav-item active" onclick="showTab('parts')">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            Ana Sayfa
         </a>
-        <a href="#" class="nav-item">
-            <div class="nav-icon">🔧</div>
-            <div class="nav-text">PC Topla</div>
+        <a href="#" class="nav-item" onclick="showTab('build')">
+            <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
+            PC Topla
         </a>
-        <a href="#" class="nav-item">
-            <div class="nav-icon">🛒</div>
-            <div class="nav-text">Piyasa</div>
+        <a href="#" class="nav-item" onclick="showTab('market')">
+            <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+            Fiyatlar
         </a>
-        <a href="#" class="nav-item">
-            <div class="nav-icon">⭐</div>
-            <div class="nav-text">Favoriler</div>
+        <a href="#" class="nav-item" onclick="showSaved()">
+            <div class="nav-icon"><i class="fas fa-heart"></i></div>
+            Favoriler
         </a>
-        <a href="#" class="nav-item">
-            <div class="nav-icon">⚙️</div>
-            <div class="nav-text">Ayarlar</div>
+        <a href="#" class="nav-item" onclick="showSettings()">
+            <div class="nav-icon"><i class="fas fa-user"></i></div>
+            Hesap
         </a>
     </div>
 
     <script>
-        // UYUMLULUK VERİSİ
-        const compatibilityData = {
-            ryzen5: {
-                socket: "AM4",
-                compatible: ["B550", "X570", "B450"],
-                incompatible: ["Intel soketler"],
-                motherboards: [
-                    { name: "ASUS TUF B550-PLUS", price: "1.800₺", trust: 88 },
-                    { name: "MSI B450 TOMAHAWK", price: "1.400₺", trust: 82 },
-                    { name: "Gigabyte X570 AORUS", price: "2.200₺", trust: 91 }
-                ]
-            },
-            i5: {
-                socket: "LGA1700",
-                compatible: ["B660", "H670", "Z690"],
-                incompatible: ["AMD soketler"],
-                motherboards: [
-                    { name: "ASUS PRIME B660-PLUS", price: "2.100₺", trust: 85 },
-                    { name: "MSI PRO H610M", price: "1.600₺", trust: 79 },
-                    { name: "Gigabyte Z690 UD", price: "2.800₺", trust: 90 }
-                ]
-            }
+        // VERİTABANI - İKİNCİ EL PARÇALAR
+        const partsDatabase = {
+            cpus: [
+                {id: 1, name: "AMD Ryzen 5 5600X", socket: "AM4", tdp: 65, cores: 6, price: {min: 2800, max: 3200}, listings: 12},
+                {id: 2, name: "Intel i5-12400F", socket: "LGA1700", tdp: 65, cores: 6, price: {min: 3100, max: 3500}, listings: 8},
+                {id: 3, name: "AMD Ryzen 7 5800X3D", socket: "AM4", tdp: 105, cores: 8, price: {min: 5200, max: 5800}, listings: 5},
+                {id: 4, name: "Intel i3-12100F", socket: "LGA1700", tdp: 58, cores: 4, price: {min: 1800, max: 2200}, listings: 15}
+            ],
+            motherboards: [
+                {id: 101, name: "ASUS TUF B550-PLUS", socket: "AM4", chipset: "B550", price: {min: 1800, max: 2200}, listings: 7},
+                {id: 102, name: "MSI PRO B660M-A", socket: "LGA1700", chipset: "B660", price: {min: 2100, max: 2500}, listings: 6},
+                {id: 103, name: "Gigabyte B450 AORUS", socket: "AM4", chipset: "B450", price: {min: 1200, max: 1500}, listings: 10}
+            ],
+            gpus: [
+                {id: 201, name: "NVIDIA RTX 3060 12GB", vram: 12, power: 170, price: {min: 6500, max: 7500}, listings: 9},
+                {id: 202, name: "AMD RX 6600 XT 8GB", vram: 8, power: 160, price: {min: 5200, max: 6000}, listings: 7}
+            ],
+            rams: [
+                {id: 301, name: "Corsair Vengeance 16GB (2x8) 3200MHz", speed: 3200, size: 16, price: {min: 900, max: 1100}, listings: 14}
+            ]
         };
 
-        // JAVASCRIPT FONKSİYONLARI
-        let selectedCPU = null;
+        // UYUMLULUK KURALLARI
+        const compatibilityRules = {
+            "AM4": ["B550", "X570", "B450", "A520"],
+            "LGA1700": ["B660", "H670", "Z690", "H610"],
+            "LGA1200": ["B560", "H570", "Z590"]
+        };
 
-        function selectCPU(cpuType) {
-            selectedCPU = cpuType;
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-            
-            const mbList = document.getElementById('motherboard-list');
-            mbList.innerHTML = '';
-            
-            compatibilityData[cpuType].motherboards.forEach(mb => {
-                mbList.innerHTML += `
-                    <div style="background:#f8f9fa; border-radius:12px; padding:15px; margin:10px 0;">
-                        <h3 style="margin-bottom:8px;">${mb.name}</h3>
-                        <div class="badge ${mb.trust > 85 ? 'badge-success' : 'badge-warning'}">
-                            Güven: ${mb.trust}/100
+        // SEÇİLEN PARÇALAR
+        let selectedParts = {
+            cpu: null,
+            motherboard: null,
+            gpu: null,
+            ram: null
+        };
+
+        // İKİNCİ EL SİTE API UÇLARI (ÖRNEK)
+        const marketAPIs = {
+            sahibinden: "https://www.sahibinden.com/api/v1/search?query=",
+            dolap: "https://api.dolap.com/v7/products/search?q=",
+            trendyol: "https://api.trendyol.com/sapigw/products?query=",
+            n11: "https://api.n11.com/rest/public/product/search?search="
+        };
+
+        // BAŞLANGIÇTA PARÇALARI YÜKLE
+        document.addEventListener('DOMContentLoaded', function() {
+            loadParts();
+            setupPWA();
+            loadListings();
+        });
+
+        // PARÇALARI LİSTELE
+        function loadParts() {
+            // İşlemciler
+            let cpuHtml = '';
+            partsDatabase.cpus.forEach(cpu => {
+                cpuHtml += `
+                    <div class="compatibility-item" onclick="selectPart('cpu', ${cpu.id})" style="cursor: pointer;">
+                        <div>
+                            <strong>${cpu.name}</strong>
+                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                <span class="badge badge-primary">${cpu.socket}</span>
+                                <span class="badge badge-success">${cpu.cores} Çekirdek</span>
+                                <span class="badge badge-warning">${cpu.tdp}W</span>
+                            </div>
                         </div>
-                        <p style="margin:8px 0;"><strong>Fiyat: ${mb.price}</strong></p>
-                        <button onclick="selectMotherboard('${mb.name}')" class="btn" style="padding:12px;">
-                            🛒 Bu Anakartı Seç
-                        </button>
+                        <div style="text-align: right;">
+                            <div class="price">${cpu.price.min}₺</div>
+                            <small style="color: #6b7280;">${cpu.listings} ilan</small>
+                        </div>
                     </div>
                 `;
             });
-            
-            // Mobilde yukarı kaydır
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+            document.getElementById('cpuList').innerHTML = cpuHtml;
 
-        function selectMotherboard(mbName) {
-            alert(`✅ Seçildi: ${mbName}\n\nBir sonraki adım: Ekran Kartı seçimi`);
-            // Burada sonraki adıma geçilecek
-        }
-
-        function startWizard() {
-            alert("🎮 Oyun PC'si sihirbazı başlatılıyor...\nÖnerilen bütçe: 5.000-8.000₺");
-            // Sihirbaz başlatma kodu
-        }
-
-        function startOffice() {
-            alert("💼 Ofis bilgisayarı sihirbazı başlatılıyor...\nÖnerilen bütçe: 2.000-3.500₺");
-        }
-
-        function checkCompatibility() {
-            alert("🔧 Uyumluluk kontrolü:\n1. İşlemci ↔ Anakart soketi\n2. RAM tipi\n3. Güç kaynağı watt\n4. Kasa boyutu");
-        }
-
-        // PWA YÜKLEME
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(() => console.log('PWA hazır'))
-                    .catch(err => console.log('PWA hatası:', err));
+            // Anakartlar
+            let mbHtml = '';
+            partsDatabase.motherboards.forEach(mb => {
+                mbHtml += `
+                    <div class="compatibility-item" onclick="selectPart('motherboard', ${mb.id})" style="cursor: pointer;">
+                        <div>
+                            <strong>${mb.name}</strong>
+                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                <span class="badge badge-primary">${mb.socket}</span>
+                                <span class="badge badge-success">${mb.chipset}</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="price">${mb.price.min}₺</div>
+                            <small style="color: #6b7280;">${mb.listings} ilan</small>
+                        </div>
+                    </div>
+                `;
             });
+            document.getElementById('mbList').innerHTML = mbHtml;
         }
 
-        // OFFLINE MOD
-        window.addEventListener('offline', () => {
-            alert('⚠️ İnternet bağlantısı yok. Offline modda çalışıyorsunuz.');
-        });
-
-        // MOBİL DOKUNMA OLAYLARI
-        let touchStartY = 0;
-        
-        document.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-        });
-
-        document.addEventListener('touchend', (e) => {
-            const touchEndY = e.changedTouches[0].clientY;
-            const diff = touchStartY - touchEndY;
-            
-            if (Math.abs(diff) > 50) {
-                // Kaydırma işlemleri
+        // PARÇA SEÇ
+        function selectPart(type, id) {
+            let part;
+            switch(type) {
+                case 'cpu':
+                    part = partsDatabase.cpus.find(c => c.id === id);
+                    selectedParts.cpu = part;
+                    break;
+                case 'motherboard':
+                    part = partsDatabase.motherboards.find(m => m.id === id);
+                    selectedParts.motherboard = part;
+                    break;
+                case 'gpu':
+                    part = partsDatabase.gpus.find(g => g.id === id);
+                    selectedParts.gpu = part;
+                    break;
+                case 'ram':
+                    part = partsDatabase.rams.find(r => r.id === id);
+                    selectedParts.ram = part;
+                    break;
             }
-        });
+
+            updateSelectedParts();
+            checkCompatibility();
+            showTab('build');
+        }
+
+        // SEÇİLEN PARÇALARI GÜNCELLE
+        function updateSelectedParts() {
+            let html = '';
+            let total = 0;
+            let trustScores = [];
+
+            Object.keys(selectedParts).forEach(key => {
+                if(selectedParts[key]) {
+                    const part = selectedParts[key];
+                    const avgPrice = (part.price.min + part.price.max) / 2;
+                    total += avgPrice;
+                    
+                    // Güven puanı simülasyonu
+                    const trustScore = Math.floor(Math.random() * 30) + 70; // 70-100 arası
+                    trustScores.push(trustScore);
+
+                    html += `
+                        <div class="compatibility-item">
+                            <div>
+                                <strong>${part.name}</strong>
+                                <div class="trust-score" style="margin: 5px 0;">
+                                    <span>Güven:</span>
+                                    <div class="trust-bar">
+                                        <div class="trust-fill ${getTrustClass(trustScore)}" style="width: ${trustScore}%"></div>
+                                    </div>
+                                    <span>${trustScore}/100</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="price">~${avgPrice.toFixed(0)}₺</div>
+                                <button class="badge badge-danger" onclick="removePart('${key}')" style="cursor: pointer;">
+                                    <i class="fas fa-times"></i> Çıkar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('selectedParts').innerHTML = html || 
+                '<p style="text-align: center; color: #6b7280; padding: 20px;">Henüz parça seçmediniz</p>';
+            
+            document.getElementById('totalPrice').textContent = `Toplam: ~${total.toFixed(0)}₺`;
+            
+            // Ortalama güven puanı
+            if(trustScores.length > 0) {
+                const avgTrust = trustScores.reduce((a, b) => a + b) / trustScores.length;
+                document.getElementById('avgTrustBar').style.width = `${avgTrust}%`;
+                document.getElementById('avgTrustBar').className = `trust-fill ${getTrustClass(avgTrust)}`;
+                document.getElementById('avgTrustScore').textContent = `${avgTrust.toFixed(0)}/100`;
+            }
+        }
+
+        // GÜVEN SINIFI BELİRLE
+        function getTrustClass(score) {
+            if(score >= 80) return 'trust-high';
+            if(score >= 60) return 'trust-medium';
+            return 'trust-low';
+        }
+
+        // PARÇA ÇIKAR
+        function removePart(type) {
+            selectedParts[type] = null;
+            updateSelectedParts();
+            checkCompatibility();
+        }
+
+        // UYUMLULUK KONTROLÜ
+        function checkCompatibility() {
+            // CPU ↔ Anakart kontrolü
+            if(selectedParts.cpu && selectedParts.motherboard) {
+                const cpuSocket = selectedParts.cpu.socket;
+                const mbSocket = selectedParts.motherboard.socket;
+                
+                if(cpuSocket === mbSocket) {
+                    document.getElementById('cpuMbCheck').className = 'badge badge-success';
+                    document.getElementById('cpuMbCheck').innerHTML = '<i class="fas fa-check"></i> Uyumlu';
+                } else {
+                    document.getElementById('cpuMbCheck').className = 'badge badge-danger';
+                    document.getElementById('cpuMbCheck').innerHTML = '<i class="fas fa-times"></i> Uyumsuz';
+                }
+            } else {
+                document.getElementById('cpuMbCheck').className = 'badge badge-warning';
+                document.getElementById('cpuMbCheck').textContent = 'Seçilmedi';
+            }
+
+            // Güç tüketimi hesaplama
+            let totalPower = 0;
+            if(selectedParts.cpu) totalPower += selectedParts.cpu.tdp;
+            if(selectedParts.gpu) totalPower += selectedParts.gpu.power;
+            totalPower += 100; // Diğer bileşenler için buffer
+
+            document.getElementById('psuCheck').textContent = `${totalPower}W+ PSU önerilir`;
+            document.getElementById('psuCheck').className = totalPower > 500 ? 'badge badge-warning' : 'badge badge-success';
+        }
+
+        // İLANLARI BUL (SIMÜLASYON)
+        function findListings() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.opacity = '0.5';
+
+            // İkinci el sitelerinden veri çekme simülasyonu
+            setTimeout(() => {
+                const deals = [
+                    {site: "Sahibinden", title: "AMD Ryzen 5 5600X - Sıfır Gibi", price: 2950, trust: 88, link: "#"},
+                    {site: "Dolap", title: "ASUS B550-PLUS Anakart 2023", price: 1950, trust: 92, link: "#"},
+                    {site: "Trendyol", title: "RTX 3060 12GB Garantili", price: 6900, trust: 85, link: "#"},
+                    {site: "n11", title: "16GB RAM 3200MHz Takım", price: 950, trust: 79, link: "#"}
+                ];
+
+                let dealsHtml = '<h3 style="margin-bottom: 15px;">En İyi 4 Teklif</h3>';
+                deals.forEach(deal => {
+                    dealsHtml += `
+                        <div class="compatibility-item" style="margin-bottom: 15px; background: #f9fafb; padding: 15px; border-radius: 10px;">
+                            <div>
+                                <strong>${deal.title}</strong>
+                                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                                    <span class="badge badge-primary">${deal.site}</span>
+                                    <span class="badge ${getTrustClass(deal.trust)}">Güven: ${deal.trust}</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="price">${deal.price}₺</div>
+                                <button class="badge badge-success" onclick="window.open('${deal.link}')" style="cursor: pointer;">
+                                    <i class="fas fa-external-link-alt"></i> Git
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('dealsList').innerHTML = dealsHtml;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.opacity = '1';
+                showTab('market');
+                
+                // Mobil bildirim
+                if('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('İlanlar Bulundu!', {
+                        body: '4 adet uygun fiyatlı ilan bulundu',
+                        icon: 'https://img.icons8.com/color/96/000000/computer.png'
+                    });
+                }
+            }, 2000);
+        }
+
+        // TAB DEĞİŞTİR
+        function showTab(tabName) {
+            // Tüm tab'ları gizle
+            document.getElementById('partsTab').style.display = 'none';
+            document.getElementById('buildTab').style.display = 'none';
+            document.getElementById('marketTab').style.display = 'none';
+            
+            // Seçilen tab'ı göster
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+            
+            // Tab butonlarını güncelle
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+        }
+
+        // ARAMA YAP
+        function searchParts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if(!query) return;
+            
+            alert(`"${query}" için ikinci el ilanları aranıyor...\n\n(Simülasyon: Gerçek API bağlantısı kurulacak)`);
+            
+            // Gerçek API çağrısı için örnek
+            // fetch(`${marketAPIs.sahibinden}${encodeURIComponent(query)}`)
+            //     .then(response => response.json())
+            //     .then(data => displaySearchResults(data));
+        }
+
+        // PWA AYARLARI
+        function setupPWA() {
+            if('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(() => console.log('PWA hazır'))
+                    .catch(err => console.log('SW hatası:', err));
+            }
+            
+            // Ana ekrana ekleme prompt'u
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showInstallButton();
+            });
+            
+            function showInstallButton() {
+                const installBtn = document.createElement('button');
+                installBtn.innerHTML = '<i class="fas fa-download"></i> Uygulamaya Ekle';
+                installBtn.className = 'btn btn-success';
+                installBtn.style.margin = '10px 20px';
+                installBtn.onclick = () => {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(() => {
+                        deferredPrompt = null;
+                    });
+                };
+                document.querySelector('.header').appendChild(installBtn);
+            }
+        }
+
+        // İKİNCİ EL VERİSİ YÜKLE (SIMÜLASYON)
+        function loadListings() {
+            // Burada gerçek API bağlantıları olacak
+            console.log('İkinci el verileri yükleniyor...');
+        }
+
+        // DİĞER FONKSİYONLAR
+        function showSaved() {
+            alert('Favoriler sayfası yakında eklenecek!');
+        }
+
+        function showSettings() {
+            alert('Hesap ayarları yakında eklenecek!');
+        }
     </script>
 </body>
 </html>
