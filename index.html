@@ -1,739 +1,315 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🛒 İkinciEl FiyatTakip - Otomatik Site Arama</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* MOBİL UYUMLU STİLLER */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; color: #333; }
-        
-        .container { max-width: 100%; padding: 15px; }
-        
-        /* Header */
-        .header { text-align: center; color: white; padding: 20px 15px; }
-        .header h1 { font-size: 1.6rem; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 0.9rem; }
-        
-        /* Arama Çubuğu */
-        .search-bar { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 20px; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .search-input-group { display: flex; margin-bottom: 15px; }
-        #mainSearch { flex: 1; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px 0 0 10px; font-size: 16px; }
-        #searchButton { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; border: none; padding: 0 25px; border-radius: 0 10px 10px 0; font-weight: bold; cursor: pointer; }
-        
-        /* Site Arama Butonları */
-        .site-search-buttons { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
-        @media (min-width: 768px) { .site-search-buttons { grid-template-columns: repeat(3, 1fr); } }
-        
-        .site-search-btn { background: white; border: 2px solid transparent; border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; }
-        .site-search-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .site-search-btn.sahibinden { border-color: #ff6b35; }
-        .site-search-btn.dolap { border-color: #00a8ff; }
-        .site-search-btn.letgo { border-color: #9c27b0; }
-        
-        .site-icon { font-size: 30px; margin-bottom: 10px; }
-        .site-search-btn.sahibinden .site-icon { color: #ff6b35; }
-        .site-search-btn.dolap .site-icon { color: #00a8ff; }
-        .site-search-btn.letgo .site-icon { color: #9c27b0; }
-        
-        .site-name { font-weight: bold; margin-bottom: 5px; }
-        .site-desc { font-size: 0.85rem; color: #666; }
-        
-        /* Hızlı Aramalar */
-        .quick-searches { margin: 20px 0; }
-        .quick-search-title { color: white; margin-bottom: 15px; font-size: 1.1rem; text-align: center; }
-        .quick-search-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .quick-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 10px 15px; border-radius: 20px; font-size: 14px; cursor: pointer; backdrop-filter: blur(10px); }
-        
-        /* Sekmeler */
-        .tabs { display: flex; background: rgba(255, 255, 255, 0.95); border-radius: 15px; overflow: hidden; margin: 15px 0; }
-        .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; border-bottom: 3px solid transparent; }
-        .tab.active { border-bottom: 3px solid #6a11cb; font-weight: bold; color: #6a11cb; background: white; }
-        
-        /* İçerik */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        /* Ürün Ekleme Formu */
-        .add-product-form { background: white; border-radius: 15px; padding: 20px; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
-        .form-group textarea { height: 100px; resize: vertical; }
-        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { flex: 1; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .btn-primary { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; }
-        .btn-secondary { background: #f5f5f5; color: #333; }
-        
-        /* Ürün Listesi */
-        .products-container { background: white; border-radius: 15px; padding: 20px; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .product-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .product-title { font-weight: 600; color: #333; font-size: 16px; }
-        .product-price { font-size: 1.3rem; font-weight: 700; color: #00b894; }
-        .product-meta { font-size: 0.85rem; color: #666; margin-bottom: 10px; }
-        .product-source { display: inline-block; background: #eee; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; }
-        .product-actions { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-small { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; }
-        .btn-view { background: #2575fc; color: white; text-decoration: none; }
-        .btn-remove { background: #ffebee; color: #c62828; }
-        
-        /* Sepet */
-        .cart-container { background: white; border-radius: 15px; padding: 20px; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .cart-item:last-child { border-bottom: none; }
-        .cart-item-title { flex: 1; }
-        .cart-item-price { font-weight: bold; color: #6a11cb; }
-        .cart-total { text-align: right; margin-top: 15px; padding-top: 15px; border-top: 2px solid #eee; font-size: 1.3rem; font-weight: bold; color: #333; }
-        
-        /* Mesajlar */
-        .message { padding: 15px; border-radius: 10px; margin: 10px 0; text-align: center; display: none; }
-        .message.success { background: #e8f5e9; color: #2e7d32; }
-        .message.error { background: #ffebee; color: #c62828; }
-        .message.info { background: #e3f2fd; color: #1565c0; }
-        
-        /* Arama Geçmişi */
-        .search-history { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 20px; margin: 15px 0; display: none; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .history-item:last-child { border-bottom: none; }
-        .history-query { font-weight: 500; }
-        .history-actions button { background: none; border: none; color: #2575fc; cursor: pointer; }
-        
-        /* Footer */
-        .footer { text-align: center; color: white; padding: 20px; margin-top: 20px; font-size: 0.85rem; opacity: 0.8; }
-        
-        /* Kopyala Butonu */
-        .copy-btn { background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>FiyatTakip - Akıllı Fiyat Karşılaştırma</title>
+  <meta name="description" content="Trendyol, Hepsiburada, n11, Amazon, Sahibinden ve daha fazlasında fiyat karşılaştırma">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
-<body>
-    <div class="container">
-        <!-- Başlık -->
-        <div class="header">
-            <h1><i class="fas fa-search-dollar"></i> İkinciEl FiyatTakip</h1>
-            <p>FiyatTakip gibi ama ikinci el sitelerinde! • Otomatik site açma</p>
-        </div>
-        
-        <!-- Ana Arama -->
-        <div class="search-bar">
-            <div class="search-input-group">
-                <input type="text" id="mainSearch" placeholder="Örn: iPhone 13, RTX 3060, Samsung TV..." autocomplete="off">
-                <button id="searchButton"><i class="fas fa-search"></i></button>
-            </div>
-            
-            <p style="text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 15px;">
-                Ürün adını yaz, sitelerde otomatik ara!
-            </p>
-            
-            <!-- Site Arama Butonları -->
-            <div class="site-search-buttons">
-                <div class="site-search-btn sahibinden" data-site="sahibinden">
-                    <div class="site-icon"><i class="fas fa-store"></i></div>
-                    <div class="site-name">Sahibinden'de Ara</div>
-                    <div class="site-desc">Türkiye'nin en büyüğü</div>
-                </div>
-                
-                <div class="site-search-btn dolap" data-site="dolap">
-                    <div class="site-icon"><i class="fas fa-shopping-bag"></i></div>
-                    <div class="site-name">Dolap'ta Ara</div>
-                    <div class="site-desc">Giyim, elektronik</div>
-                </div>
-                
-                <div class="site-search-btn letgo" data-site="letgo">
-                    <div class="site-icon"><i class="fas fa-bolt"></i></div>
-                    <div class="site-name">Letgo'da Ara</div>
-                    <div class="site-desc">Yerel ilanlar</div>
-                </div>
-            </div>
-            
-            <!-- Tüm Sitelerde Ara Butonu -->
-            <button id="searchAllSites" style="width: 100%; margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #00b09b, #96c93d); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">
-                <i class="fas fa-rocket"></i> TÜM SİTELERDE ARA (3 Sekme Açılır)
-            </button>
-        </div>
-        
-        <!-- Hızlı Aramalar -->
-        <div class="quick-searches">
-            <div class="quick-search-title">⚡ Hızlı Aramalar</div>
-            <div class="quick-search-buttons">
-                <button class="quick-btn" data-query="iphone 13">📱 iPhone 13</button>
-                <button class="quick-btn" data-query="rtx 3060">🎮 RTX 3060</button>
-                <button class="quick-btn" data-query="macbook air">💻 MacBook</button>
-                <button class="quick-btn" data-query="samsung tv">📺 TV</button>
-                <button class="quick-btn" data-query="ps5">🎮 PS5</button>
-                <button class="quick-btn" data-query="buzdolabı">🧊 Buzdolabı</button>
-            </div>
-        </div>
-        
-        <!-- Arama Geçmişi -->
-        <div class="search-history" id="searchHistory">
-            <h3 style="margin-bottom: 15px; color: #333;"><i class="fas fa-history"></i> Arama Geçmişi</h3>
-            <div id="historyList"></div>
-        </div>
-        
-        <!-- Mesaj Alanı -->
-        <div id="message" class="message"></div>
-        
-        <!-- Sekmeler -->
-        <div class="tabs">
-            <div class="tab active" data-tab="add">➕ Ürün Ekle</div>
-            <div class="tab" data-tab="products">📦 Ürünlerim</div>
-            <div class="tab" data-tab="cart">🛒 Sepetim</div>
-        </div>
-        
-        <!-- 1. ÜRÜN EKLEME SEKmesi -->
-        <div id="tab-add" class="tab-content active">
-            <div class="add-product-form">
-                <h3 style="margin-bottom: 20px; color: #333;">📋 Bulduğun Ürünü Ekle</h3>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-heading"></i> Ürün Adı</label>
-                    <input type="text" id="productTitle" placeholder="Siteden bulduğun ürün adını yaz">
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-tag"></i> Fiyat (TL)</label>
-                    <input type="number" id="productPrice" placeholder="Sitedeki fiyatı yaz">
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-link"></i> Ürün Linki</label>
-                    <div style="display: flex; gap: 10px;">
-                        <textarea id="productLink" placeholder="Siteden kopyaladığın linki yapıştır"></textarea>
-                        <button class="copy-btn" onclick="pasteFromClipboard()" title="Panodan yapıştır">
-                            <i class="fas fa-paste"></i>
-                        </button>
-                    </div>
-                    <small style="color: #666; display: block; margin-top: 5px;">
-                        <i class="fas fa-lightbulb"></i> İpucu: Siteyi aç → Ürünü bul → Linki kopyala → Buraya yapıştır
-                    </small>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-store"></i> Site</label>
-                    <select id="productSource">
-                        <option value="sahibinden">Sahibinden</option>
-                        <option value="dolap">Dolap</option>
-                        <option value="letgo">Letgo</option>
-                    </select>
-                </div>
-                
-                <div class="form-actions">
-                    <button class="btn btn-secondary" onclick="clearForm()">
-                        <i class="fas fa-eraser"></i> Temizle
-                    </button>
-                    <button class="btn btn-primary" onclick="addProduct()">
-                        <i class="fas fa-plus-circle"></i> Ürün Ekle
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 2. ÜRÜNLERİM SEKmesi -->
-        <div id="tab-products" class="tab-content">
-            <div class="products-container">
-                <h3 style="margin-bottom: 15px; color: #333;">📦 Eklediğim Ürünler</h3>
-                <div id="productsList">
-                    <p id="noProductsMessage" style="text-align: center; color: #999; padding: 20px;">
-                        Henüz ürün eklemediniz. Önce arama yapın, ürün bulun, sonra ekleyin.
-                    </p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 3. SEPETİM SEKmesi -->
-        <div id="tab-cart" class="tab-content">
-            <div class="cart-container">
-                <h3 style="margin-bottom: 15px; color: #333;">🛒 Sepetim</h3>
-                <div id="cartItems">
-                    <p id="emptyCartMessage" style="text-align: center; color: #999; padding: 20px;">
-                        Sepetiniz boş. Ürün ekleyip sepete ekleyin.
-                    </p>
-                </div>
-                <div id="cartTotal" class="cart-total"></div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" onclick="clearCart()" style="flex: 1;">
-                        <i class="fas fa-trash"></i> Sepeti Temizle
-                    </button>
-                    <button class="btn btn-primary" onclick="checkout()" style="flex: 2;">
-                        <i class="fas fa-shopping-cart"></i> SEPETİ TAMAMLA (Demo)
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p><i class="fas fa-mobile-alt"></i> Tam Mobil Uyumlu • <i class="fas fa-external-link-alt"></i> Otomatik Site Açma</p>
-            <p style="font-size: 0.8rem; margin-top: 5px;">FiyatTakip gibi ama ikinci el için • Backend gerekmez</p>
-        </div>
-    </div>
 
-    <!-- JavaScript -->
-    <script>
-        // ==================== VERİ DEPOLAMA ====================
-        let myProducts = JSON.parse(localStorage.getItem('myProducts')) || [];
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
-        
-        // ==================== SİTE ARAMA URL'LERİ ====================
-        const SITE_URLS = {
-            sahibinden: (query) => `https://www.sahibinden.com/arama?query=${encodeURIComponent(query)}&sorting=price_asc`,
-            dolap: (query) => `https://dolap.com/ara?q=${encodeURIComponent(query).replace(/%20/g, '+')}`,
-            letgo: (query) => `https://www.letgo.com/tr-tr/arama?q=${encodeURIComponent(query).replace(/%20/g, '+')}`
-        };
-        
-        // ==================== SAYFA YÜKLENİNCE ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            // Ana arama butonu
-            document.getElementById('searchButton').addEventListener('click', performSearch);
-            document.getElementById('mainSearch').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') performSearch();
-            });
-            
-            // Tüm sitelerde ara butonu
-            document.getElementById('searchAllSites').addEventListener('click', function() {
-                const query = document.getElementById('mainSearch').value.trim();
-                if (query) searchAllSites(query);
-            });
-            
-            // Site arama butonları
-            document.querySelectorAll('.site-search-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const site = this.getAttribute('data-site');
-                    const query = document.getElementById('mainSearch').value.trim();
-                    if (query) searchOnSite(site, query);
-                });
-            });
-            
-            // Hızlı arama butonları
-            document.querySelectorAll('.quick-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const query = this.getAttribute('data-query');
-                    document.getElementById('mainSearch').value = query;
-                    searchAllSites(query);
-                });
-            });
-            
-            // Sekme değiştirme
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    document.getElementById(`tab-${tabId}`).classList.add('active');
-                    
-                    if (tabId === 'products') loadProducts();
-                    if (tabId === 'cart') loadCart();
-                });
-            });
-            
-            // İlk yükleme
-            loadProducts();
-            loadCart();
-            loadSearchHistory();
-            
-            console.log('🚀 İkinciEl FiyatTakip hazır!');
-        });
-        
-        // ==================== ANA ARAMA FONKSİYONU ====================
-        function performSearch() {
-            const query = document.getElementById('mainSearch').value.trim();
-            
-            if (!query) {
-                showMessage('Lütfen bir ürün adı yazın!', 'error');
-                return;
-            }
-            
-            // Arama geçmişine ekle
-            addToSearchHistory(query);
-            
-            // Bilgi mesajı göster
-            showMessage(`"${query}" aranıyor... Site butonlarına tıklayın!`, 'info');
-            
-            // Arama geçmişini göster
-            document.getElementById('searchHistory').style.display = 'block';
-        }
-        
-        // ==================== TEK SİTEDE ARA ====================
-        function searchOnSite(site, query) {
-            const url = SITE_URLS[site](query);
-            const siteNames = {
-                sahibinden: 'Sahibinden',
-                dolap: 'Dolap',
-                letgo: 'Letgo'
-            };
-            
-            // Yeni sekmede aç
-            window.open(url, '_blank');
-            
-            // Mesaj göster
-            showMessage(`${siteNames[site]} açıldı: "${query}"`, 'success');
-            
-            // Ürün ekleme formunu hazırla
-            document.getElementById('productTitle').value = query;
-            document.querySelector(`[data-tab="add"]`).click();
-        }
-        
-        // ==================== TÜM SİTELERDE ARA ====================
-        function searchAllSites(query) {
-            if (!query) {
-                showMessage('Lütfen bir ürün adı yazın!', 'error');
-                return;
-            }
-            
-            // Arama geçmişine ekle
-            addToSearchHistory(query);
-            
-            // 3 siteyi de yeni sekmede aç
-            window.open(SITE_URLS.sahibinden(query), '_blank');
-            window.open(SITE_URLS.dolap(query), '_blank');
-            window.open(SITE_URLS.letgo(query), '_blank');
-            
-            // Mesaj göster
-            showMessage(`3 sitede de "${query}" aranıyor... Yeni sekmeler açıldı!`, 'success');
-            
-            // Ürün ekleme formunu hazırla
-            document.getElementById('productTitle').value = query;
-            document.querySelector(`[data-tab="add"]`).click();
-            
-            // Mobilde uyarı
-            if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                setTimeout(() => {
-                    showMessage('📱 İpucu: Siteyi aç → Ürün bul → Linki kopyala → "Ürün Ekle" yap', 'info');
-                }, 2000);
-            }
-        }
-        
-        // ==================== ARAMA GEÇMİŞİ ====================
-        function addToSearchHistory(query) {
-            // Aynı sorguyu tekrar ekleme
-            if (searchHistory.includes(query.toLowerCase())) return;
-            
-            // En fazla 10 kayıt
-            searchHistory.unshift(query);
-            if (searchHistory.length > 10) {
-                searchHistory.pop();
-            }
-            
-            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-            loadSearchHistory();
-        }
-        
-        function loadSearchHistory() {
-            const container = document.getElementById('historyList');
-            
-            if (searchHistory.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #999;">Henüz arama yapmadınız</p>';
-                document.getElementById('searchHistory').style.display = 'none';
-                return;
-            }
-            
-            let html = '';
-            searchHistory.forEach(query => {
-                html += `
-                    <div class="history-item">
-                        <span class="history-query">${query}</span>
-                        <div class="history-actions">
-                            <button onclick="searchAllSites('${query}')" title="Tüm sitelerde ara">
-                                <i class="fas fa-search"></i>
-                            </button>
-                            <button onclick="useSearchQuery('${query}')" title="Arama kutusuna yaz">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            document.getElementById('searchHistory').style.display = 'block';
-        }
-        
-        function useSearchQuery(query) {
-            document.getElementById('mainSearch').value = query;
-            document.getElementById('mainSearch').focus();
-        }
-        
-        // ==================== ÜRÜN EKLEME ====================
-        function addProduct() {
-            const title = document.getElementById('productTitle').value.trim();
-            const price = document.getElementById('productPrice').value;
-            const link = document.getElementById('productLink').value.trim();
-            const source = document.getElementById('productSource').value;
-            
-            if (!title || !price || !link) {
-                showMessage('Lütfen tüm alanları doldurun!', 'error');
-                return;
-            }
-            
-            const product = {
-                id: Date.now(),
-                title: title,
-                price: parseInt(price),
-                formattedPrice: parseInt(price).toLocaleString('tr-TR') + ' TL',
-                link: link,
-                source: source,
-                date: new Date().toLocaleDateString('tr-TR'),
-                addedAt: new Date().toISOString()
-            };
-            
-            myProducts.push(product);
-            saveProducts();
-            
-            clearForm();
-            showMessage(`✅ "${title}" başarıyla eklendi!`, 'success');
-            
-            // Ürünler sekmesine geç
-            setTimeout(() => {
-                document.querySelector('[data-tab="products"]').click();
-            }, 1000);
-        }
-        
-        // ==================== PANODAN YAPIŞTIR ====================
-        async function pasteFromClipboard() {
-            try {
-                const text = await navigator.clipboard.readText();
-                document.getElementById('productLink').value = text;
-                showMessage('Link panodan yapıştırıldı!', 'success');
-            } catch (error) {
-                showMessage('Panodan okunamadı. Linki manuel yapıştırın.', 'error');
-            }
-        }
-        
-        // ==================== DİĞER FONKSİYONLAR ====================
-        function clearForm() {
-            document.getElementById('productTitle').value = '';
-            document.getElementById('productPrice').value = '';
-            document.getElementById('productLink').value = '';
-            document.getElementById('productSource').selectedIndex = 0;
-        }
-        
-        function showMessage(text, type) {
-            const messageEl = document.getElementById('message');
-            messageEl.textContent = text;
-            messageEl.className = `message ${type}`;
-            messageEl.style.display = 'block';
-            
-            setTimeout(() => {
-                messageEl.style.display = 'none';
-            }, 3000);
-        }
-        
-        // (Önceki loadProducts, loadCart, toggleCart, removeProduct, clearCart, checkout fonksiyonları aynı kalacak)
-        // Bu kısımları önceki koddan kopyala...
-        
-        function loadProducts() {
-            const container = document.getElementById('productsList');
-            if (myProducts.length === 0) {
-                container.innerHTML = '<p id="noProductsMessage" style="text-align: center; color: #999; padding: 20px;">Henüz ürün eklemediniz. Önce arama yapın, ürün bulun, sonra ekleyin.</p>';
-                return;
-            }
-            
-            const grouped = {
-                sahibinden: myProducts.filter(p => p.source === 'sahibinden'),
-                dolap: myProducts.filter(p => p.source === 'dolap'),
-                letgo: myProducts.filter(p => p.source === 'letgo')
-            };
-            
-            let html = '';
-            
-            if (grouped.sahibinden.length > 0) {
-                html += `<h4 style="margin: 15px 0 10px 0; color: #555;"><i class="fas fa-store" style="color: #ff6b35;"></i> Sahibinden (${grouped.sahibinden.length})</h4>`;
-                grouped.sahibinden.forEach(product => {
-                    html += createProductCard(product);
-                });
-            }
-            
-            if (grouped.dolap.length > 0) {
-                html += `<h4 style="margin: 15px 0 10px 0; color: #555;"><i class="fas fa-shopping-bag" style="color: #00a8ff;"></i> Dolap (${grouped.dolap.length})</h4>`;
-                grouped.dolap.forEach(product => {
-                    html += createProductCard(product);
-                });
-            }
-            
-            if (grouped.letgo.length > 0) {
-                html += `<h4 style="margin: 15px 0 10px 0; color: #555;"><i class="fas fa-bolt" style="color: #9c27b0;"></i> Letgo (${grouped.letgo.length})</h4>`;
-                grouped.letgo.forEach(product => {
-                    html += createProductCard(product);
-                });
-            }
-            
-            container.innerHTML = html;
-        }
-        
-        function createProductCard(product) {
-            const borderColors = {
-                sahibinden: '#ff6b35',
-                dolap: '#00a8ff',
-                letgo: '#9c27b0'
-            };
-            
-            const inCart = cart.some(item => item.id === product.id);
-            
-            return `
-                <div class="product-card" style="border-color: ${borderColors[product.source]};">
-                    <div class="product-header">
-                        <div class="product-title">${product.title}</div>
-                        <div class="product-price">${product.formattedPrice}</div>
-                    </div>
-                    <div class="product-meta">
-                        <i class="far fa-calendar"></i> ${product.date}
-                    </div>
-                    <span class="product-source">${product.source.toUpperCase()}</span>
-                    <div class="product-actions">
-                        <a href="${product.link}" target="_blank" class="btn-small btn-view">
-                            <i class="fas fa-external-link-alt"></i> İlana Git
-                        </a>
-                        <button class="btn-small ${inCart ? 'btn-remove' : 'btn-secondary'}" onclick="toggleCart(${product.id})">
-                            <i class="fas ${inCart ? 'fa-trash' : 'fa-cart-plus'}"></i> ${inCart ? 'Sepetten Çıkar' : 'Sepete Ekle'}
-                        </button>
-                        <button class="btn-small" onclick="removeProduct(${product.id})" style="background: #ffebee; color: #c62828;">
-                            <i class="fas fa-times"></i> Sil
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function loadCart() {
-            const container = document.getElementById('cartItems');
-            const totalEl = document.getElementById('cartTotal');
-            
-            if (cart.length === 0) {
-                container.innerHTML = '<p id="emptyCartMessage" style="text-align: center; color: #999; padding: 20px;">Sepetiniz boş. Ürün ekleyip sepete ekleyin.</p>';
-                totalEl.innerHTML = '';
-                return;
-            }
-            
-            let html = '';
-            let total = 0;
-            
-            cart.forEach(item => {
-                total += item.price;
-                html += `
-                    <div class="cart-item">
-                        <div class="cart-item-title">${item.title}</div>
-                        <div class="cart-item-price">${item.formattedPrice}</div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            totalEl.innerHTML = `Toplam: <span style="color: #6a11cb;">${total.toLocaleString('tr-TR')} TL</span>`;
-        }
-        
-        function toggleCart(productId) {
-            const product = myProducts.find(p => p.id === productId);
-            const existingIndex = cart.findIndex(item => item.id === productId);
-            
-            if (existingIndex > -1) {
-                cart.splice(existingIndex, 1);
-                showMessage(`"${product.title}" sepetten çıkarıldı`, 'success');
-            } else {
-                cart.push(product);
-                showMessage(`"${product.title}" sepete eklendi`, 'success');
-            }
-            
-            saveCart();
-            loadProducts();
-            loadCart();
-        }
-        
-        function removeProduct(productId) {
-            if (confirm('Bu ürünü silmek istediğinize emin misiniz?')) {
-                myProducts = myProducts.filter(p => p.id !== productId);
-                cart = cart.filter(item => item.id !== productId);
-                
-                saveProducts();
-                saveCart();
-                loadProducts();
-                loadCart();
-                
-                showMessage('Ürün silindi', 'success');
-            }
-        }
-        
-        function clearCart() {
-            if (cart.length === 0) {
-                showMessage('Sepet zaten boş!', 'error');
-                return;
-            }
-            
-            if (confirm('Sepeti tamamen temizlemek istediğinize emin misiniz?')) {
-                cart = [];
-                saveCart();
-                loadProducts();
-                loadCart();
-                showMessage('Sepet temizlendi', 'success');
-            }
-        }
-        
-        function checkout() {
-            if (cart.length === 0) {
-                showMessage('Sepetiniz boş!', 'error');
-                return;
-            }
-            
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
-            showMessage(`✅ Demo Satın Alma: ${cart.length} ürün • Toplam ${total.toLocaleString('tr-TR')} TL`, 'success');
-            
-            // Sepeti temizle
-            setTimeout(() => {
-                cart = [];
-                saveCart();
-                loadCart();
-            }, 2000);
-        }
-        
-        function saveProducts() {
-            localStorage.setItem('myProducts', JSON.stringify(myProducts));
-        }
-        
-        function saveCart() {
-            localStorage.setItem('cart', JSON.stringify(cart));
-        }
-        
-        // ==================== ÖRNEK VERİ EKLE ====================
-        function addSampleData() {
-            if (myProducts.length > 0) return;
-            
-            const samples = [
-                {
-                    id: 1,
-                    title: "iPhone 13 128GB Siyah",
-                    price: 18500,
-                    formattedPrice: "18.500 TL",
-                    link: "https://www.sahibinden.com/iphone-13-128gb",
-                    source: "sahibinden",
-                    date: "Bugün"
-                },
-                {
-                    id: 2,
-                    title: "NVIDIA RTX 3060 12GB",
-                    price: 8500,
-                    formattedPrice: "8.500 TL",
-                    link: "https://dolap.com/rtx-3060-12gb",
-                    source: "dolap",
-                    date: "Dün"
-                }
-            ];
-            
-            myProducts = samples;
-            saveProducts();
-            loadProducts();
-            showMessage('Örnek veriler eklendi. Kendi ürünlerini ekleyebilirsin!', 'success');
-        }
-        
-        // Sayfa açıldığında örnek veri ekle (isteğe bağlı)
-        setTimeout(addSampleData, 1000);
-    </script>
+<body>
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="modalWrap" aria-hidden="true">
+    <div class="modalBack" id="loginBackdrop"></div>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="Giriş">
+      <div class="modalTop">
+        <div class="modalTitle">Giriş Yap</div>
+        <button id="closeLogin" class="iconBtn" type="button" aria-label="Kapat">✕</button>
+      </div>
+
+      <div class="authTabs">
+        <button id="tabLogin" class="btnGhost sm isActive" type="button">Giriş</button>
+        <button id="tabRegister" class="btnGhost sm" type="button">Kayıt</button>
+      </div>
+
+      <div class="authTools">
+        <button id="btnClearCache" class="btnGhost sm" type="button">🧹 Temizle</button>
+      </div>
+
+      <div id="loginPane" class="authPane">
+        <label class="lbl">E-posta</label>
+        <input id="loginEmail" type="email" autocomplete="email" placeholder="ornek@mail.com" />
+        <label class="lbl">Şifre</label>
+        <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••" />
+        <div class="row">
+          <button id="btnLogin" class="btnPrimary" type="button">Giriş Yap</button>
+          <button id="btnGoogleLogin" class="btnGhost" type="button">Google ile</button>
+        </div>
+      </div>
+
+      <div id="registerPane" class="authPane hidden">
+        <label class="lbl">E-posta</label>
+        <input id="regEmail" type="email" autocomplete="email" placeholder="ornek@mail.com" />
+        <label class="lbl">Şifre</label>
+        <input id="regPass" type="password" autocomplete="new-password" placeholder="en az 6 karakter" />
+        <label class="lbl">Şifre (Tekrar)</label>
+        <input id="regPass2" type="password" autocomplete="new-password" placeholder="şifreyi tekrar yaz" />
+        <div class="row">
+          <button id="btnRegister" class="btnPrimary" type="button">Kayıt Ol</button>
+          <button id="btnGoogleLogin2" class="btnGhost" type="button">Google ile</button>
+        </div>
+        <div class="mini muted">Kayıt olunca otomatik giriş yapılır.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="appShell">
+    <!-- TOP HEADER -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logoDot"></div>
+        <div class="brandText">FiyatTakip</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <!-- Sepet butonu otomatik eklenecek -->
+        <button id="btnBell" class="iconBtn" type="button" aria-label="Bildirim">🔔</button>
+      </div>
+    </header>
+
+    <!-- PAGES -->
+    <main class="pages">
+      <!-- HOME -->
+      <section id="page-home" class="page active">
+        <div class="searchCard">
+          <div class="searchRow">
+            <span class="sIcon">🔎</span>
+            <input id="qNormal" placeholder="Ürün ve mağaza ara…" />
+            <button id="btnMic" class="iconBtn" type="button" aria-label="Ses">🎙️</button>
+          </div>
+
+          <!-- Arama Modu Toggle -->
+          <div class="modeToggle" id="modeToggle">
+            <button class="modeBtn active" id="modeNormal" type="button">🔗 Link</button>
+            <button class="modeBtn" id="modeFiyat" type="button">💰 Fiyat</button>
+            <button class="modeBtn" id="modeAI" type="button">🤖 AI</button>
+          </div>
+          <div class="modeHint" id="modeHint">Link modu: Sadece arama linkleri oluşturur</div>
+
+          <button id="btnNormal" class="btnPrimary full" type="button">Ara</button>
+        </div>
+
+        <!-- Banner -->
+        <div class="banner">
+          <div class="bannerLeft">🛍️</div>
+          <div class="bannerMid">
+            <div class="bannerTitle">İkinci El + Yeni Ürünler</div>
+            <div class="bannerSub">Trendyol, Hepsiburada, Sahibinden, Dolap, Letgo</div>
+          </div>
+          <div class="bannerRight">💰</div>
+        </div>
+
+        <!-- Hızlı Aramalar -->
+        <div class="quickSearches">
+          <h3>Hızlı Aramalar</h3>
+          <div class="quickTags">
+            <span class="quickTag" data-query="iphone 15">📱 iPhone</span>
+            <span class="quickTag" data-query="airpods">🎧 AirPods</span>
+            <span class="quickTag" data-query="nike ayakkabı">👟 Nike</span>
+            <span class="quickTag" data-query="televizyon">📺 TV</span>
+            <span class="quickTag" data-query="laptop">💻 Laptop</span>
+            <span class="quickTag" data-query="playstation 5">🎮 PS5</span>
+          </div>
+        </div>
+
+        <!-- Son Aramalar -->
+        <div class="recentSearchesCard">
+          <h3>Son Aramalar</h3>
+          <div class="recentList" id="recentList"></div>
+        </div>
+      </section>
+
+      <!-- SEARCH RESULTS -->
+      <section id="page-search" class="page">
+        <div class="pageHead">
+          <div class="pageTitle">Sonuçlar</div>
+          <button id="btnClearSearch" class="btnGhost" type="button">Temizle</button>
+        </div>
+        <div id="normalList" class="list">
+          <!-- Fiyat sonuçları buraya eklenecek -->
+        </div>
+      </section>
+
+      <!-- GRAFİK SAYFASI -->
+      <section id="page-graph" class="page">
+        <div class="pageHead">
+          <div class="pageTitle">📊 Grafik</div>
+          <button id="btnGraphRefresh" class="btnGhost" type="button">Yenile</button>
+        </div>
+        <div class="miniHint">Favorilerinin fiyat geçmişi burada görünecek.</div>
+        <div id="graphRoot" class="cardBox">Grafik alanı</div>
+      </section>
+
+      <!-- FAVORITES -->
+      <section id="page-favs" class="page">
+        <div class="pageHead">
+          <div class="pageTitle">Favoriler</div>
+          <button id="btnFavRefresh" class="btnGhost" type="button">Yenile</button>
+        </div>
+        <div id="favList" class="list"></div>
+      </section>
+
+      <!-- SEPET SAYFASI - YENİ EKLENDİ -->
+      <section id="page-cart" class="page">
+        <div class="pageHead">
+          <div class="pageTitle">🛒 Sepetim</div>
+          <button class="btnGhost" onclick="clearCart()">Temizle</button>
+        </div>
+        <div id="cartList" class="list">
+          <!-- Sepet içeriği buraya eklenecek -->
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="page-settings" class="page">
+        <div class="pageHead">
+          <div class="pageTitle">Ayarlar</div>
+        </div>
+
+        <div class="cardBox">
+          <div class="rowBetween">
+            <div>
+              <div class="cardTitle">API Ayarları</div>
+              <div class="miniHint">Fiyat API URL'si</div>
+            </div>
+            <button id="btnApiSettings" class="btnPrimary" type="button">Düzenle</button>
+          </div>
+        </div>
+
+        <div class="cardBox">
+          <div class="rowBetween">
+            <div>
+              <div class="cardTitle">🤖 AI Sistemi</div>
+              <div class="miniHint">Hugging Face AI aktif - Favorilerde AI butonuna tıkla!</div>
+            </div>
+            <button id="btnAiSettings" class="btnPrimary" type="button" style="background:linear-gradient(135deg, #7c5cff, #36d399);">Aktif</button>
+          </div>
+        </div>
+
+        <div class="cardBox">
+          <div class="rowBetween">
+            <div>
+              <div class="cardTitle">Hesap</div>
+              <div class="miniHint">Çıkış yap</div>
+            </div>
+            <button id="logoutBtn" class="btnGhost" type="button">Çıkış</button>
+          </div>
+        </div>
+
+        <div class="miniHint">Cache sorunlarında: Site verilerini temizle / PWA'yı kaldır-ekle.</div>
+      </section>
+    </main>
+
+    <!-- TABBAR - 5 SEKMELİ (Sepet Eklendi) -->
+    <nav class="tabbar" aria-label="Alt Menü">
+      <button class="tab active" type="button" data-page="home">
+        <span class="ico">🏠</span><span class="lbl">Ana</span>
+      </button>
+
+      <button class="tab" type="button" data-page="graph">
+        <span class="ico">📊</span><span class="lbl">Grafik</span>
+      </button>
+
+      <!-- ORTADA KAMERA BUTONU -->
+      <div class="tabSpacer" aria-hidden="true"></div>
+
+      <button class="tab" type="button" data-page="favs">
+        <span class="ico">❤️</span><span class="lbl">Fav</span>
+      </button>
+
+      <!-- SEPET SEKMESİ - YENİ EKLENDİ -->
+      <button class="tab" type="button" data-page="cart">
+        <span class="ico">🛒</span><span class="lbl">Sepet</span>
+      </button>
+
+      <button class="tab" type="button" data-page="settings">
+        <span class="ico">⚙️</span><span class="lbl">Ayar</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- TOAST MESAJ -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- API AYARLARI MODAL -->
+  <div id="apiModal" class="modalWrap" aria-hidden="true">
+    <div class="modalBack" id="apiBackdrop"></div>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="API Ayarları">
+      <div class="modalTop">
+        <div class="modalTitle">API Ayarları</div>
+        <button id="closeApi" class="iconBtn" type="button" aria-label="Kapat">✕</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="row">
+          <label class="lbl">API URL</label>
+          <input id="apiUrl" class="input inputDark" type="text" placeholder="https://fiyattakip-api.onrender.com" />
+        </div>
+
+        <div class="row">
+          <label class="lbl">API Durumu</label>
+          <div id="apiStatus" class="apiStatus offline">Bağlantı yok</div>
+        </div>
+
+        <div class="row">
+          <button id="btnTestApi" class="btnGhost" type="button">Test Et</button>
+          <button id="btnSaveApi" class="btnPrimary" type="button">Kaydet</button>
+        </div>
+
+        <div class="mini muted">Render.com'dan aldığın API URL'sini buraya yapıştır.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI AYARLARI MODAL -->
+  <div id="aiModal" class="modalWrap" aria-hidden="true">
+    <div class="modalBack" id="aiBackdrop"></div>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="AI Ayarları">
+      <div class="modalTop">
+        <div class="modalTitle">🤖 AI Ayarları</div>
+        <button id="closeAi" class="iconBtn" type="button" aria-label="Kapat">✕</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="row">
+          <label class="lbl">AI Durumu</label>
+          <select id="aiEnabled" class="input inputDark">
+            <option value="on">Aktif</option>
+            <option value="off">Pasif</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="lbl">AI Sağlayıcı</label>
+          <select id="aiProvider" class="input inputDark">
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI</option>
+            <option value="huggingface">Hugging Face</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="lbl">API Anahtarı (Opsiyonel)</label>
+          <input id="aiApiKey" class="input inputDark" type="password" placeholder="API anahtarınız" />
+        </div>
+
+        <div class="row">
+          <button id="btnSaveAI" class="btnPrimary" type="button">Kaydet</button>
+        </div>
+
+        <div class="mini muted">Varsayılan: Hugging Face ücretsiz API</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
