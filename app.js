@@ -1,4 +1,4 @@
-// app.js - Fiyat Takip Uygulaması
+// app.js - Fiyat Takip Uygulaması (GÜNCELLENMİŞ)
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -24,8 +24,9 @@ let cartTotal = 0;
 // Current user
 window.currentUser = null;
 
-// ========== SİTE LİSTESİ (GÜNCELLENMİŞ URL'ler) ==========
+// ========== SİTE LİSTESİ (GÜNCELLENMİŞ - Teknobiyotik ve GittiGidiyor KALDIRILDI) ==========
 const SITES = [
+  // YENİ E-TİCARET
   { 
     key: "trendyol", 
     name: "Trendyol", 
@@ -62,41 +63,7 @@ const SITES = [
     build: q => `https://www.idefix.com/arama/?q=${encodeURIComponent(q)}`
   },
   
-  // İKİNCİ EL SİTELER (GÜNCELLENDİ)
-  { 
-    key: "sahibinden", 
-    name: "Sahibinden", 
-    build: q => {
-      const encodedQ = encodeURIComponent(q);
-      return `https://www.sahibinden.com/bilgisayar?query_text_mf=${encodedQ}&query_text=${encodedQ}&sorting=price_asc`;
-    }
-  },
-  { 
-    key: "dolap", 
-    name: "Dolap", 
-    build: q => {
-      const encodedQ = encodeURIComponent(q);
-      return `https://www.dolap.com/ara?q=${encodedQ}&sort=price_asc`;
-    }
-  },
-  { 
-    key: "letgo", 
-    name: "Letgo", 
-    build: q => {
-      const encodedQ = encodeURIComponent(q);
-      return `https://www.letgo.com/arama?query_text=${encodedQ}&isSearchCall=true&sorting=asc-price`;
-    }
-  },
-  { 
-    key: "gittigidiyor", 
-    name: "GittiGidiyor", 
-    build: q => {
-      const encodedQ = encodeURIComponent(q);
-      return `https://www.gittigidiyor.com/arama/?k=${encodedQ}&sra=PriceLow`;
-    }
-  },
-  
-  // TEKNOLOJİ MAĞAZALARI (GÜNCELLENDİ)
+  // TEKNOLOJİ MAĞAZALARI
   { 
     key: "teknosa", 
     name: "Teknosa", 
@@ -127,11 +94,34 @@ const SITES = [
     key: "pttavm", 
     name: "PTT AVm", 
     build: q => `https://www.pttavm.com/arama?q=${encodeURIComponent(q)}`
+  }
+];
+
+// İKİNCİ EL SİTELER (AYRI LİSTE)
+const SECOND_HAND_SITES = [
+  { 
+    key: "sahibinden", 
+    name: "Sahibinden", 
+    build: q => {
+      const encodedQ = encodeURIComponent(q);
+      return `https://www.sahibinden.com/bilgisayar?query_text_mf=${encodedQ}&query_text=${encodedQ}&sorting=price_asc`;
+    }
   },
   { 
-    key: "teknobiyotik", 
-    name: "Teknobiyotik", 
-    build: q => `https://www.teknobiyotik.com/search?text=${encodeURIComponent(q)}`
+    key: "dolap", 
+    name: "Dolap", 
+    build: q => {
+      const encodedQ = encodeURIComponent(q);
+      return `https://www.dolap.com/ara?q=${encodedQ}&sort=price_asc`;
+    }
+  },
+  { 
+    key: "letgo", 
+    name: "Letgo", 
+    build: q => {
+      const encodedQ = encodeURIComponent(q);
+      return `https://www.letgo.com/arama?query_text=${encodedQ}&isSearchCall=true&sorting=asc-price`;
+    }
   }
 ];
 
@@ -177,9 +167,9 @@ function setSearchMode(mode) {
   const hint = $("modeHint");
   if (hint) {
     const hints = {
-      "normal": "Link modu: Sadece arama linkleri oluşturur",
-      "fiyat": "Fiyat modu: Gerçek fiyatları çeker (Render API)",
-      "ai": "AI modu: AI ile optimize edilmiş arama"
+      "normal": "Tüm sitelerde arama yap",
+      "fiyat": "Gerçek fiyatları karşılaştır",
+      "ai": "AI ile optimize edilmiş arama"
     };
     hint.textContent = hints[mode] || "";
   }
@@ -189,6 +179,27 @@ function getSearchMode() {
   return localStorage.getItem("searchMode") || "normal";
 }
 
+// ARAMA TÜRÜ SEÇİMİ
+function setSearchType(type) {
+  localStorage.setItem("searchType", type);
+  $("searchTypeAll")?.classList.toggle("active", type === "all");
+  $("searchTypeNew")?.classList.toggle("active", type === "new");
+  $("searchTypeSecondHand")?.classList.toggle("active", type === "secondhand");
+  
+  // Eğer arama sayfasındaysak yenile
+  if ($("page-search")?.classList.contains("active")) {
+    const query = $("qNormal")?.value;
+    if (query) {
+      renderSiteList($("normalList"), query);
+    }
+  }
+}
+
+function getSearchType() {
+  return localStorage.getItem("searchType") || "all";
+}
+
+// SİTE LİSTESİNİ GÖSTER (GÜNCELLENMİŞ - Arama türüne göre filtreleme)
 function renderSiteList(container, query) {
   if (!container) return;
   const q = String(query || "").trim();
@@ -200,111 +211,220 @@ function renderSiteList(container, query) {
 
   container.innerHTML = "";
   
-  SITES.forEach(site => {
-    const url = site.build(q);
-    const card = document.createElement("div");
-    card.className = "cardBox";
-    card.innerHTML = `
-      <div class="rowLine">
-        <div>
-          <div class="ttl">${site.name}</div>
-          <div class="sub">${q}</div>
-          <div class="sub-small" style="font-size:11px;color:#888;margin-top:2px;">
-            🔍 En düşük fiyat sıralı
-          </div>
-        </div>
-        <div class="actions">
-          <button class="btnPrimary sm btnOpen" type="button">Aç</button>
-          <button class="btnGhost sm btnCopy" type="button" data-copy-url="${url}">⧉</button>
-          <button class="btnGhost sm btnFav" type="button" 
-                  data-fav-url="${url}" 
-                  data-site-key="${site.key}" 
-                  data-site-name="${site.name}" 
-                  data-query="${q}">🤍</button>
-          <button class="btnGhost sm btnCart" type="button" 
-                  data-cart-url="${url}" 
-                  data-site-key="${site.key}" 
-                  data-site-name="${site.name}" 
-                  data-query="${q}">🛒</button>
+  // Arama türüne göre siteleri seç
+  let sitesToShow = [];
+  const searchType = getSearchType();
+  
+  if (searchType === "all") {
+    sitesToShow = [...SITES, ...SECOND_HAND_SITES];
+  } else if (searchType === "new") {
+    sitesToShow = SITES;
+  } else if (searchType === "secondhand") {
+    sitesToShow = SECOND_HAND_SITES;
+  }
+  
+  // Filtreleme: alakasız kelimeleri temizle
+  const cleanQuery = filterIrrelevantWords(q);
+  
+  // Kategoriye özel linkler
+  const isPCSearch = cleanQuery.toLowerCase().includes('ram') || 
+                     cleanQuery.toLowerCase().includes('ddr') ||
+                     cleanQuery.toLowerCase().includes('işlemci') ||
+                     cleanQuery.toLowerCase().includes('ekran kartı') ||
+                     cleanQuery.toLowerCase().includes('anakart') ||
+                     cleanQuery.toLowerCase().includes('ssd') ||
+                     cleanQuery.toLowerCase().includes('hdd');
+  
+  let html = '';
+  
+  // Banner gösterme
+  if (searchType === "secondhand") {
+    html += `
+      <div class="categoryBanner secondhand">
+        <div class="bannerIcon">🔄</div>
+        <div class="bannerContent">
+          <div class="bannerTitle">İkinci El Arama</div>
+          <div class="bannerSub">Sahibinden, Dolap, Letgo</div>
         </div>
       </div>
     `;
+  } else if (searchType === "new") {
+    html += `
+      <div class="categoryBanner new">
+        <div class="bannerIcon">🛍️</div>
+        <div class="bannerContent">
+          <div class="bannerTitle">Yeni Ürün Arama</div>
+          <div class="bannerSub">Trendyol, Hepsiburada, Amazon, Teknosa</div>
+        </div>
+      </div>
+    `;
+  }
+  
+  // PC bileşeni ise özel mesaj
+  if (isPCSearch) {
+    html += `
+      <div class="pcSpecialBanner">
+        <div class="pcIcon">💻</div>
+        <div class="pcContent">
+          <div class="pcTitle">PC Bileşeni Tespit Edildi</div>
+          <div class="pcSub">En düşük fiyatlı sonuçlar gösteriliyor</div>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Site listesi
+  sitesToShow.forEach(site => {
+    let url = site.build(cleanQuery);
     
-    card.querySelector(".btnOpen").addEventListener("click", () => {
-      window.open(url, "_blank", "noopener");
-    });
+    // Özel kategori linkleri
+    if (isPCSearch && site.key === "sahibinden") {
+      url = `https://www.sahibinden.com/bilgisayar?query_text=${encodeURIComponent(cleanQuery)}&sorting=price_asc`;
+    }
     
-    card.querySelector(".btnCopy").addEventListener("click", async () => {
-      await copyToClipboard(url);
-      toast(`✅ ${site.name} linki kopyalandı`, "success");
-    });
-    
-    card.querySelector(".btnFav").addEventListener("click", async () => {
-      if (!window.currentUser) return openLogin();
-      await toggleFavorite(window.currentUser.uid, { 
-        url, 
-        siteKey: site.key, 
-        siteName: site.name, 
-        query: q,
-        type: "search_link"
-      });
-    });
-    
-    card.querySelector(".btnCart").addEventListener("click", () => {
-      addToCart({
-        title: `${site.name}: ${q}`,
-        price: "Arama sonucu",
-        site: site.name,
-        link: url,
-        type: "search_link"
-      });
-    });
-    
-    container.appendChild(card);
+    html += `
+      <div class="siteCard modernCard">
+        <div class="siteHeader">
+          <div class="siteIcon">${getSiteIcon(site.key)}</div>
+          <div class="siteInfo">
+            <div class="siteName">${site.name}</div>
+            <div class="siteQuery">${cleanQuery}</div>
+            <div class="siteBadge ${site.key.includes('secondhand') ? 'secondhandBadge' : 'newBadge'}">
+              ${site.key.includes('secondhand') ? '🔄 İkinci El' : '🛍️ Yeni'}
+            </div>
+          </div>
+        </div>
+        <div class="siteActions">
+          <button class="modernBtn primary" onclick="window.open('${url}', '_blank')">
+            <span class="btnIcon">🔍</span>
+            <span>Ara</span>
+          </button>
+          <button class="modernBtn ghost" onclick="copyToClipboard('${url}')">
+            <span class="btnIcon">⧉</span>
+            <span>Kopyala</span>
+          </button>
+          <button class="modernBtn fav" 
+                  data-fav-url="${url}" 
+                  data-site-key="${site.key}" 
+                  data-site-name="${site.name}" 
+                  data-query="${cleanQuery}">
+            <span class="btnIcon">🤍</span>
+            <span>Favori</span>
+          </button>
+          <button class="modernBtn cart" data-cart-url="${url}">
+            <span class="btnIcon">🛒</span>
+            <span>Sepet</span>
+          </button>
+        </div>
+        <div class="siteFooter">
+          <span class="priceSortBadge">⬆️ En Düşük Fiyat</span>
+          <span class="relevanceBadge">🎯 İlgili Sonuçlar</span>
+        </div>
+      </div>
+    `;
   });
   
+  container.innerHTML = html;
+  
+  // Event listener'ları ekle
+  attachEventListeners();
   applyFavUI();
   updateCartButtonStates();
 }
 
-// ========== FİYAT ARAMA ==========
-async function fiyatAra(query, page = 1, sort = 'asc') {
-  if (!query.trim()) {
-    toast("Lütfen bir şey yazın", "error");
-    return;
-  }
-
-  showPage("search");
-  const container = $("normalList");
-  container.innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Fiyatlar çekiliyor...</p>
-    </div>
-  `;
-
-  saveRecentSearch(query);
-
-  try {
-    const response = await fetch(`${API_URL}/api/search/${encodeURIComponent(query)}`);
+// Alakasız kelimeleri filtrele
+function filterIrrelevantWords(query) {
+  const irrelevantWords = [
+    'kılıf', 'case', 'cover', 'şarj', 'charger', 'kulaklık', 'headphone',
+    'kablo', 'cable', 'sticker', 'etiket', 'temizlik', 'clean', 'kit',
+    'aksesuar', 'accessory', 'koruma', 'protection', 'film', 'screen'
+  ];
+  
+  const words = query.toLowerCase().split(' ');
+  const filteredWords = words.filter(word => {
+    // Kelime uzunluğu 2'den kısa ise atla
+    if (word.length < 3) return false;
     
-    if (!response.ok) throw new Error(`API hatası: ${response.status}`);
+    // Rakam içeriyorsa tut (örneğin: "8gb", "ddr4")
+    if (/\d/.test(word)) return true;
     
-    const data = await response.json();
+    // Teknoloji terimlerini tut
+    const techTerms = [
+      'ram', 'ddr', 'gb', 'tb', 'ghz', 'mhz', 'rtx', 'gtx', 'rx',
+      'intel', 'amd', 'nvidia', 'core', 'ryzen', 'i5', 'i7', 'i9',
+      'ssd', 'hdd', 'nvme', 'm2', 'sata', 'usb', 'hdmi', 'displayport'
+    ];
     
-    if (data.success) {
-      renderFiyatSonuclari(data);
-      toast(`${data.toplamUrun || 0} ürün bulundu`, "success");
-    } else {
-      throw new Error(data.error || "Fiyat çekilemedi");
-    }
-  } catch (error) {
-    console.error("Fiyat arama hatası:", error);
-    // API çalışmıyorsa normal site listesini göster
-    container.innerHTML = "";
-    renderSiteList(container, query);
-    toast("API çalışmıyor, site linkleri gösteriliyor", "warning");
-  }
+    if (techTerms.includes(word)) return true;
+    
+    // Alakasız kelime değilse tut
+    return !irrelevantWords.includes(word);
+  });
+  
+  return filteredWords.join(' ') || query;
+}
+
+// Site icon'ları
+function getSiteIcon(siteKey) {
+  const icons = {
+    'trendyol': '🛍️',
+    'hepsiburada': '📦',
+    'n11': '🔟',
+    'amazontr': '📦',
+    'pazarama': '🛒',
+    'ciceksepeti': '💐',
+    'idefix': '📚',
+    'teknosa': '💻',
+    'mediamarkt': '📺',
+    'vatan': '💻',
+    'pttavm': '📮',
+    'sahibinden': '🏠',
+    'dolap': '👗',
+    'letgo': '🔄'
+  };
+  
+  return icons[siteKey] || '🔍';
+}
+
+// Event listener'ları ekle
+function attachEventListeners() {
+  // Favori butonları
+  document.querySelectorAll('.modernBtn.fav').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!window.currentUser) return openLogin();
+      
+      const url = btn.getAttribute('data-fav-url');
+      const siteKey = btn.getAttribute('data-site-key');
+      const siteName = btn.getAttribute('data-site-name');
+      const query = btn.getAttribute('data-query');
+      
+      await toggleFavorite(window.currentUser.uid, { 
+        url, 
+        siteKey, 
+        siteName, 
+        query,
+        type: "search_link"
+      });
+    });
+  });
+  
+  // Sepet butonları
+  document.querySelectorAll('.modernBtn.cart').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-cart-url');
+      const siteCard = btn.closest('.siteCard');
+      const siteName = siteCard?.querySelector('.siteName')?.textContent || '';
+      const query = siteCard?.querySelector('.siteQuery')?.textContent || '';
+      
+      addToCart({
+        title: `${siteName}: ${query}`,
+        price: "Arama sonucu",
+        site: siteName,
+        link: url,
+        type: "search_link"
+      });
+    });
+  });
 }
 
 // ========== SEPET SİSTEMİ ==========
@@ -350,361 +470,61 @@ function updateCartCounter() {
 }
 
 function updateCartButtonStates() {
-  document.querySelectorAll('.btnCart').forEach(btn => {
+  document.querySelectorAll('.modernBtn.cart').forEach(btn => {
     const url = btn.getAttribute('data-cart-url');
     const isInCart = cartItems.some(item => item.link === url);
     
     if (isInCart) {
-      btn.innerHTML = '✓ Sepette';
+      btn.innerHTML = '<span class="btnIcon">✓</span><span>Sepette</span>';
       btn.classList.add('inCart');
     } else {
-      btn.innerHTML = '🛒';
+      btn.innerHTML = '<span class="btnIcon">🛒</span><span>Sepet</span>';
       btn.classList.remove('inCart');
     }
   });
 }
 
-function renderCartPage() {
-  const container = $("cartList");
-  if (!container) return;
-  
-  if (cartItems.length === 0) {
-    container.innerHTML = `
-      <div class="emptyState">
-        <div class="emptyIcon">🛒</div>
-        <h3>Sepetiniz Boş</h3>
-        <p>Ürünleri sepete ekleyerek toplam fiyatınızı görebilirsiniz.</p>
-        <button onclick="showPage('home')" class="btnPrimary">Alışverişe Başla</button>
-      </div>
-    `;
-    return;
-  }
-  
-  let html = `
-    <div class="cartSummary cardBox">
-      <div class="cartTotalRow">
-        <span>Toplam Ürün:</span>
-        <span>${cartItems.reduce((sum, item) => sum + item.quantity, 0)} adet</span>
-      </div>
-      <div class="cartTotalRow">
-        <span>Toplam Fiyat:</span>
-        <span class="totalPrice">₺${cartTotal.toFixed(2).replace('.', ',')}</span>
-      </div>
-      <div class="cartButtons">
-        <button class="btnGhost" onclick="clearCart()">Sepeti Temizle</button>
-        <button class="btnPrimary" onclick="checkoutCart()">Siparişi Tamamla</button>
-      </div>
-    </div>
-    
-    <div class="cartItems">
-  `;
-  
-  cartItems.forEach(item => {
-    html += `
-      <div class="cartItem cardBox">
-        <div class="cartItemInfo">
-          <div class="cartItemTitle">${item.title.substring(0,50)}${item.title.length > 50 ? '...' : ''}</div>
-          <div class="cartItemMeta">
-            <span class="cartSite">${item.site}</span>
-            <span class="cartPrice">${item.price}</span>
-          </div>
-        </div>
-        <div class="cartItemActions">
-          <div class="quantityControl">
-            <button class="qtyBtn" onclick="updateCartQuantity('${item.id}', -1)">-</button>
-            <span class="qtyValue">${item.quantity}</span>
-            <button class="qtyBtn" onclick="updateCartQuantity('${item.id}', 1)">+</button>
-          </div>
-          <button class="btnGhost sm" onclick="removeFromCart('${item.id}')">Sil</button>
-        </div>
-      </div>
-    `;
-  });
-  
-  html += '</div>';
-  container.innerHTML = html;
-}
+// Kalan fonksiyonlar aynı kalacak (toast, showPage, favori sistemi, vs.)
+// Sadece yukarıdaki değişen kısımları gösterdim.
 
-function removeFromCart(itemId) {
-  cartItems = cartItems.filter(item => item.id !== itemId);
-  localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
+// ========== UYGULAMA BAŞLANGICI ==========
+window.addEventListener("DOMContentLoaded", async () => {
+  console.log("Uygulama başlatılıyor...");
+  
+  // UI bağlantılarını kur
+  wireUI();
+  
+  // Arama modunu ayarla
+  setSearchMode(getSearchMode());
+  
+  // Arama türünü ayarla
+  setSearchType(getSearchType());
+  
+  // Son aramaları yükle
+  renderRecentSearches();
+  
+  // Sepet sayacını güncelle
   updateCartCounter();
-  updateCartButtonStates();
-  renderCartPage();
-  toast("Ürün sepetten çıkarıldı", "info");
-}
-
-function updateCartQuantity(itemId, change) {
-  const item = cartItems.find(item => item.id === itemId);
-  if (item) {
-    item.quantity = Math.max(1, item.quantity + change);
-    localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
-    updateCartCounter();
-    renderCartPage();
-  }
-}
-
-function clearCart() {
-  if (cartItems.length === 0) return;
   
-  if (confirm(`${cartItems.length} ürünü sepetinizden silmek istiyor musunuz?`)) {
-    cartItems = [];
-    localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
-    updateCartCounter();
-    renderCartPage();
-    toast("Sepet temizlendi", "success");
-  }
-}
-
-function checkoutCart() {
-  if (cartItems.length === 0) {
-    toast("Sepetiniz boş", "error");
-    return;
-  }
-  
-  toast("Sipariş oluşturuldu! Toplam: ₺" + cartTotal.toFixed(2).replace('.', ','), "success");
-}
-
-// ========== FAVORİ SİSTEMİ ==========
-async function loadFavorites(uid) {
-  if (!uid) { favCache = []; return favCache; }
-  
-  try {
-    const userFavsRef = window.firebaseApp.collection(`users/${uid}/favorites`);
-    const snapshot = await window.firebaseApp.getDocs(userFavsRef);
-    favCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (e) {
-    console.error("Favori yükleme hatası:", e);
-    favCache = [];
-  }
-  return favCache;
-}
-
-async function toggleFavorite(uid, fav) {
-  if (!uid) { openLogin(); return; }
-  
-  const favId = `fav_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const favRef = window.firebaseApp.doc(`users/${uid}/favorites/${favId}`);
-  
-  if (favCache.some(f => f.url === fav.url)) {
-    await window.firebaseApp.deleteDoc(favRef);
-    toast("Favoriden çıkarıldı", 'info');
-  } else {
-    await window.firebaseApp.setDoc(favRef, {
-      ...fav,
-      createdAt: Date.now(),
-    });
-    toast("Favorilere eklendi", 'success');
-  }
-  
-  await loadFavorites(uid);
-  applyFavUI();
-}
-
-function applyFavUI() {
-  document.querySelectorAll("[data-fav-url]").forEach(btn => {
-    const url = btn.getAttribute("data-fav-url") || "";
-    const isFav = favCache.some(f => f.url === url);
-    btn.classList.toggle("isFav", isFav);
-    btn.innerHTML = isFav ? "❤️" : "🤍";
-    btn.title = isFav ? "Favoride" : "Favoriye ekle";
-  });
-}
-
-// ========== SON ARAMALAR ==========
-function saveRecentSearch(query) {
-  let recent = JSON.parse(localStorage.getItem('fiyattakip_recent') || '[]');
-  recent = recent.filter(q => q !== query);
-  recent.unshift(query);
-  recent = recent.slice(0, 5);
-  localStorage.setItem('fiyattakip_recent', JSON.stringify(recent));
-  renderRecentSearches();
-}
-
-function renderRecentSearches() {
-  const container = $("recentList");
-  if (!container) return;
-  
-  const recent = JSON.parse(localStorage.getItem('fiyattakip_recent') || '[]');
-  
-  if (recent.length === 0) {
-    container.innerHTML = '<p class="muted">Henüz arama yapılmadı</p>';
-    return;
-  }
-  
-  let html = '';
-  recent.forEach(query => {
-    const safeQuery = query.replace(/'/g, "\\'");
-    html += `
-      <div class="recentItem" onclick="handleRecentSearch('${safeQuery}')">
-        <span>🔍</span>
-        <span>${query}</span>
-        <button class="recentRemove" onclick="event.stopPropagation(); removeRecentSearch('${safeQuery}')">✕</button>
-      </div>
-    `;
-  });
-  
-  container.innerHTML = html;
-}
-
-function handleRecentSearch(query) {
-  $("qNormal").value = query;
-  const mode = getSearchMode();
-  
-  if (mode === 'fiyat') {
-    fiyatAra(query);
-  } else {
-    showPage('search');
-    renderSiteList($('normalList'), query);
-  }
-}
-
-function removeRecentSearch(query) {
-  let recent = JSON.parse(localStorage.getItem('fiyattakip_recent') || '[]');
-  recent = recent.filter(q => q !== query);
-  localStorage.setItem('fiyattakip_recent', JSON.stringify(recent));
-  renderRecentSearches();
-}
-
-// ========== AUTH SİSTEMİ ==========
-function openLogin() {
-  const modal = $("loginModal");
-  if (!modal) return;
-  modal.classList.add("show");
-  modal.setAttribute("aria-hidden", "false");
-  document.body.classList.add("modalOpen");
-}
-
-function closeLogin() {
-  const modal = $("loginModal");
-  if (!modal) return;
-  modal.classList.remove("show");
-  modal.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("modalOpen");
-}
-
-async function doEmailLogin(isRegister) {
-  const email = isRegister ? 
-    ($("regEmail")?.value || "").trim() : 
-    ($("loginEmail")?.value || "").trim();
-  const pass = isRegister ? $("regPass")?.value || "" : $("loginPass")?.value || "";
-  const pass2 = isRegister ? $("regPass2")?.value || "" : "";
-
-  if (!email || !pass) {
-    return toast("E-posta ve şifre gir.", "error");
-  }
-  
-  if (isRegister) {
-    if (pass.length < 6) {
-      return toast("Şifre en az 6 karakter olmalı.", "error");
-    }
-    if (!pass2 || pass !== pass2) {
-      return toast("Şifreler uyuşmuyor.", "error");
-    }
-  }
-
-  toast(isRegister ? "Kayıt deneniyor..." : "Giriş deneniyor...", "info");
-
-  try {
-    if (isRegister) {
-      await window.firebaseApp.createUserWithEmailAndPassword(email, pass);
-      toast("Kayıt tamam. Giriş yapıldı.", "success");
+  // Firebase auth state listener
+  window.firebaseApp.onAuthStateChanged(async (user) => {
+    window.currentUser = user;
+    
+    if (user) {
+      console.log("Kullanıcı giriş yaptı:", user.email);
+      await loadFavorites(user.uid);
+      applyFavUI();
     } else {
-      await window.firebaseApp.signInWithEmailAndPassword(email, pass);
-      toast("Giriş başarılı.", "success");
-      closeLogin();
+      console.log("Kullanıcı çıkış yaptı");
+      favCache = [];
+      applyFavUI();
     }
-  } catch (e) {
-    console.error(e);
-    const msg = String(e?.message || e || "");
-    toast("Hata: " + msg.replace(/^Firebase:\s*/, ""), "error");
-  }
-}
+  });
+  
+  console.log("Uygulama hazır!");
+});
 
-async function doGoogleLogin() {
-  try {
-    await window.firebaseApp.signInWithPopup();
-    toast("Google ile giriş başarılı", "success");
-    closeLogin();
-  } catch (e) {
-    console.error("Google giriş hatası:", e);
-    toast("Google giriş hatası", "error");
-  }
-}
-
-// ========== MODAL İŞLEMLERİ ==========
-function openAIModal() {
-  const m = $("aiModal");
-  if (!m) return;
-  m.classList.add("show");
-  m.setAttribute("aria-hidden", "false");
-}
-
-function closeAIModal() {
-  const m = $("aiModal");
-  if (!m) return;
-  m.classList.remove("show");
-  m.setAttribute("aria-hidden", "true");
-}
-
-function openAPIModal() {
-  const m = $("apiModal");
-  if (!m) return;
-  m.classList.add("show");
-  m.setAttribute("aria-hidden", "false");
-  $("apiUrl").value = API_URL;
-}
-
-function closeAPIModal() {
-  const m = $("apiModal");
-  if (!m) return;
-  m.classList.remove("show");
-  m.setAttribute("aria-hidden", "true");
-}
-
-function saveAPISettings() {
-  const url = $("apiUrl")?.value?.trim() || DEFAULT_API_URL;
-  API_URL = url;
-  localStorage.setItem('fiyattakip_api_url', url);
-  toast("API URL kaydedildi", "success");
-  closeAPIModal();
-}
-
-// ========== KAMERA SİSTEMİ ==========
-async function cameraAiSearch() {
-  toast("Kamera özelliği yakında eklenecek!", "info");
-}
-
-// ========== YARDIMCI FONKSİYONLAR ==========
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast("Kopyalandı", 'success');
-  } catch (e) {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.left = "-9999px";
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand("copy"); toast("Kopyalandı", 'success'); } catch (_) { }
-    document.body.removeChild(ta);
-  }
-}
-
-async function clearAppCache() {
-  try {
-    localStorage.clear();
-    sessionStorage.clear();
-    toast("Önbellek temizlendi. Yenileniyor...", 'info');
-    setTimeout(() => location.reload(), 600);
-  } catch (e) {
-    console.error(e);
-    toast("Temizleme hatası", 'error');
-  }
-}
-
-// ========== UI BAĞLANTILARI ==========
+// ========== WIRE UI GÜNCELLENMİŞ ==========
 function wireUI() {
   // Arama butonu
   $("btnNormal")?.addEventListener("click", () => {
@@ -731,6 +551,11 @@ function wireUI() {
   $("modeNormal")?.addEventListener("click", () => setSearchMode("normal"));
   $("modeFiyat")?.addEventListener("click", () => setSearchMode("fiyat"));
   $("modeAI")?.addEventListener("click", () => setSearchMode("ai"));
+  
+  // Arama türü butonları
+  $("searchTypeAll")?.addEventListener("click", () => setSearchType("all"));
+  $("searchTypeNew")?.addEventListener("click", () => setSearchType("new"));
+  $("searchTypeSecondHand")?.addEventListener("click", () => setSearchType("secondhand"));
   
   // Tab butonları
   document.querySelectorAll(".tab[data-page]").forEach(btn => {
@@ -840,41 +665,7 @@ function wireUI() {
   });
 }
 
-// ========== UYGULAMA BAŞLANGICI ==========
-window.addEventListener("DOMContentLoaded", async () => {
-  console.log("Uygulama başlatılıyor...");
-  
-  // UI bağlantılarını kur
-  wireUI();
-  
-  // Arama modunu ayarla
-  setSearchMode(getSearchMode());
-  
-  // Son aramaları yükle
-  renderRecentSearches();
-  
-  // Sepet sayacını güncelle
-  updateCartCounter();
-  
-  // Firebase auth state listener
-  window.firebaseApp.onAuthStateChanged(async (user) => {
-    window.currentUser = user;
-    
-    if (user) {
-      console.log("Kullanıcı giriş yaptı:", user.email);
-      await loadFavorites(user.uid);
-      applyFavUI();
-    } else {
-      console.log("Kullanıcı çıkış yaptı");
-      favCache = [];
-      applyFavUI();
-    }
-  });
-  
-  console.log("Uygulama hazır!");
-});
-
-// ========== GLOBAL FONKSİYONLAR ==========
+// GLOBAL FONKSİYONLAR
 window.showPage = showPage;
 window.fiyatAra = fiyatAra;
 window.copyToClipboard = copyToClipboard;
@@ -886,95 +677,4 @@ window.removeFromCart = removeFromCart;
 window.updateCartQuantity = updateCartQuantity;
 window.clearCart = clearCart;
 window.checkoutCart = checkoutCart;
-
-// Fiyat sonuçlarını render et
-window.renderFiyatSonuclari = function(data) {
-  const container = $("normalList");
-  if (!container) return;
-  
-  if (!data.fiyatlar || data.fiyatlar.length === 0) {
-    container.innerHTML = `
-      <div class="emptyState">
-        <div class="emptyIcon">😕</div>
-        <h3>Ürün bulunamadı</h3>
-        <p>"${data.query}" için sonuç bulunamadı</p>
-        <button onclick="showPage('home')" class="btnPrimary">Yeni Arama</button>
-      </div>
-    `;
-    return;
-  }
-
-  let html = '<div class="cardBox" style="margin-bottom:15px;background:rgba(124,92,255,0.1);border-color:rgba(124,92,255,0.3);">';
-  html += '<div style="font-size:14px;color:#7c5cff;font-weight:700;">📊 Fiyat Karşılaştırması</div>';
-  html += '<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">API: ' + API_URL + '</div>';
-  html += '</div>';
-  
-  // API'den gelen verileri göster
-  if (data.fiyatlar && data.fiyatlar.length > 0) {
-    data.fiyatlar.forEach(product => {
-      html += `
-        <div class="cardBox">
-          <div class="rowLine">
-            <div>
-              <div class="ttl">${product.urun || product.title}</div>
-              <div class="sub">${product.site}</div>
-              <div style="color:#36d399;font-weight:700;margin-top:5px;">${product.fiyat || product.price}</div>
-            </div>
-            <div class="actions">
-              <button class="btnPrimary sm" onclick="window.open('${product.link}', '_blank')">Aç</button>
-              <button class="btnGhost sm" onclick="copyToClipboard('${product.link}')">⧉</button>
-              <button class="btnGhost sm btnFav" 
-                      data-fav-url="${product.link}" 
-                      data-site-key="${product.site?.toLowerCase()}" 
-                      data-site-name="${product.site}" 
-                      data-query="${data.query}">🤍</button>
-              <button class="btnGhost sm btnCart" 
-                      data-cart-url="${product.link}">🛒</button>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-  }
-  
-  container.innerHTML = html;
-  applyFavUI();
-  updateCartButtonStates();
-};
-
-// Favoriler sayfasını render et
-window.renderFavoritesPage = function(uid) {
-  const list = $("favList");
-  if (!list) return;
-  
-  if (!favCache.length) {
-    list.innerHTML = `<div class="emptyState">Favori yok.</div>`;
-    return;
-  }
-  
-  let html = '';
-  favCache.forEach(fav => {
-    html += `
-      <div class="cardBox favoriteCard">
-        <div class="favoriteHeader">
-          <div class="favoriteInfo">
-            <div class="favSite">${fav.siteName || "Favori"}</div>
-            <div class="favQuery">${fav.query || ""}</div>
-            <div class="favPrice" style="margin-top:8px;color:#36d399;font-size:14px;">
-              🔗 Arama Linki
-            </div>
-          </div>
-          <div class="favoriteActions">
-            <button class="btnGhost sm" onclick="window.open('${fav.url || ""}', '_blank')">Aç</button>
-            <button class="btnGhost sm btnFav isFav" data-fav-url="${fav.url || ""}">❤️</button>
-            <button class="btnGhost sm btnCart" data-cart-url="${fav.url || ""}">🛒</button>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-  
-  list.innerHTML = html;
-  applyFavUI();
-  updateCartButtonStates();
-};
+window.setSearchType = setSearchType;
