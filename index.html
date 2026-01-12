@@ -14,6 +14,9 @@
 </head>
 
 <body>
+  <!-- TOAST MESAJ -->
+  <div id="toast" class="toast hidden"></div>
+
   <!-- LOGIN MODAL -->
   <div id="loginModal" class="modalWrap" aria-hidden="true">
     <div class="modalBack" id="loginBackdrop"></div>
@@ -155,7 +158,7 @@
         <div id="favList" class="list"></div>
       </section>
 
-      <!-- SEPET SAYFASI - YENİ EKLENDİ -->
+      <!-- SEPET SAYFASI -->
       <section id="page-cart" class="page">
         <div class="pageHead">
           <div class="pageTitle">🛒 Sepetim</div>
@@ -206,7 +209,7 @@
       </section>
     </main>
 
-    <!-- TABBAR - 5 SEKMELİ (Sepet Eklendi) -->
+    <!-- TABBAR -->
     <nav class="tabbar" aria-label="Alt Menü">
       <button class="tab active" type="button" data-page="home">
         <span class="ico">🏠</span><span class="lbl">Ana</span>
@@ -217,13 +220,15 @@
       </button>
 
       <!-- ORTADA KAMERA BUTONU -->
-      <div class="tabSpacer" aria-hidden="true"></div>
+      <button class="cameraTab" type="button" id="cameraTabBtn">
+        <span class="ico">📸</span><span class="lbl">Kamera</span>
+      </button>
 
       <button class="tab" type="button" data-page="favs">
         <span class="ico">❤️</span><span class="lbl">Fav</span>
       </button>
 
-      <!-- SEPET SEKMESİ - YENİ EKLENDİ -->
+      <!-- SEPET SEKMESİ -->
       <button class="tab" type="button" data-page="cart">
         <span class="ico">🛒</span><span class="lbl">Sepet</span>
       </button>
@@ -233,9 +238,6 @@
       </button>
     </nav>
   </div>
-
-  <!-- TOAST MESAJ -->
-  <div id="toast" class="toast hidden"></div>
 
   <!-- API AYARLARI MODAL -->
   <div id="apiModal" class="modalWrap" aria-hidden="true">
@@ -309,7 +311,9 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script type="module" src="firebase.js"></script>
-  <script type="module" src="app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
