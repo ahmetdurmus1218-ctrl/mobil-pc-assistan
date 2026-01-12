@@ -16,21 +16,21 @@ const firebaseConfig = {
 };
 
 // Firebase'i başlat
-export const app = initializeApp(firebaseConfig);
-export const analytics = getAnalytics(app);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
 // Yönetici giriş kontrolü
-export const firebaseConfigLooksInvalid = () => {
+const firebaseConfigLooksInvalid = () => {
   return !firebaseConfig.apiKey || firebaseConfig.apiKey.includes("PASTE_");
 };
 
-// Admin yöneticisi (isteğe bağlı)
-export const checkAdminAccess = async (uid) => {
+// Admin kontrolü
+const checkAdminAccess = async (uid) => {
   try {
-    // Firestore'dan admin kontrolü
+    const { getDoc, doc } = await import("firebase/firestore");
     const adminDoc = await getDoc(doc(db, "admins", uid));
     return adminDoc.exists();
   } catch (error) {
@@ -38,3 +38,5 @@ export const checkAdminAccess = async (uid) => {
     return false;
   }
 };
+
+export { app, analytics, auth, db, googleProvider, firebaseConfigLooksInvalid, checkAdminAccess };
