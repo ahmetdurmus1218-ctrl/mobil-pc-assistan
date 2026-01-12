@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mobil PC Fiyat - Gerçek İkinci El Fiyatları</title>
     
-    <!-- FIREBASE SDK -->
+    <!-- FIREBASE SDK (KALACAK) -->
     <script type="module">
-        // FIREBASE CONFIG - SENİN KODUN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
@@ -20,328 +19,54 @@
             appId: "1:530921835618:web:7ad1ca15fa89dca3af553b"
         };
 
-        // Firebase'i başlat
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Global erişim için
         window.firebaseApp = app;
-        window.firebaseDb = db;
-        
         console.log("✅ Firebase bağlantısı kuruldu!");
     </script>
     
     <style>
-        /* MOBİL TASARIM */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        /* HEADER */
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            padding: 25px 20px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 1rem;
-        }
-        
-        /* SEARCH BOX */
-        .search-box {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 18px 20px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .search-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 18px;
-            font-size: 16px;
-            border-radius: 12px;
-            width: 100%;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .search-btn:active {
-            transform: scale(0.98);
-        }
-        
-        /* QUICK SEARCH */
-        .quick-search {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        .quick-btn {
-            background: rgba(102, 126, 234, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 14px;
-            cursor: pointer;
-            color: #667eea;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .quick-btn:active {
-            background: rgba(102, 126, 234, 0.2);
-            transform: scale(0.95);
-        }
-        
-        /* LOADING */
-        .loading {
-            text-align: center;
-            padding: 50px 20px;
-            color: white;
-            display: none;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* RESULTS */
-        .results {
-            display: none;
-        }
-        
-        .result-count {
-            color: white;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.1rem;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
-        
-        /* PRODUCT CARD */
-        .product-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        
-        .product-card:active {
-            transform: translateY(-5px);
-        }
-        
-        .product-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            gap: 15px;
-        }
-        
-        .product-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #333;
-            flex: 1;
-            line-height: 1.4;
-        }
-        
-        .product-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #667eea;
-            white-space: nowrap;
-        }
-        
-        .product-meta {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        
-        .badge-source {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-        
-        .badge-location {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-        
-        .badge-trust {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        .badge-demo {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-        
-        .product-footer {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        .btn {
-            padding: 14px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            flex: 1;
-            text-align: center;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #666;
-        }
-        
-        .btn:active {
-            transform: scale(0.95);
-        }
-        
-        /* NO RESULTS */
-        .no-results {
-            text-align: center;
-            color: white;
-            padding: 50px 20px;
-            font-size: 1.1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-        }
-        
-        /* INFO BOX */
-        .info-box {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .info-box h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-        
-        /* RESPONSIVE */
-        @media (max-width: 600px) {
-            .header h1 { font-size: 1.6rem; }
-            .header p { font-size: 0.9rem; }
-            .product-header { flex-direction: column; }
-            .product-price { align-self: flex-start; }
-            .quick-search { grid-template-columns: 1fr; }
-            .product-footer { flex-direction: column; }
-        }
-        
-        /* SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-        }
+        /* TASARIM KODLARI AYNI KALACAK */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 30px; padding: 25px 20px; border-radius: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .header h1 { font-size: 2rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .header p { opacity: 0.9; font-size: 1rem; }
+        .search-box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); margin-bottom: 30px; }
+        .search-input { width: 100%; padding: 18px 20px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 12px; margin-bottom: 15px; transition: all 0.3s; }
+        .search-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .search-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px; font-size: 16px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 600; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .search-btn:active { transform: scale(0.98); }
+        .quick-search { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+        .quick-btn { background: rgba(102, 126, 234, 0.1); border: 2px solid rgba(102, 126, 234, 0.3); padding: 15px; border-radius: 12px; font-size: 14px; cursor: pointer; color: #667eea; font-weight: 500; transition: all 0.3s; }
+        .quick-btn:active { background: rgba(102, 126, 234, 0.2); transform: scale(0.95); }
+        .loading { text-align: center; padding: 50px 20px; color: white; display: none; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .results { display: none; }
+        .result-count { color: white; text-align: center; margin-bottom: 20px; font-size: 1.1rem; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; backdrop-filter: blur(10px); }
+        .product-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .product-card:active { transform: translateY(-5px); }
+        .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; gap: 15px; }
+        .product-title { font-size: 1.1rem; font-weight: 600; color: #333; flex: 1; line-height: 1.4; }
+        .product-price { font-size: 1.5rem; font-weight: 700; color: #667eea; white-space: nowrap; }
+        .product-meta { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
+        .badge-source { background: #e3f2fd; color: #1976d2; }
+        .badge-location { background: #f3e5f5; color: #7b1fa2; }
+        .badge-trust { background: #e8f5e9; color: #2e7d32; }
+        .badge-demo { background: #fff3e0; color: #ef6c00; }
+        .product-footer { display: flex; gap: 12px; margin-top: 20px; }
+        .btn { padding: 14px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; flex: 1; text-align: center; text-decoration: none; font-size: 0.95rem; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-secondary { background: #f5f5f5; color: #666; }
+        .btn:active { transform: scale(0.95); }
+        .no-results { text-align: center; color: white; padding: 50px 20px; font-size: 1.1rem; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); }
+        .info-box { background: rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 20px; margin-top: 20px; text-align: center; }
+        .info-box h3 { color: #667eea; margin-bottom: 10px; }
+        @media (max-width: 600px) { .header h1 { font-size: 1.6rem; } .product-header { flex-direction: column; } .quick-search { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -416,307 +141,213 @@
         </div>
     </div>
 
+    <!-- YENİ JAVASCRIPT KODU -->
     <script>
-        // DOM ELEMENTS
-        const searchInput = document.getElementById('searchInput');
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
-        const resultCount = document.getElementById('resultCount');
-        const productsContainer = document.getElementById('productsContainer');
+        // PROXY İLE GERÇEK VERİ ÇEK
+        const PROXY = "https://api.allorigins.win/get?url=";
         
-        // BACKEND URL - FIREBASE CLOUD FUNCTIONS
-        // Not: Henüz backend kurmadık, demo modda çalışıyor
-        const BACKEND_URL = 'https://us-central1-pc-fronted.cloudfunctions.net/api';
-        
-        // ENTER TUŞU İLE ARAMA
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchProducts();
-            }
-        });
-        
-        // ANA ARAMA FONKSİYONU
-        window.searchProducts = async function() {
-            const query = searchInput.value.trim();
-            
+        // ARAMA YAP
+        async function searchProducts() {
+            const query = document.getElementById('searchInput').value.trim();
             if (!query) {
                 alert('Lütfen ürün adı yazın!');
-                searchInput.focus();
                 return;
             }
             
-            // Loading göster
-            showLoading();
-            hideResults();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
             
             try {
-                // ÖNCE BACKEND'İ DENE
-                let backendData = null;
-                try {
-                    backendData = await fetchBackendData(query);
-                } catch (backendError) {
-                    console.log('Backend çalışmıyor, demo mod:', backendError);
-                }
+                // GERÇEK DOLAP VERİSİNİ ÇEK
+                const realData = await getRealDolapData(query);
                 
-                // BACKEND ÇALIŞIYORSA ONU GÖSTER
-                if (backendData && backendData.success) {
-                    displayProducts(backendData);
-                } 
-                // BACKEND ÇALIŞMIYORSA DEMO GÖSTER
-                else {
-                    console.log('Demo moda geçiliyor...');
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // Simüle loading
+                if (realData && realData.data.length > 0) {
+                    // GERÇEK VERİ VARSA GÖSTER
+                    showProducts(realData, false);
+                } else {
+                    // GERÇEK VERİ YOKSA DEMO GÖSTER
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     const demoData = generateDemoData(query);
-                    displayProducts(demoData);
+                    showProducts(demoData, true);
                 }
-                
             } catch (error) {
                 console.error('Hata:', error);
-                showError('Bir hata oluştu. Lütfen tekrar deneyin.');
+                // HATA OLURSA DEMO GÖSTER
+                const demoData = generateDemoData(query);
+                showProducts(demoData, true);
             } finally {
-                hideLoading();
+                document.getElementById('loading').style.display = 'none';
             }
-        };
-        
-        // BACKEND'DEN VERİ ÇEK
-        async function fetchBackendData(query) {
-            // Firebase Cloud Functions URL
-            const apiUrl = `${BACKEND_URL}/search?q=${encodeURIComponent(query)}`;
-            
-            console.log('Backend API çağrılıyor:', apiUrl);
-            
-            const response = await fetch(apiUrl, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Backend hatası: ${response.status}`);
-            }
-            
-            return await response.json();
         }
         
-        // DEMO VERİ ÜRET (Backend çalışmazsa)
-        function generateDemoData(query) {
-            const sources = [
-                { name: 'sahibinden', color: '#dc2626', emoji: '🏷️' },
-                { name: 'dolap', color: '#16a34a', emoji: '🛒' },
-                { name: 'letgo', color: '#d97706', emoji: '⚡' }
-            ];
-            
-            const locations = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana'];
-            
-            const demoProducts = Array.from({ length: 12 }, (_, i) => {
-                const source = sources[i % sources.length];
-                const basePrice = {
-                    'rtx 3060': 6500,
-                    'rtx 3070': 9500,
-                    'rtx 3080': 12000,
-                    'ryzen 5': 2800,
-                    'ryzen 7': 5200,
-                    'i5': 3100,
-                    'i7': 6500,
-                    'ram': 900,
-                    'ssd': 1500,
-                    'anakart': 1800,
-                    'psu': 1200,
-                    'kasa': 1100
-                };
+        // GERÇEK DOLAP VERİSİ ÇEK
+        async function getRealDolapData(query) {
+            try {
+                const url = `https://api.dolap.com/v7/products/search?q=${encodeURIComponent(query)}&size=10`;
+                const response = await fetch(PROXY + encodeURIComponent(url));
                 
-                // Query'ye göre fiyat belirle
-                let price = 2500;
-                Object.keys(basePrice).forEach(key => {
-                    if (query.toLowerCase().includes(key)) {
-                        price = basePrice[key];
-                    }
-                });
+                if (!response.ok) throw new Error('API hatası');
                 
-                // %20 varyasyon
-                const variation = Math.random() * 0.4 - 0.2; // -20% ile +20%
-                price = Math.round(price * (1 + variation));
+                const data = await response.json();
+                const products = JSON.parse(data.contents).products || [];
+                
+                const formatted = products
+                    .filter(p => p.price?.amount > 100)
+                    .map(p => ({
+                        title: p.title,
+                        price: p.price?.amount || 0,
+                        location: p.seller?.city || 'Türkiye',
+                        source: 'dolap',
+                        sourceColor: '#16a34a',
+                        url: `https://www.dolap.com/urun/${p.slug}`,
+                        trust_score: 85,
+                        is_demo: false
+                    }));
                 
                 return {
-                    id: `demo_${i}`,
-                    title: `${query} - ${i+1}. İlan ${source.emoji}`,
+                    success: true,
+                    data: formatted,
+                    count: formatted.length,
+                    query: query
+                };
+                
+            } catch (error) {
+                console.log('Gerçek veri çekilemedi:', error);
+                return null;
+            }
+        }
+        
+        // DEMO VERİ ÜRET
+        function generateDemoData(query) {
+            const sources = [
+                { name: 'sahibinden', color: '#dc2626' },
+                { name: 'dolap', color: '#16a34a' },
+                { name: 'letgo', color: '#d97706' }
+            ];
+            
+            const locations = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya'];
+            const basePrice = getBasePrice(query);
+            
+            const demoProducts = Array.from({ length: 8 }, (_, i) => {
+                const source = sources[i % sources.length];
+                const variation = Math.random() * 0.4 - 0.2;
+                const price = Math.round(basePrice * (1 + variation));
+                
+                return {
+                    title: `${query} - ${i+1}. İlan`,
                     price: price,
                     location: locations[Math.floor(Math.random() * locations.length)],
                     source: source.name,
                     sourceColor: source.color,
                     url: '#',
                     trust_score: Math.floor(Math.random() * 20) + 75,
-                    is_demo: true,
-                    timestamp: new Date().toISOString()
+                    is_demo: true
                 };
             });
             
-            // Fiyata göre sırala
             demoProducts.sort((a, b) => a.price - b.price);
             
             return {
                 success: true,
-                query: query,
-                count: demoProducts.length,
                 data: demoProducts,
-                is_demo: true,
-                message: 'Demo Mod - Backend kurulumu gerekli'
+                count: demoProducts.length,
+                query: query,
+                is_demo: true
             };
         }
         
-        // HIZLI ARAMA BUTONLARI
-        window.quickSearch = function(query) {
-            searchInput.value = query;
-            searchProducts();
-        };
+        // TEMEL FİYAT BELİRLE
+        function getBasePrice(query) {
+            const prices = {
+                'rtx 3060': 6500, 'rtx 3070': 9500, 'rtx 3080': 12000,
+                'ryzen 5': 2800, 'ryzen 7': 5200, 'i5': 3100, 'i7': 6500,
+                'ram': 900, 'ssd': 1500, 'anakart': 1800, 'psu': 1200
+            };
+            
+            query = query.toLowerCase();
+            for (const [key, price] of Object.entries(prices)) {
+                if (query.includes(key)) return price;
+            }
+            return 2500;
+        }
         
         // ÜRÜNLERİ GÖSTER
-        function displayProducts(apiResponse) {
-            const products = apiResponse.data || [];
-            const query = apiResponse.query || 'Arama';
-            const isDemo = apiResponse.is_demo || false;
+        function showProducts(data, isDemo) {
+            const products = data.data || [];
+            const query = data.query || 'Arama';
             
-            // Sonuç sayısını göster
-            resultCount.innerHTML = `
+            // BAŞLIK
+            document.getElementById('resultCount').innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span>📊 <strong>${products.length}</strong> ilan bulundu</span>
                     <span style="font-size: 0.9rem; opacity: 0.8;">"${query}"</span>
                 </div>
-                ${isDemo ? '<div style="margin-top: 8px; color: #ef6c00; font-size: 0.9rem;">⚠️ Demo Mod - Backend kurulumu gerekli</div>' : ''}
+                ${isDemo ? 
+                    '<div style="margin-top: 8px; color: #ef6c00; font-size: 0.9rem;">⚠️ Demo Mod - İnternet bağlantınızı kontrol edin</div>' : 
+                    '<div style="margin-top: 8px; color: #16a34a; font-size: 0.9rem;">✅ Gerçek Dolap Verileri</div>'
+                }
             `;
             
-            if (products.length === 0) {
-                productsContainer.innerHTML = `
-                    <div class="no-results">
-                        <div style="font-size: 3rem; margin-bottom: 15px;">😕</div>
-                        <h3>İlan bulunamadı</h3>
-                        <p>"${query}" için ikinci el ilan bulunamadı.</p>
-                        <p style="margin-top: 10px;">Farklı bir anahtar kelime deneyin.</p>
+            // ÜRÜNLER
+            let html = '';
+            products.forEach((product, index) => {
+                const trustColor = product.trust_score >= 80 ? '#2e7d32' : 
+                                  product.trust_score >= 60 ? '#f57c00' : '#d32f2f';
+                
+                html += `
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-title">${product.title}</div>
+                            <div class="product-price">${product.price.toLocaleString('tr-TR')}₺</div>
+                        </div>
+                        
+                        <div class="product-meta">
+                            <span class="badge badge-source" style="border-left: 4px solid ${product.sourceColor}">
+                                ${product.source.toUpperCase()}
+                            </span>
+                            <span class="badge badge-location">
+                                📍 ${product.location}
+                            </span>
+                            <span class="badge badge-trust" style="color: ${trustColor};">
+                                ⭐ ${product.trust_score}/100
+                            </span>
+                            ${product.is_demo ? '<span class="badge badge-demo">DEMO</span>' : ''}
+                        </div>
+                        
+                        <div class="product-footer">
+                            <a href="${product.url}" target="_blank" class="btn btn-primary">
+                                <span>🛒</span> Siteye Git
+                            </a>
+                            <button class="btn btn-secondary" onclick="addToFavorites(${index})">
+                                <span>⭐</span> Favorilere Ekle
+                            </button>
+                        </div>
                     </div>
                 `;
-            } else {
-                let html = '';
-                
-                products.forEach((product, index) => {
-                    const trustColor = product.trust_score >= 80 ? '#2e7d32' : 
-                                      product.trust_score >= 60 ? '#f57c00' : '#d32f2f';
-                    
-                    const trustText = product.trust_score >= 80 ? 'Yüksek Güven' :
-                                     product.trust_score >= 60 ? 'Orta Güven' : 'Dikkatli Olun';
-                    
-                    const priceFormatted = product.price.toLocaleString('tr-TR');
-                    
-                    html += `
-                        <div class="product-card" data-index="${index}">
-                            <div class="product-header">
-                                <div class="product-title">${product.title}</div>
-                                <div class="product-price">${priceFormatted}₺</div>
-                            </div>
-                            
-                            <div class="product-meta">
-                                <span class="badge badge-source" style="border-left: 4px solid ${product.sourceColor || '#667eea'}">
-                                    ${product.source.toUpperCase()}
-                                </span>
-                                <span class="badge badge-location">
-                                    📍 ${product.location}
-                                </span>
-                                <span class="badge badge-trust" style="color: ${trustColor};">
-                                    ⭐ ${product.trust_score}/100
-                                </span>
-                                ${product.is_demo ? 
-                                    '<span class="badge badge-demo">DEMO</span>' : 
-                                    ''
-                                }
-                            </div>
-                            
-                            <div class="product-footer">
-                                <a href="${product.url}" target="_blank" 
-                                   class="btn btn-primary" onclick="event.stopPropagation()">
-                                    <span>🛒</span> Siteye Git
-                                </a>
-                                <button class="btn btn-secondary" onclick="saveToFavorites(${index})">
-                                    <span>⭐</span> Favorilere Ekle
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                productsContainer.innerHTML = html;
-            }
+            });
             
-            showResults();
+            document.getElementById('productsContainer').innerHTML = html || 
+                '<div class="no-results"><h3>İlan bulunamadı</h3><p>Farklı bir ürün aramayı deneyin.</p></div>';
+            
+            document.getElementById('results').style.display = 'block';
         }
         
-        // FAVORİ KAYDET
-        window.saveToFavorites = function(index) {
-            alert('⭐ Ürün favorilere eklendi!\n\n(Backend kurulunca Firestore\'a kaydedilecek)');
+        // HIZLI ARAMA
+        window.quickSearch = function(query) {
+            document.getElementById('searchInput').value = query;
+            searchProducts();
         };
         
-        // LOADING FUNCTIONS
-        function showLoading() {
-            loading.style.display = 'block';
-        }
+        // FAVORİ EKLE
+        window.addToFavorites = function(index) {
+            alert('⭐ Ürün favorilere eklendi!');
+        };
         
-        function hideLoading() {
-            loading.style.display = 'none';
-        }
-        
-        function showResults() {
-            results.style.display = 'block';
-        }
-        
-        function hideResults() {
-            results.style.display = 'none';
-        }
-        
-        function showError(message) {
-            productsContainer.innerHTML = `
-                <div class="no-results">
-                    <div style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
-                    <h3>Hata</h3>
-                    <p>${message}</p>
-                    <button onclick="searchProducts()" 
-                            style="margin-top: 15px; padding: 12px 24px; background: #667eea; 
-                                   color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        Tekrar Dene
-                    </button>
-                </div>
-            `;
-            showResults();
-        }
-        
-        // SAYFA YÜKLENİNCE OTOMATİK TEST
+        // SAYFA AÇILINCA OTOMATİK ARA
         window.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Mobil PC Fiyat Asistanı başlatıldı');
-            console.log('Firebase Proje:', firebaseConfig.projectId);
-            console.log('Backend URL:', BACKEND_URL);
-            
-            // Firebase bağlantısını test et
-            if (window.firebaseApp) {
-                console.log('✅ Firebase bağlantısı başarılı');
-            } else {
-                console.log('⚠️ Firebase bağlantısı kontrol edilemedi');
-            }
-            
-            // Sayfa yüklenince popüler ürünleri göster
-            setTimeout(() => {
-                searchInput.value = 'RTX 3060';
-                searchProducts();
-            }, 500);
+            document.getElementById('searchInput').value = 'RTX 3060';
+            setTimeout(() => searchProducts(), 300);
         });
-        
-        // FIREBASE CONFIG GLOBAL (yardımcı için)
-        window.firebaseConfig = {
-            apiKey: "AIzaSyAVXZLaHP82q6OfFGfFjZJcIPyVWDc-NT4",
-            authDomain: "pc-fronted.firebaseapp.com",
-            projectId: "pc-fronted",
-            storageBucket: "pc-fronted.firebasestorage.app",
-            messagingSenderId: "530921835618",
-            appId: "1:530921835618:web:7ad1ca15fa89dca3af553b"
-        };
     </script>
 </body>
 </html>
