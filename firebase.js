@@ -1,5 +1,4 @@
-// firebase.js - DÜZELTİLMİŞ VERSİYON
-console.log("Firebase JS yüklendi");
+// Firebase.js - BASİT VE ÇALIŞAN VERSİYON
 
 // Firebase yapılandırması
 const firebaseConfig = {
@@ -12,60 +11,49 @@ const firebaseConfig = {
   measurementId: "G-XRPMF11BPM"
 };
 
-// CDN'den Firebase yükle (Mobil uyumlu)
-function loadFirebase() {
-  return new Promise((resolve) => {
-    if (window.firebase) {
-      console.log("Firebase zaten yüklü");
-      resolve();
-      return;
-    }
-    
-    // Firebase SDK'yı CDN'den yükle
-    const script = document.createElement('script');
-    script.src = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js';
-    script.onload = () => {
-      console.log("Firebase App yüklendi");
-      
-      // Auth modülü
-      const authScript = document.createElement('script');
-      authScript.src = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js';
-      authScript.onload = () => {
-        console.log("Firebase Auth yüklendi");
-        
-        // Firestore modülü
-        const firestoreScript = document.createElement('script');
-        firestoreScript.src = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js';
-        firestoreScript.onload = () => {
-          console.log("Firebase Firestore yüklendi");
-          
-          // Firebase'i başlat
-          window.firebase.initializeApp(firebaseConfig);
-          console.log("Firebase başlatıldı");
-          resolve();
-        };
-        document.head.appendChild(firestoreScript);
-      };
-      document.head.appendChild(authScript);
-    };
-    document.head.appendChild(script);
-  });
+// Firebase'i başlat (index.html'den önce yüklendiği için)
+try {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+    console.log("✅ Firebase başlatıldı");
+  } else {
+    console.log("✅ Firebase zaten başlatılmış");
+  }
+} catch (error) {
+  console.error("❌ Firebase başlatma hatası:", error);
 }
 
 // Firebase nesneleri
-let auth, db, googleProvider;
+const auth = firebase.auth();
+const db = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-// Firebase'i başlat ve nesneleri al
-async function initFirebase() {
-  await loadFirebase();
+// Firebase fonksiyonları
+const firebaseFunctions = {
+  // Auth fonksiyonları
+  onAuthStateChanged: (callback) => auth.onAuthStateChanged(callback),
+  signInWithEmailAndPassword: (email, password) => 
+    auth.signInWithEmailAndPassword(email, password),
+  createUserWithEmailAndPassword: (email, password) => 
+    auth.createUserWithEmailAndPassword(email, password),
+  signInWithPopup: () => auth.signInWithPopup(googleProvider),
+  signOut: () => auth.signOut(),
   
-  auth = window.firebase.auth();
-  db = window.firebase.firestore();
-  googleProvider = new window.firebase.auth.GoogleAuthProvider();
-  
-  console.log("Firebase nesneleri hazır");
-  return { auth, db, googleProvider };
-}
+  // Firestore fonksiyonları
+  collection: (path) => db.collection(path),
+  doc: (path) => db.doc(path),
+  getDocs: (query) => query.get(),
+  setDoc: (docRef, data) => docRef.set(data),
+  deleteDoc: (docRef) => docRef.delete(),
+  getDoc: (docRef) => docRef.get()
+};
 
-// Kullanım için dışa aktar
-export { initFirebase };
+// Global erişim için
+window.firebaseApp = {
+  auth,
+  db,
+  googleProvider,
+  ...firebaseFunctions
+};
+
+console.log("✅ Firebase hazır");
