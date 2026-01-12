@@ -1,4 +1,4 @@
-// Firebase.js - BASİT VE ÇALIŞAN VERSİYON
+// Firebase.js - Basit ve çalışan versiyon
 
 // Firebase yapılandırması
 const firebaseConfig = {
@@ -11,7 +11,7 @@ const firebaseConfig = {
   measurementId: "G-XRPMF11BPM"
 };
 
-// Firebase'i başlat (index.html'den önce yüklendiği için)
+// Firebase'i başlat
 try {
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
