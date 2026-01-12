@@ -1,10 +1,7 @@
-// 🔥 GÜNCEL Firebase.js - pc-fronted projeniz için
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
+// firebase.js - DÜZELTİLMİŞ VERSİYON
+console.log("Firebase JS yüklendi");
 
-// pc-fronted Firebase yapılandırması
+// Firebase yapılandırması
 const firebaseConfig = {
   apiKey: "AIzaSyAVXZLaHP82q6OfFGfFjZJcIPyVWDc-NT4",
   authDomain: "pc-fronted.firebaseapp.com",
@@ -15,28 +12,60 @@ const firebaseConfig = {
   measurementId: "G-XRPMF11BPM"
 };
 
-// Firebase'i başlat
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+// CDN'den Firebase yükle (Mobil uyumlu)
+function loadFirebase() {
+  return new Promise((resolve) => {
+    if (window.firebase) {
+      console.log("Firebase zaten yüklü");
+      resolve();
+      return;
+    }
+    
+    // Firebase SDK'yı CDN'den yükle
+    const script = document.createElement('script');
+    script.src = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js';
+    script.onload = () => {
+      console.log("Firebase App yüklendi");
+      
+      // Auth modülü
+      const authScript = document.createElement('script');
+      authScript.src = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js';
+      authScript.onload = () => {
+        console.log("Firebase Auth yüklendi");
+        
+        // Firestore modülü
+        const firestoreScript = document.createElement('script');
+        firestoreScript.src = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js';
+        firestoreScript.onload = () => {
+          console.log("Firebase Firestore yüklendi");
+          
+          // Firebase'i başlat
+          window.firebase.initializeApp(firebaseConfig);
+          console.log("Firebase başlatıldı");
+          resolve();
+        };
+        document.head.appendChild(firestoreScript);
+      };
+      document.head.appendChild(authScript);
+    };
+    document.head.appendChild(script);
+  });
+}
 
-// Yönetici giriş kontrolü
-const firebaseConfigLooksInvalid = () => {
-  return !firebaseConfig.apiKey || firebaseConfig.apiKey.includes("PASTE_");
-};
+// Firebase nesneleri
+let auth, db, googleProvider;
 
-// Admin kontrolü
-const checkAdminAccess = async (uid) => {
-  try {
-    const { getDoc, doc } = await import("firebase/firestore");
-    const adminDoc = await getDoc(doc(db, "admins", uid));
-    return adminDoc.exists();
-  } catch (error) {
-    console.error("Admin kontrol hatası:", error);
-    return false;
-  }
-};
+// Firebase'i başlat ve nesneleri al
+async function initFirebase() {
+  await loadFirebase();
+  
+  auth = window.firebase.auth();
+  db = window.firebase.firestore();
+  googleProvider = new window.firebase.auth.GoogleAuthProvider();
+  
+  console.log("Firebase nesneleri hazır");
+  return { auth, db, googleProvider };
+}
 
-export { app, analytics, auth, db, googleProvider, firebaseConfigLooksInvalid, checkAdminAccess };
+// Kullanım için dışa aktar
+export { initFirebase };
