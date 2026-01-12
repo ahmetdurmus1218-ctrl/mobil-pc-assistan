@@ -5,68 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mobil PC Fiyat - Gerçek İkinci El Fiyatları</title>
     
-    <!-- FIREBASE SDK (KALACAK) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyAVXZLaHP82q6OfFGfFjZJcIPyVWDc-NT4",
-            authDomain: "pc-fronted.firebaseapp.com",
-            projectId: "pc-fronted",
-            storageBucket: "pc-fronted.firebasestorage.app",
-            messagingSenderId: "530921835618",
-            appId: "1:530921835618:web:7ad1ca15fa89dca3af553b"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        window.firebaseApp = app;
-        console.log("✅ Firebase bağlantısı kuruldu!");
-    </script>
-    
     <style>
-        /* TASARIM KODLARI AYNI KALACAK */
+        /* TASARIM KODLARI */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
         .container { max-width: 800px; margin: 0 auto; }
-        .header { text-align: center; color: white; margin-bottom: 30px; padding: 25px 20px; border-radius: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .header h1 { font-size: 2rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .header p { opacity: 0.9; font-size: 1rem; }
-        .search-box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); margin-bottom: 30px; }
-        .search-input { width: 100%; padding: 18px 20px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 12px; margin-bottom: 15px; transition: all 0.3s; }
-        .search-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        .search-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px; font-size: 16px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 600; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .search-btn:active { transform: scale(0.98); }
-        .quick-search { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
-        .quick-btn { background: rgba(102, 126, 234, 0.1); border: 2px solid rgba(102, 126, 234, 0.3); padding: 15px; border-radius: 12px; font-size: 14px; cursor: pointer; color: #667eea; font-weight: 500; transition: all 0.3s; }
-        .quick-btn:active { background: rgba(102, 126, 234, 0.2); transform: scale(0.95); }
-        .loading { text-align: center; padding: 50px 20px; color: white; display: none; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        
+        /* HEADER */
+        .header { text-align: center; color: white; margin-bottom: 30px; padding: 25px 20px; border-radius: 20px; background: rgba(255, 255, 255, 0.1); }
+        .header h1 { font-size: 1.8rem; margin-bottom: 10px; }
+        
+        /* SEARCH */
+        .search-box { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 30px; }
+        .search-input { width: 100%; padding: 15px; font-size: 16px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 15px; }
+        .search-btn { background: #2563eb; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-size: 16px; cursor: pointer; }
+        
+        /* RESULTS */
+        .result-card { background: white; padding: 15px; margin: 10px 0; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .result-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; }
+        .result-price { color: #2563eb; font-weight: bold; font-size: 20px; }
+        .result-source { background: #e5e7eb; padding: 4px 10px; border-radius: 12px; font-size: 12px; display: inline-block; margin: 5px 5px 5px 0; }
+        
+        /* LOADING */
+        .loading { text-align: center; padding: 40px; color: white; display: none; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .results { display: none; }
-        .result-count { color: white; text-align: center; margin-bottom: 20px; font-size: 1.1rem; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; backdrop-filter: blur(10px); }
-        .product-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: transform 0.3s; }
-        .product-card:active { transform: translateY(-5px); }
-        .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; gap: 15px; }
-        .product-title { font-size: 1.1rem; font-weight: 600; color: #333; flex: 1; line-height: 1.4; }
-        .product-price { font-size: 1.5rem; font-weight: 700; color: #667eea; white-space: nowrap; }
-        .product-meta { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
-        .badge-source { background: #e3f2fd; color: #1976d2; }
-        .badge-location { background: #f3e5f5; color: #7b1fa2; }
-        .badge-trust { background: #e8f5e9; color: #2e7d32; }
-        .badge-demo { background: #fff3e0; color: #ef6c00; }
-        .product-footer { display: flex; gap: 12px; margin-top: 20px; }
-        .btn { padding: 14px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; flex: 1; text-align: center; text-decoration: none; font-size: 0.95rem; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-secondary { background: #f5f5f5; color: #666; }
-        .btn:active { transform: scale(0.95); }
-        .no-results { text-align: center; color: white; padding: 50px 20px; font-size: 1.1rem; background: rgba(255, 255, 255, 0.1); border-radius: 16px; backdrop-filter: blur(10px); }
-        .info-box { background: rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 20px; margin-top: 20px; text-align: center; }
-        .info-box h3 { color: #667eea; margin-bottom: 10px; }
-        @media (max-width: 600px) { .header h1 { font-size: 1.6rem; } .product-header { flex-direction: column; } .quick-search { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -74,18 +37,7 @@
         <!-- HEADER -->
         <div class="header">
             <h1>🖥️ Mobil PC Fiyat Asistanı</h1>
-            <p>Gerçek ikinci el fiyatlar • Anlık güncel • Tüm sitelerden</p>
-            <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.8;">
-                <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; margin: 0 5px;">
-                    🔥 Sahibinden
-                </span>
-                <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; margin: 0 5px;">
-                    🛒 Dolap
-                </span>
-                <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; margin: 0 5px;">
-                    ⚡ Letgo
-                </span>
-            </div>
+            <p>Gerçek ikinci el fiyatlar • Anlık güncel</p>
         </div>
         
         <!-- SEARCH BOX -->
@@ -93,260 +45,182 @@
             <input type="text" 
                    class="search-input" 
                    id="searchInput" 
-                   placeholder="Ürün ara (örn: RTX 3060, Ryzen 5, 16GB RAM...)"
-                   autocomplete="off">
+                   placeholder="RTX 3060, Ryzen 5, 16GB RAM..."
+                   value="RTX 3060">
             
             <button class="search-btn" onclick="searchProducts()">
-                <span>🔍</span> GERÇEK FİYATLARI BUL
+                🔍 GERÇEK FİYATLARI BUL
             </button>
-            
-            <div class="quick-search">
-                <button class="quick-btn" onclick="quickSearch('RTX 3060')">
-                    🎮 RTX 3060
-                </button>
-                <button class="quick-btn" onclick="quickSearch('Ryzen 5 5600X')">
-                    ⚡ Ryzen 5
-                </button>
-                <button class="quick-btn" onclick="quickSearch('16GB DDR4 RAM')">
-                    💾 16GB RAM
-                </button>
-                <button class="quick-btn" onclick="quickSearch('1TB SSD NVMe')">
-                    💿 1TB SSD
-                </button>
-            </div>
         </div>
         
         <!-- LOADING -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>İkinci el siteleri taranıyor...</p>
-            <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
-                Sahibinden • Dolap • Letgo/Bianali
-            </p>
+            <p>Gerçek fiyatlar aranıyor...</p>
         </div>
         
         <!-- RESULTS -->
-        <div class="results" id="results">
-            <div class="result-count" id="resultCount"></div>
-            <div id="productsContainer"></div>
-        </div>
-        
-        <!-- INFO BOX -->
-        <div class="info-box">
-            <h3>ℹ️ Nasıl Çalışır?</h3>
-            <p>1. Ürün adını yaz ➡️ 2. Tüm siteler taranır ➡️ 3. Gerçek fiyatlar listelenir</p>
-            <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
-                Firebase Backend ile %100 gerçek veri
-            </p>
-        </div>
+        <div id="results"></div>
     </div>
 
-    <!-- YENİ JAVASCRIPT KODU -->
+    <!-- JAVASCRIPT -->
     <script>
-        // PROXY İLE GERÇEK VERİ ÇEK
-        const PROXY = "https://api.allorigins.win/get?url=";
+        // YENİ PROXY - ÇALIŞAN
+        const PROXY_URL = "https://corsproxy.io/?";
         
-        // ARAMA YAP
+        // GERÇEK VERİ ÇEK
         async function searchProducts() {
             const query = document.getElementById('searchInput').value.trim();
-            if (!query) {
-                alert('Lütfen ürün adı yazın!');
-                return;
-            }
+            if (!query) return;
             
+            // Loading göster
             document.getElementById('loading').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
+            document.getElementById('results').innerHTML = '';
             
             try {
-                // GERÇEK DOLAP VERİSİNİ ÇEK
-                const realData = await getRealDolapData(query);
+                // DOLAP API'DEN GERÇEK VERİ ÇEK
+                const realProducts = await getRealDolapProducts(query);
                 
-                if (realData && realData.data.length > 0) {
+                if (realProducts.length > 0) {
                     // GERÇEK VERİ VARSA GÖSTER
-                    showProducts(realData, false);
+                    showResults(realProducts, query, false);
                 } else {
-                    // GERÇEK VERİ YOKSA DEMO GÖSTER
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    const demoData = generateDemoData(query);
-                    showProducts(demoData, true);
+                    // GERÇEK VERİ YOKSA, TRENDYOL'U DENE
+                    const trendyolProducts = await getTrendyolProducts(query);
+                    if (trendyolProducts.length > 0) {
+                        showResults(trendyolProducts, query, false);
+                    } else {
+                        // HİÇ GERÇEK VERİ YOKSA DEMO GÖSTER
+                        showDemoResults(query);
+                    }
                 }
             } catch (error) {
                 console.error('Hata:', error);
-                // HATA OLURSA DEMO GÖSTER
-                const demoData = generateDemoData(query);
-                showProducts(demoData, true);
+                showDemoResults(query);
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
         
-        // GERÇEK DOLAP VERİSİ ÇEK
-        async function getRealDolapData(query) {
+        // DOLAP API'DEN GERÇEK VERİ ÇEK
+        async function getRealDolapProducts(query) {
             try {
-                const url = `https://api.dolap.com/v7/products/search?q=${encodeURIComponent(query)}&size=10`;
-                const response = await fetch(PROXY + encodeURIComponent(url));
+                const url = `https://api.dolap.com/v7/products/search?q=${encodeURIComponent(query)}&size=8`;
+                const response = await fetch(PROXY_URL + encodeURIComponent(url));
                 
-                if (!response.ok) throw new Error('API hatası');
+                if (!response.ok) return [];
                 
                 const data = await response.json();
-                const products = JSON.parse(data.contents).products || [];
+                const products = data.products || [];
                 
-                const formatted = products
+                return products
                     .filter(p => p.price?.amount > 100)
                     .map(p => ({
                         title: p.title,
-                        price: p.price?.amount || 0,
+                        price: p.price?.amount,
                         location: p.seller?.city || 'Türkiye',
                         source: 'dolap',
-                        sourceColor: '#16a34a',
                         url: `https://www.dolap.com/urun/${p.slug}`,
-                        trust_score: 85,
-                        is_demo: false
+                        is_real: true
                     }));
-                
-                return {
-                    success: true,
-                    data: formatted,
-                    count: formatted.length,
-                    query: query
-                };
-                
+                    
             } catch (error) {
-                console.log('Gerçek veri çekilemedi:', error);
-                return null;
+                console.log('Dolap hatası:', error);
+                return [];
             }
         }
         
-        // DEMO VERİ ÜRET
-        function generateDemoData(query) {
-            const sources = [
-                { name: 'sahibinden', color: '#dc2626' },
-                { name: 'dolap', color: '#16a34a' },
-                { name: 'letgo', color: '#d97706' }
+        // TRENDYOL API'DEN VERİ ÇEK
+        async function getTrendyolProducts(query) {
+            try {
+                const url = `https://public.trendyol.com/discovery-web-searchgw-service/v2/api/infinite-scroll/sr?q=${encodeURIComponent(query)}&pi=5`;
+                const response = await fetch(PROXY_URL + encodeURIComponent(url));
+                
+                if (!response.ok) return [];
+                
+                const data = await response.json();
+                const products = data.result?.products || [];
+                
+                return products.slice(0, 5).map(p => ({
+                    title: p.name,
+                    price: p.price?.sellingPrice,
+                    location: 'Trendyol',
+                    source: 'trendyol',
+                    url: `https://www.trendyol.com/${p.url}`,
+                    is_real: true
+                }));
+                    
+            } catch (error) {
+                console.log('Trendyol hatası:', error);
+                return [];
+            }
+        }
+        
+        // DEMO VERİ GÖSTER
+        function showDemoResults(query) {
+            const demoProducts = [
+                { title: `${query} - Sahibinden`, price: 2850, location: 'İstanbul', source: 'sahibinden', is_real: false },
+                { title: `${query} - Dolap`, price: 3100, location: 'Ankara', source: 'dolap', is_real: false },
+                { title: `${query} - Letgo`, price: 2750, location: 'İzmir', source: 'letgo', is_real: false }
             ];
             
-            const locations = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya'];
-            const basePrice = getBasePrice(query);
-            
-            const demoProducts = Array.from({ length: 8 }, (_, i) => {
-                const source = sources[i % sources.length];
-                const variation = Math.random() * 0.4 - 0.2;
-                const price = Math.round(basePrice * (1 + variation));
-                
-                return {
-                    title: `${query} - ${i+1}. İlan`,
-                    price: price,
-                    location: locations[Math.floor(Math.random() * locations.length)],
-                    source: source.name,
-                    sourceColor: source.color,
-                    url: '#',
-                    trust_score: Math.floor(Math.random() * 20) + 75,
-                    is_demo: true
-                };
-            });
-            
-            demoProducts.sort((a, b) => a.price - b.price);
-            
-            return {
-                success: true,
-                data: demoProducts,
-                count: demoProducts.length,
-                query: query,
-                is_demo: true
-            };
+            showResults(demoProducts, query, true);
         }
         
-        // TEMEL FİYAT BELİRLE
-        function getBasePrice(query) {
-            const prices = {
-                'rtx 3060': 6500, 'rtx 3070': 9500, 'rtx 3080': 12000,
-                'ryzen 5': 2800, 'ryzen 7': 5200, 'i5': 3100, 'i7': 6500,
-                'ram': 900, 'ssd': 1500, 'anakart': 1800, 'psu': 1200
-            };
-            
-            query = query.toLowerCase();
-            for (const [key, price] of Object.entries(prices)) {
-                if (query.includes(key)) return price;
-            }
-            return 2500;
-        }
-        
-        // ÜRÜNLERİ GÖSTER
-        function showProducts(data, isDemo) {
-            const products = data.data || [];
-            const query = data.query || 'Arama';
-            
-            // BAŞLIK
-            document.getElementById('resultCount').innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>📊 <strong>${products.length}</strong> ilan bulundu</span>
-                    <span style="font-size: 0.9rem; opacity: 0.8;">"${query}"</span>
+        // SONUÇLARI GÖSTER
+        function showResults(products, query, isDemo) {
+            let html = `
+                <div style="color: white; text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 12px;">
+                    <strong>"${query}"</strong> için ${products.length} sonuç
+                    ${isDemo ? '<div style="color: #fbbf24; font-size: 14px; margin-top: 5px;">⚠️ Demo Mod (Gerçek veri çekilemedi)</div>' : '<div style="color: #10b981; font-size: 14px; margin-top: 5px;">✅ Gerçek Veriler</div>'}
                 </div>
-                ${isDemo ? 
-                    '<div style="margin-top: 8px; color: #ef6c00; font-size: 0.9rem;">⚠️ Demo Mod - İnternet bağlantınızı kontrol edin</div>' : 
-                    '<div style="margin-top: 8px; color: #16a34a; font-size: 0.9rem;">✅ Gerçek Dolap Verileri</div>'
-                }
             `;
             
-            // ÜRÜNLER
-            let html = '';
-            products.forEach((product, index) => {
-                const trustColor = product.trust_score >= 80 ? '#2e7d32' : 
-                                  product.trust_score >= 60 ? '#f57c00' : '#d32f2f';
-                
+            products.forEach(product => {
                 html += `
-                    <div class="product-card">
-                        <div class="product-header">
-                            <div class="product-title">${product.title}</div>
-                            <div class="product-price">${product.price.toLocaleString('tr-TR')}₺</div>
-                        </div>
-                        
-                        <div class="product-meta">
-                            <span class="badge badge-source" style="border-left: 4px solid ${product.sourceColor}">
+                    <div class="result-card">
+                        <div class="result-title">${product.title}</div>
+                        <div class="result-price">${product.price?.toLocaleString('tr-TR') || 'Fiyat belirtilmemiş'}₺</div>
+                        <div>
+                            <span class="result-source" style="background: ${getSourceColor(product.source)}; color: white;">
                                 ${product.source.toUpperCase()}
                             </span>
-                            <span class="badge badge-location">
-                                📍 ${product.location}
-                            </span>
-                            <span class="badge badge-trust" style="color: ${trustColor};">
-                                ⭐ ${product.trust_score}/100
-                            </span>
-                            ${product.is_demo ? '<span class="badge badge-demo">DEMO</span>' : ''}
+                            <span style="font-size: 14px; color: #666;">📍 ${product.location}</span>
                         </div>
-                        
-                        <div class="product-footer">
-                            <a href="${product.url}" target="_blank" class="btn btn-primary">
-                                <span>🛒</span> Siteye Git
-                            </a>
-                            <button class="btn btn-secondary" onclick="addToFavorites(${index})">
-                                <span>⭐</span> Favorilere Ekle
-                            </button>
-                        </div>
+                        ${product.url !== '#' ? 
+                            `<a href="${product.url}" target="_blank" style="display: inline-block; margin-top: 10px; padding: 8px 15px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-size: 14px;">🛒 Siteye Git</a>` : 
+                            ''
+                        }
                     </div>
                 `;
             });
             
-            document.getElementById('productsContainer').innerHTML = html || 
-                '<div class="no-results"><h3>İlan bulunamadı</h3><p>Farklı bir ürün aramayı deneyin.</p></div>';
-            
-            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').innerHTML = html;
         }
         
-        // HIZLI ARAMA
-        window.quickSearch = function(query) {
-            document.getElementById('searchInput').value = query;
-            searchProducts();
-        };
-        
-        // FAVORİ EKLE
-        window.addToFavorites = function(index) {
-            alert('⭐ Ürün favorilere eklendi!');
-        };
+        // KAYNAK RENGİ
+        function getSourceColor(source) {
+            const colors = {
+                'dolap': '#10b981',
+                'sahibinden': '#ef4444',
+                'letgo': '#f59e0b',
+                'trendyol': '#f97316'
+            };
+            return colors[source] || '#6b7280';
+        }
         
         // SAYFA AÇILINCA OTOMATİK ARA
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('searchInput').value = 'RTX 3060';
-            setTimeout(() => searchProducts(), 300);
+        window.onload = function() {
+            setTimeout(() => {
+                searchProducts();
+            }, 500);
+        };
+        
+        // ENTER TUŞU İLE ARAMA
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
         });
     </script>
 </body>
