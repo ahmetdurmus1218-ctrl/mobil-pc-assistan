@@ -71,7 +71,11 @@
         <div class="brandText">FiyatTakip</div>
       </div>
       <div style="display:flex;gap:8px;">
-        <!-- Sepet butonu otomatik eklenecek -->
+        <!-- Sepet butonu -->
+        <button id="cartIcon" class="iconBtn" type="button" aria-label="Sepet">
+          🛒
+          <span id="cartCount" class="cartBadge" style="display:none;">0</span>
+        </button>
         <button id="btnBell" class="iconBtn" type="button" aria-label="Bildirim">🔔</button>
       </div>
     </header>
@@ -118,6 +122,8 @@
             <span class="quickTag" data-query="televizyon">📺 TV</span>
             <span class="quickTag" data-query="laptop">💻 Laptop</span>
             <span class="quickTag" data-query="playstation 5">🎮 PS5</span>
+            <span class="quickTag" data-query="8gb ddr4 ram">💾 RAM</span>
+            <span class="quickTag" data-query="rtx 3060">🎮 Ekran Kartı</span>
           </div>
         </div>
 
@@ -134,9 +140,7 @@
           <div class="pageTitle">Sonuçlar</div>
           <button id="btnClearSearch" class="btnGhost" type="button">Temizle</button>
         </div>
-        <div id="normalList" class="list">
-          <!-- Fiyat sonuçları buraya eklenecek -->
-        </div>
+        <div id="normalList" class="list"></div>
       </section>
 
       <!-- GRAFİK SAYFASI -->
@@ -164,9 +168,7 @@
           <div class="pageTitle">🛒 Sepetim</div>
           <button class="btnGhost" onclick="clearCart()">Temizle</button>
         </div>
-        <div id="cartList" class="list">
-          <!-- Sepet içeriği buraya eklenecek -->
-        </div>
+        <div id="cartList" class="list"></div>
       </section>
 
       <!-- SETTINGS -->
@@ -189,7 +191,7 @@
           <div class="rowBetween">
             <div>
               <div class="cardTitle">🤖 AI Sistemi</div>
-              <div class="miniHint">Hugging Face AI aktif - Favorilerde AI butonuna tıkla!</div>
+              <div class="miniHint">AI özellikleri aktif</div>
             </div>
             <button id="btnAiSettings" class="btnPrimary" type="button" style="background:linear-gradient(135deg, #7c5cff, #36d399);">Aktif</button>
           </div>
@@ -219,7 +221,7 @@
         <span class="ico">📊</span><span class="lbl">Grafik</span>
       </button>
 
-      <!-- ORTADA KAMERA BUTONU -->
+      <!-- KAMERA BUTONU -->
       <button class="cameraTab" type="button" id="cameraTabBtn">
         <span class="ico">📸</span><span class="lbl">Kamera</span>
       </button>
@@ -255,16 +257,10 @@
         </div>
 
         <div class="row">
-          <label class="lbl">API Durumu</label>
-          <div id="apiStatus" class="apiStatus offline">Bağlantı yok</div>
-        </div>
-
-        <div class="row">
-          <button id="btnTestApi" class="btnGhost" type="button">Test Et</button>
           <button id="btnSaveApi" class="btnPrimary" type="button">Kaydet</button>
         </div>
 
-        <div class="mini muted">Render.com'dan aldığın API URL'sini buraya yapıştır.</div>
+        <div class="mini muted">Backend API URL'sini buraya yapıştır.</div>
       </div>
     </div>
   </div>
@@ -288,32 +284,16 @@
         </div>
 
         <div class="row">
-          <label class="lbl">AI Sağlayıcı</label>
-          <select id="aiProvider" class="input inputDark">
-            <option value="gemini">Google Gemini</option>
-            <option value="openai">OpenAI</option>
-            <option value="huggingface">Hugging Face</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <label class="lbl">API Anahtarı (Opsiyonel)</label>
-          <input id="aiApiKey" class="input inputDark" type="password" placeholder="API anahtarınız" />
-        </div>
-
-        <div class="row">
           <button id="btnSaveAI" class="btnPrimary" type="button">Kaydet</button>
         </div>
 
-        <div class="mini muted">Varsayılan: Hugging Face ücretsiz API</div>
+        <div class="mini muted">AI özellikleri aktif</div>
       </div>
     </div>
   </div>
 
   <!-- SCRIPTS -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
