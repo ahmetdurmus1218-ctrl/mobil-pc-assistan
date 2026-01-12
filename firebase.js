@@ -1,4 +1,6 @@
-// Firebase.js - Basit ve çalışan versiyon
+[file name]: firebase.js
+[file content begin]
+// Firebase.js - TAMAMLANMIŞ VERSİYON
 
 // Firebase yapılandırması
 const firebaseConfig = {
@@ -45,7 +47,14 @@ const firebaseFunctions = {
   getDocs: (query) => query.get(),
   setDoc: (docRef, data) => docRef.set(data),
   deleteDoc: (docRef) => docRef.delete(),
-  getDoc: (docRef) => docRef.get()
+  getDoc: (docRef) => docRef.get(),
+  updateDoc: (docRef, data) => docRef.update(data),
+  addDoc: (collectionRef, data) => collectionRef.add(data),
+  query: (collectionRef, field, operator, value) => 
+    collectionRef.where(field, operator, value),
+  
+  // Kısayol fonksiyonlar
+  getUserFavoritesRef: (userId) => db.collection(`users/${userId}/favorites`)
 };
 
 // Global erişim için
@@ -57,3 +66,4 @@ window.firebaseApp = {
 };
 
 console.log("✅ Firebase hazır");
+[file content end]
