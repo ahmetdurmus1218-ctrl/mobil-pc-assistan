@@ -3,294 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖥️ Mobil PC Fiyat Asistanı - Canlı Fiyatlar</title>
+    <title>İkinciElFiyat - Sahibinden, Dolap, Letgo Fiyat Karşılaştırma</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* MOBİL UYUMLU STİLLER */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; padding: 20px; color: #333; }
-
-        .container { max-width: 100%; background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); }
-
-        /* Başlık */
-        .header { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 2px solid #f0f0f0; }
-        .header h1 { color: #2d3436; font-size: 1.8rem; margin-bottom: 8px; }
-        .header p { color: #636e72; font-size: 0.95rem; }
-        .header .highlight { color: #6a11cb; font-weight: 600; }
-
-        /* Arama Kutusu */
-        .search-box { display: flex; margin-bottom: 25px; border-radius: 50px; overflow: hidden; box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2); }
-        #searchInput { flex-grow: 1; border: none; padding: 18px 22px; font-size: 16px; outline: none; }
-        #searchBtn { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); border: none; color: white; padding: 0 30px; font-weight: bold; font-size: 16px; cursor: pointer; transition: opacity 0.3s; }
-        #searchBtn:active { opacity: 0.8; }
-
-        /* Hızlı Butonlar */
-        .quick-searches { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-        .quick-btn { background: #e3f2fd; border: none; padding: 10px 16px; border-radius: 20px; font-size: 14px; color: #2575fc; cursor: pointer; transition: all 0.3s; }
-        .quick-btn:active { background: #bbdefb; transform: scale(0.98); }
-
-        /* Yükleme ve Hata */
-        #loading, #errorContainer { text-align: center; padding: 30px; border-radius: 15px; margin: 20px 0; display: none; }
-        #loading { background: #fff3e0; color: #e65100; }
-        #errorContainer { background: #ffebee; color: #c62828; }
-
-        /* Sekmeler */
-        .market-tabs { display: flex; background: #f8f9fa; border-radius: 12px; padding: 5px; margin-bottom: 20px; }
-        .tab { flex: 1; text-align: center; padding: 14px 10px; border-radius: 10px; cursor: pointer; font-weight: 500; color: #6c757d; transition: all 0.3s; }
-        .tab.active { background: white; color: #6a11cb; font-weight: 600; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
-
-        /* Ürün Listesi */
-        .product-list { display: none; }
-        .product-list.active { display: block; }
-
-        .product-card { background: white; border-radius: 15px; padding: 18px; margin-bottom: 15px; border-left: 5px solid #6a11cb; box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
-        .product-info { flex-grow: 1; }
-        .product-title { font-weight: 600; margin-bottom: 8px; color: #2d3436; font-size: 15px; line-height: 1.3; }
-        .product-price { font-size: 1.4rem; font-weight: 700; color: #00b894; margin-bottom: 5px; }
-        .product-meta { font-size: 0.8rem; color: #636e72; }
-        .product-source { display: inline-block; background: #dfe6e9; padding: 3px 10px; border-radius: 12px; margin-top: 5px; font-size: 0.75rem; }
-        .product-link { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; white-space: nowrap; margin-left: 15px; transition: opacity 0.3s; }
-        .product-link:active { opacity: 0.8; }
-
-        /* Letgo Özel Kart */
-        .letgo-card { border-left-color: #fdcb6e; background: #fffde7; }
-        .letgo-badge { background: #fdcb6e; color: #2d3436; }
-
-        /* Zaman Damgası */
-        #timestamp { text-align: center; margin-top: 25px; font-size: 0.85rem; color: rgba(255, 255, 255, 0.85); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-desktop"></i> Mobil PC Fiyat Asistanı</h1>
-            <p>Gerçek ikinci el fiyatlar <span class="highlight">canlı olarak</span> listelenir</p>
-        </div>
-
-        <!-- Arama Kutusu -->
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Örn: ddr4 8gb 3200mhz, i5 11400f, gtx 1660s..." autocomplete="off">
-            <button id="searchBtn"><i class="fas fa-search"></i> ARA</button>
-        </div>
-
-        <!-- Hızlı Arama Butonları -->
-        <div class="quick-searches">
-            <button class="quick-btn" data-search="ddr4 8gb 3200mhz"><i class="fas fa-memory"></i> DDR4 8GB</button>
-            <button class="quick-btn" data-search="i5 10.nesil"><i class="fas fa-microchip"></i> İ5 İşlemci</button>
-            <button class="quick-btn" data-search="rtx 3060"><i class="fas fa-gamepad"></i> RTX 3060</button>
-            <button class="quick-btn" data-search="500gb ssd m.2"><i class="fas fa-hdd"></i> 500GB SSD</button>
-        </div>
-
-        <!-- Yükleme ve Hata Mesajı -->
-        <div id="loading">
-            <i class="fas fa-spinner fa-spin fa-2x"></i>
-            <p style="margin-top: 15px;">Canlı fiyatlar aranıyor...<br><small>Sahibinden, Dolap, Letgo taranıyor</small></p>
-        </div>
-        <div id="errorContainer"></div>
-
-        <!-- Sonuçların Gösterileceği Alan -->
-        <div id="resultsSection" style="display:none;">
-            <!-- Piyasa Sekmeleri -->
-            <div class="market-tabs">
-                <div class="tab active" data-market="sahibinden"><i class="fas fa-store"></i> Sahibinden</div>
-                <div class="tab" data-market="dolap"><i class="fas fa-shopping-bag"></i> Dolap</div>
-                <div class="tab" data-market="letgo"><i class="fas fa-bolt"></i> Letgo (Direkt Link)</div>
+    <!-- Üst Navigasyon -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-balance-scale"></i>
+                <span>İkinciEl<span class="logo-highlight">Fiyat</span></span>
             </div>
-
-            <!-- Ürün Listeleri (Her Piyasa İçin Ayrı Div) -->
-            <div id="sahibindenResults" class="product-list active"></div>
-            <div id="dolapResults" class="product-list"></div>
-            <div id="letgoResults" class="product-list"></div>
+            
+            <div class="search-bar">
+                <input type="text" id="globalSearch" placeholder="Örn: iPhone 13, RTX 3060, Buzdolabı...">
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="nav-links">
+                <a href="#"><i class="fas fa-home"></i> Ana Sayfa</a>
+                <a href="#"><i class="fas fa-heart"></i> Takip Listem</a>
+                <a href="#"><i class="fas fa-bell"></i> Bildirimler</a>
+            </div>
+            
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
+    </nav>
 
-        <!-- Son Güncelleme Zamanı -->
-        <div id="timestamp"></div>
-    </div>
+    <!-- Hero Banner -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>İkinci El Ürünlerde <span class="highlight">En İyi Fiyatı</span> Bul</h1>
+            <p class="hero-subtitle">Sahibinden, Dolap, Letgo ve daha fazlasında fiyatları anlık karşılaştır</p>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">50.000+</span>
+                    <span class="stat-label">Takip Edilen Ürün</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">İkinci El Sitesi</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">₺2.5M+</span>
+                    <span class="stat-label">Tasarruf Edilen</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <!-- Ana JavaScript Kodları -->
+    <!-- Popüler Kategoriler -->
+    <section class="categories">
+        <h2 class="section-title">Popüler İkinci El Kategoriler</h2>
+        <div class="categories-grid">
+            <a href="arama-sonuclari.html?kategori=bilgisayar" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <h3>Bilgisayar & Tablet</h3>
+                <p>Dizüstü, Masaüstü, Tablet</p>
+                <span class="product-count">15.230 ürün</span>
+            </a>
+            
+            <a href="arama-sonuclari.html?kategori=telefon" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>Cep Telefonu</h3>
+                <p>iPhone, Samsung, Xiaomi</p>
+                <span class="product-count">22.540 ürün</span>
+            </a>
+            
+            <a href="arama-sonuclari.html?kategori=elektronik" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-tv"></i>
+                </div>
+                <h3>Elektronik</h3>
+                <p>TV, Ses Sistemleri, Oyun</p>
+                <span class="product-count">18.750 ürün</span>
+            </a>
+            
+            <a href="arama-sonuclari.html?kategori=beyaz-esya" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-snowflake"></i>
+                </div>
+                <h3>Beyaz Eşya</h3>
+                <p>Buzdolabı, Çamaşır Makinesi</p>
+                <span class="product-count">8.920 ürün</span>
+            </a>
+            
+            <a href="arama-sonuclari.html?kategori=ev-yasam" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-couch"></i>
+                </div>
+                <h3>Ev & Yaşam</h3>
+                <p>Mobilya, Mutfak, Bahçe</p>
+                <span class="product-count">12.340 ürün</span>
+            </a>
+            
+            <a href="arama-sonuclari.html?kategori=araba" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <h3>Araç & Motosiklet</h3>
+                <p>Oto Yedek Parça, Aksesuar</p>
+                <span class="product-count">9.560 ürün</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Takip Edilen Ürünler -->
+    <section class="tracked-products">
+        <div class="section-header">
+            <h2 class="section-title">Şu Anda Takip Edilen Ürünler</h2>
+            <a href="#" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+        </div>
+        
+        <div class="products-grid" id="trackedProducts">
+            <!-- JavaScript ile doldurulacak -->
+        </div>
+    </section>
+
+    <!-- İkinci El Site Karşılaştırması -->
+    <section class="site-comparison">
+        <h2 class="section-title">Hangi İkinci El Sitesi Daha Uygun?</h2>
+        <div class="comparison-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Ortalama Fiyat Farkı</th>
+                        <th>Ürün Çeşitliliği</th>
+                        <th>Güven</th>
+                        <th>Tavsiye Edilen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="site-name">
+                            <i class="fas fa-store" style="color: #ff6b35;"></i>
+                            Sahibinden
+                        </td>
+                        <td class="price-diff negative">-%12</td>
+                        <td><div class="rating-bar" style="width: 95%;"></div> Çok Yüksek</td>
+                        <td><i class="fas fa-shield-alt" style="color: #4CAF50;"></i> Yüksek</td>
+                        <td><span class="recommended-tag">Evet</span></td>
+                    </tr>
+                    <tr>
+                        <td class="site-name">
+                            <i class="fas fa-shopping-bag" style="color: #00a8ff;"></i>
+                            Dolap
+                        </td>
+                        <td class="price-diff positive">+%8</td>
+                        <td><div class="rating-bar" style="width: 75%;"></div> Orta</td>
+                        <td><i class="fas fa-shield-alt" style="color: #FFC107;"></i> Orta</td>
+                        <td><span class="not-recommended-tag">Kısmen</span></td>
+                    </tr>
+                    <tr>
+                        <td class="site-name">
+                            <i class="fas fa-bolt" style="color: #9C27B0;"></i>
+                            Letgo
+                        </td>
+                        <td class="price-diff negative">-%15</td>
+                        <td><div class="rating-bar" style="width: 80%;"></div> Yüksek</td>
+                        <td><i class="fas fa-shield-alt" style="color: #F44336;"></i> Düşük</td>
+                        <td><span class="recommended-tag">Evet</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>İkinciElFiyat</h3>
+                <p>İkinci el ürünlerde en uygun fiyatı bulmanızı sağlayan karşılaştırma platformu.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Karşılaştırılan Siteler</h4>
+                <ul>
+                    <li><a href="#">Sahibinden</a></li>
+                    <li><a href="#">Dolap</a></li>
+                    <li><a href="#">Letgo</a></li>
+                    <li><a href="#">2.EL</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Popüler Kategoriler</h4>
+                <ul>
+                    <li><a href="#">Telefon</a></li>
+                    <li><a href="#">Bilgisayar</a></li>
+                    <li><a href="#">Elektronik</a></li>
+                    <li><a href="#">Ev Eşyaları</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Yardım</h4>
+                <ul>
+                    <li><a href="#">Nasıl Çalışır?</a></li>
+                    <li><a href="#">SSS</a></li>
+                    <li><a href="#">İletişim</a></li>
+                    <li><a href="#">Gizlilik Politikası</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 İkinciElFiyat. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
     <script>
-        // ====== KONFİGÜRASYON ======
-        // BACKEND URL'İNİ BURAYA YAZ! (Senin Render URL'in)
-        const BACKEND_URL = 'https://pc-scraper-backend.onrender.com';
-
-        // ====== DOM ELEMENTLERİ ======
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const loading = document.getElementById('loading');
-        const errorContainer = document.getElementById('errorContainer');
-        const resultsSection = document.getElementById('resultsSection');
-        const timestampEl = document.getElementById('timestamp');
-
-        // ====== ARAMA FONKSİYONU (Backend'i Canlı Çağırır) ======
-        async function performSearch(searchQuery) {
-            // UI'ı Temizle ve Yükleme Göster
-            loading.style.display = 'block';
-            errorContainer.style.display = 'none';
-            resultsSection.style.display = 'none';
-            clearProductLists();
-
-            try {
-                console.log(`🔍 Backend'e istek atılıyor: ${BACKEND_URL}/api/search/${encodeURIComponent(searchQuery)}`);
-                
-                // BACKEND'İNE GET İSTEĞİ AT
-                const response = await fetch(`${BACKEND_URL}/api/search/${encodeURIComponent(searchQuery)}`, {
-                    // Zaman aşımı (10 saniye)
-                    signal: AbortSignal.timeout(10000)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Backend hatası (${response.status}): ${response.statusText}`);
+        // Takip edilen ürünleri yükle
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTrackedProducts();
+            
+            // Arama işlevi
+            document.getElementById('searchBtn').addEventListener('click', function() {
+                const query = document.getElementById('globalSearch').value;
+                if (query.trim()) {
+                    window.location.href = `arama-sonuclari.html?q=${encodeURIComponent(query)}`;
                 }
-
-                const data = await response.json();
-                console.log('✅ Backend\'den veri alındı:', data);
-
-                if (!data.success) {
-                    throw new Error(data.error || 'Backend bir hata döndü.');
+            });
+            
+            document.getElementById('globalSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('searchBtn').click();
                 }
-
-                // GELEN CANLI VERİYİ EKRANA YAZDIR
-                displaySearchResults(data);
-
-            } catch (error) {
-                console.error('❌ Arama sırasında hata:', error);
-                showError(`Bir sorun oluştu: <strong>${error.name === 'TimeoutError' ? 'İstek zaman aşımına uğradı.' : error.message}</strong><br>Lütfen bağlantınızı kontrol edip tekrar deneyin.`);
-            } finally {
-                loading.style.display = 'none';
-            }
-        }
-
-        // ====== SONUÇLARI EKRANA BASMA FONKSİYONU ======
-        function displaySearchResults(data) {
-            // 1. SAHİBİNDEN SONUÇLARI (En Düşük Fiyata Göre Sıralı)
-            if (data.sahibinden && data.sahibinden.length > 0) {
-                // En düşük fiyata göre sırala (backend'den zaten sıralı geliyor ama emin olmak için)
-                const sortedSahibinden = [...data.sahibinden].sort((a, b) => a.price - b.price);
-                displayProductList('sahibinden', sortedSahibinden);
-            } else {
-                document.getElementById('sahibindenResults').innerHTML = '<div class="product-card"><div class="product-info"><p>Sahibinden\'de ilan bulunamadı.</p></div></div>';
-            }
-
-            // 2. DOLAP SONUÇLARI (En Düşük Fiyata Göre Sıralı)
-            if (data.dolap && data.dolap.length > 0) {
-                const sortedDolap = [...data.dolap].sort((a, b) => a.price - b.price);
-                displayProductList('dolap', sortedDolap);
-            } else {
-                document.getElementById('dolapResults').innerHTML = '<div class="product-card"><div class="product-info"><p>Dolap\'ta ilan bulunamadı.</p></div></div>';
-            }
-
-            // 3. LETGO SONUCU (TEK ÜRÜN / DİREKT LİNK)
-            const letgoContainer = document.getElementById('letgoResults');
-            if (data.letgo && data.letgo.title) {
-                letgoContainer.innerHTML = `
-                    <div class="product-card letgo-card">
-                        <div class="product-info">
-                            <div class="product-title"><i class="fas fa-bolt"></i> ${data.letgo.title}</div>
-                            <div class="product-price">${data.letgo.formattedPrice || data.letgo.price + ' TL'}</div>
-                            <div class="product-meta">${data.letgo.note || 'Letgo - En uygun tek ilan'}</div>
-                            <span class="product-source letgo-badge">LETGO - DİREKT LİNK</span>
+            });
+        });
+        
+        function loadTrackedProducts() {
+            const products = [
+                {
+                    id: 1,
+                    name: "iPhone 13 128GB",
+                    currentPrice: 18500,
+                    lowestPrice: 17900,
+                    highestPrice: 19500,
+                    priceChange: -3.2,
+                    image: "https://via.placeholder.com/150x150/007AFF/ffffff?text=iPhone",
+                    sites: 4
+                },
+                {
+                    id: 2,
+                    name: "RTX 3060 12GB",
+                    currentPrice: 8500,
+                    lowestPrice: 8200,
+                    highestPrice: 9200,
+                    priceChange: -1.5,
+                    image: "https://via.placeholder.com/150x150/8E44AD/ffffff?text=RTX3060",
+                    sites: 3
+                },
+                {
+                    id: 3,
+                    name: "Samsung QLED 55''",
+                    currentPrice: 12500,
+                    lowestPrice: 11900,
+                    highestPrice: 13500,
+                    priceChange: +2.1,
+                    image: "https://via.placeholder.com/150x150/3498DB/ffffff?text=TV",
+                    sites: 3
+                },
+                {
+                    id: 4,
+                    name: "MacBook Air M1",
+                    currentPrice: 21500,
+                    lowestPrice: 20500,
+                    highestPrice: 22500,
+                    priceChange: -4.3,
+                    image: "https://via.placeholder.com/150x150/2ECC71/ffffff?text=MacBook",
+                    sites: 4
+                }
+            ];
+            
+            const container = document.getElementById('trackedProducts');
+            container.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="${product.image}" alt="${product.name}">
+                        <button class="track-btn" onclick="toggleTrack(${product.id})">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3>${product.name}</h3>
+                        <div class="price-info">
+                            <span class="current-price">₺${product.currentPrice.toLocaleString('tr-TR')}</span>
+                            <span class="price-change ${product.priceChange < 0 ? 'negative' : 'positive'}">
+                                ${product.priceChange > 0 ? '+' : ''}${product.priceChange}%
+                            </span>
                         </div>
-                        <a href="${data.letgo.link}" target="_blank" class="product-link">
-                            İlana Git <i class="fas fa-external-link-alt"></i>
+                        <div class="price-range">
+                            <span>En düşük: <strong>₺${product.lowestPrice.toLocaleString('tr-TR')}</strong></span>
+                            <span>En yüksek: <strong>₺${product.highestPrice.toLocaleString('tr-TR')}</strong></span>
+                        </div>
+                        <div class="sites-count">
+                            <i class="fas fa-store"></i> ${product.sites} sitede bulundu
+                        </div>
+                        <a href="urun-detay.html?id=${product.id}" class="view-details-btn">
+                            Fiyatları Karşılaştır <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
-                `;
-            } else {
-                letgoContainer.innerHTML = '<div class="product-card"><div class="product-info"><p>Letgo\'da ilan bulunamadı.</p></div></div>';
-            }
-
-            // Sonuçları Göster ve Zamanı Yaz
-            resultsSection.style.display = 'block';
-            const time = new Date(data.timestamp || new Date()).toLocaleTimeString('tr-TR');
-            timestampEl.textContent = `Son canlı veri: ${time}`;
+                </div>
+            `).join('');
         }
-
-        // ====== BİR PİYASA İÇİN ÜRÜN LİSTESİ OLUŞTURMA ======
-        function displayProductList(marketName, productArray) {
-            const container = document.getElementById(`${marketName}Results`);
-            let html = '';
-
-            productArray.forEach(product => {
-                html += `
-                    <div class="product-card">
-                        <div class="product-info">
-                            <div class="product-title">${product.title}</div>
-                            <div class="product-price">${product.formattedPrice || product.price.toLocaleString('tr-TR') + ' TL'}</div>
-                            <div class="product-meta">
-                                ${product.location ? `<i class="fas fa-map-marker-alt"></i> ${product.location}` : ''}
-                                ${product.date ? ` • <i class="far fa-clock"></i> ${product.date}` : ''}
-                            </div>
-                            <span class="product-source">${marketName.toUpperCase()}</span>
-                        </div>
-                        <a href="${product.link}" target="_blank" class="product-link">
-                            İlana Git <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        // ====== YARDIMCI FONKSİYONLAR ======
-        function showError(message) {
-            errorContainer.innerHTML = `<p>${message}</p>`;
-            errorContainer.style.display = 'block';
-        }
-        function clearProductLists() {
-            ['sahibinden', 'dolap', 'letgo'].forEach(m => {
-                document.getElementById(`${m}Results`).innerHTML = '';
-            });
-        }
-
-        // ====== SEKME DEĞİŞTİRME OLAYI ======
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Aktif sekmeyi değiştir
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                // İlgili listeyi göster
-                const market = this.getAttribute('data-market');
-                document.querySelectorAll('.product-list').forEach(list => list.classList.remove('active'));
-                document.getElementById(`${market}Results`).classList.add('active');
-            });
-        });
-
-        // ====== OLAY DİNLEYİCİLERİ ======
-        // Ana Arama Butonu
-        searchBtn.addEventListener('click', () => {
-            const query = searchInput.value.trim();
-            if (query) performSearch(query);
-            else showError('Lütfen bir ürün adı yazın.');
-        });
-        // Enter Tuşu ile Arama
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchBtn.click();
-            }
-        });
-        // Hızlı Arama Butonları
-        document.querySelectorAll('.quick-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                searchInput.value = this.getAttribute('data-search');
-                performSearch(searchInput.value);
-            });
-        });
-
-        // Sayfa Yüklendiğinde Küçük Bir Test Yap (İsteğe Bağlı)
-        window.addEventListener('load', () => {
-            console.log('🚀 Mobil PC Fiyat Asistanı hazır. Backend:', BACKEND_URL);
-            // Önizleme için input'a örnek yaz (opsiyonel)
-            // searchInput.value = 'ddr4 8gb ram';
-        });
-
-        // AbortController için Timeout polyfill
-        if (!AbortSignal.timeout) {
-            AbortSignal.timeout = function(ms) {
-                const controller = new AbortController();
-                setTimeout(() => controller.abort(new DOMException('TimeoutError', 'TimeoutError')), ms);
-                return controller.signal;
-            };
+        
+        function toggleTrack(productId) {
+            alert(`Ürün ${productId} takip listesine eklendi/çıkarıldı`);
         }
     </script>
 </body>
