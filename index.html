@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>FiyatTakip - Akıllı Fiyat Karşılaştırma</title>
-  <meta name="description" content="Trendyol, Hepsiburada, n11, Amazon, Sahibinden ve daha fazlasında fiyat karşılaştırma">
+  <meta name="description" content="Trendyol, Hepsiburada, n11, Amazon, Sahibinden, Dolap, Letgo fiyat karşılaştırma">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -69,6 +69,7 @@
       <div class="brand">
         <div class="logoDot"></div>
         <div class="brandText">FiyatTakip</div>
+        <div class="brandSub">Akıllı Fiyat Karşılaştırma</div>
       </div>
       <div style="display:flex;gap:8px;">
         <!-- Sepet butonu -->
@@ -84,11 +85,15 @@
     <main class="pages">
       <!-- HOME -->
       <section id="page-home" class="page active">
-        <div class="searchCard">
+        <div class="searchCard modernSearchCard">
+          <div class="searchHeader">
+            <div class="searchIcon">🔍</div>
+            <div class="searchTitle">Ne Arıyorsun?</div>
+          </div>
+          
           <div class="searchRow">
-            <span class="sIcon">🔎</span>
-            <input id="qNormal" placeholder="Ürün ve mağaza ara…" />
-            <button id="btnMic" class="iconBtn" type="button" aria-label="Ses">🎙️</button>
+            <input id="qNormal" class="modernInput" placeholder="Ürün ara... (örn: 8gb ddr4 ram, rtx 3060, iphone 15)" />
+            <button id="btnMic" class="iconBtn micBtn" type="button" aria-label="Ses">🎙️</button>
           </div>
 
           <!-- Arama Modu Toggle -->
@@ -97,69 +102,231 @@
             <button class="modeBtn" id="modeFiyat" type="button">💰 Fiyat</button>
             <button class="modeBtn" id="modeAI" type="button">🤖 AI</button>
           </div>
-          <div class="modeHint" id="modeHint">Link modu: Sadece arama linkleri oluşturur</div>
+          
+          <!-- Arama Türü Toggle -->
+          <div class="searchTypeToggle" id="searchTypeToggle">
+            <button class="searchTypeBtn active" id="searchTypeAll" type="button">🔍 Tümü</button>
+            <button class="searchTypeBtn" id="searchTypeNew" type="button">🛍️ Yeni</button>
+            <button class="searchTypeBtn" id="searchTypeSecondHand" type="button">🔄 İkinci El</button>
+          </div>
+          
+          <div class="modeHint" id="modeHint">14 sitede en düşük fiyatı bul</div>
 
-          <button id="btnNormal" class="btnPrimary full" type="button">Ara</button>
+          <button id="btnNormal" class="modernPrimaryBtn" type="button">
+            <span class="btnIcon">🚀</span>
+            <span>AKILLI ARA</span>
+          </button>
+          
+          <div class="searchFeatures">
+            <div class="feature">
+              <span class="featureIcon">🎯</span>
+              <span class="featureText">Alakasız Sonuçları Filtrele</span>
+            </div>
+            <div class="feature">
+              <span class="featureIcon">⬆️</span>
+              <span class="featureText">En Düşük Fiyat Sıralı</span>
+            </div>
+            <div class="feature">
+              <span class="featureIcon">⚡</span>
+              <span class="featureText">Hızlı Site Linkleri</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modern Stats -->
+        <div class="modernStatsCard">
+          <div class="statsGrid">
+            <div class="statItem">
+              <div class="statValue">14</div>
+              <div class="statLabel">Site</div>
+            </div>
+            <div class="statItem">
+              <div class="statValue">🎯</div>
+              <div class="statLabel">Filtreli</div>
+            </div>
+            <div class="statItem">
+              <div class="statValue">⬆️</div>
+              <div class="statLabel">En Düşük</div>
+            </div>
+            <div class="statItem">
+              <div class="statValue">🔍</div>
+              <div class="statLabel">İlgili</div>
+            </div>
+          </div>
         </div>
 
         <!-- Banner -->
-        <div class="banner">
-          <div class="bannerLeft">🛍️</div>
-          <div class="bannerMid">
-            <div class="bannerTitle">İkinci El + Yeni Ürünler</div>
-            <div class="bannerSub">Trendyol, Hepsiburada, Sahibinden, Dolap, Letgo</div>
+        <div class="modernBanner">
+          <div class="bannerContent">
+            <div class="bannerIcon">⚡</div>
+            <div>
+              <div class="bannerTitle">Akıllı Fiyat Karşılaştırma</div>
+              <div class="bannerSub">Alakasız sonuçları otomatik filtreler, en düşük fiyatı bulur</div>
+            </div>
           </div>
-          <div class="bannerRight">💰</div>
+          <button class="bannerBtn" onclick="showPage('search')">Hemen Dene →</button>
         </div>
 
         <!-- Hızlı Aramalar -->
         <div class="quickSearches">
-          <h3>Hızlı Aramalar</h3>
+          <h3><span class="sectionIcon">🏷️</span> Popüler Aramalar</h3>
           <div class="quickTags">
-            <span class="quickTag" data-query="iphone 15">📱 iPhone</span>
-            <span class="quickTag" data-query="airpods">🎧 AirPods</span>
-            <span class="quickTag" data-query="nike ayakkabı">👟 Nike</span>
-            <span class="quickTag" data-query="televizyon">📺 TV</span>
-            <span class="quickTag" data-query="laptop">💻 Laptop</span>
-            <span class="quickTag" data-query="playstation 5">🎮 PS5</span>
-            <span class="quickTag" data-query="8gb ddr4 ram">💾 RAM</span>
-            <span class="quickTag" data-query="rtx 3060">🎮 Ekran Kartı</span>
+            <span class="quickTag" data-query="8gb ddr4 ram">
+              <span class="tagIcon">💾</span>
+              <span class="tagText">RAM</span>
+            </span>
+            <span class="quickTag" data-query="rtx 3060">
+              <span class="tagIcon">🎮</span>
+              <span class="tagText">Ekran Kartı</span>
+            </span>
+            <span class="quickTag" data-query="iphone 15">
+              <span class="tagIcon">📱</span>
+              <span class="tagText">iPhone</span>
+            </span>
+            <span class="quickTag" data-query="ssd 1tb">
+              <span class="tagIcon">💿</span>
+              <span class="tagText">SSD</span>
+            </span>
+            <span class="quickTag" data-query="playstation 5">
+              <span class="tagIcon">🎮</span>
+              <span class="tagText">PS5</span>
+            </span>
+            <span class="quickTag" data-query="laptop">
+              <span class="tagIcon">💻</span>
+              <span class="tagText">Laptop</span>
+            </span>
+            <span class="quickTag" data-query="airpods pro">
+              <span class="tagIcon">🎧</span>
+              <span class="tagText">AirPods</span>
+            </span>
+            <span class="quickTag" data-query="televizyon 4k">
+              <span class="tagIcon">📺</span>
+              <span class="tagText">TV</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Desteklenen Siteler -->
+        <div class="supportedSites">
+          <h3><span class="sectionIcon">🏪</span> Desteklenen Siteler</h3>
+          <div class="sitesGrid">
+            <div class="siteItem new">
+              <span class="siteLogo">🛍️</span>
+              <span class="siteName">Trendyol</span>
+            </div>
+            <div class="siteItem new">
+              <span class="siteLogo">📦</span>
+              <span class="siteName">Hepsiburada</span>
+            </div>
+            <div class="siteItem new">
+              <span class="siteLogo">🔟</span>
+              <span class="siteName">N11</span>
+            </div>
+            <div class="siteItem new">
+              <span class="siteLogo">📦</span>
+              <span class="siteName">Amazon</span>
+            </div>
+            <div class="siteItem secondhand">
+              <span class="siteLogo">🏠</span>
+              <span class="siteName">Sahibinden</span>
+            </div>
+            <div class="siteItem secondhand">
+              <span class="siteLogo">👗</span>
+              <span class="siteName">Dolap</span>
+            </div>
+            <div class="siteItem secondhand">
+              <span class="siteLogo">🔄</span>
+              <span class="siteName">Letgo</span>
+            </div>
+            <div class="siteItem new">
+              <span class="siteLogo">💻</span>
+              <span class="siteName">Teknosa</span>
+            </div>
           </div>
         </div>
 
         <!-- Son Aramalar -->
         <div class="recentSearchesCard">
-          <h3>Son Aramalar</h3>
-          <div class="recentList" id="recentList"></div>
+          <div class="recentHeader">
+            <h3><span class="sectionIcon">📝</span> Son Aramalar</h3>
+            <button class="clearRecent" onclick="clearRecentSearches()">Temizle</button>
+          </div>
+          <div class="recentList" id="recentList">
+            <div class="recentEmpty">Henüz arama yapılmadı</div>
+          </div>
         </div>
       </section>
 
       <!-- SEARCH RESULTS -->
       <section id="page-search" class="page">
         <div class="pageHead">
-          <div class="pageTitle">Sonuçlar</div>
+          <div class="pageTitle">🔍 Arama Sonuçları</div>
           <button id="btnClearSearch" class="btnGhost" type="button">Temizle</button>
         </div>
-        <div id="normalList" class="list"></div>
+        
+        <!-- Arama Kontrolleri -->
+        <div class="searchControls">
+          <div class="searchInfo">
+            <div class="searchQueryDisplay" id="searchQueryDisplay"></div>
+            <div class="searchTypeDisplay" id="searchTypeDisplay"></div>
+          </div>
+          <div class="filterControls">
+            <button class="filterBtn active" onclick="setSearchType('all')">Tümü</button>
+            <button class="filterBtn" onclick="setSearchType('new')">Yeni</button>
+            <button class="filterBtn" onclick="setSearchType('secondhand')">İkinci El</button>
+          </div>
+        </div>
+        
+        <div id="normalList" class="list">
+          <div class="emptySearchState">
+            <div class="emptyIcon">🔍</div>
+            <h3>Arama Yapın</h3>
+            <p>Ürün adını yazıp arama yaparak başlayın</p>
+          </div>
+        </div>
       </section>
 
       <!-- GRAFİK SAYFASI -->
       <section id="page-graph" class="page">
         <div class="pageHead">
-          <div class="pageTitle">📊 Grafik</div>
+          <div class="pageTitle">📊 Fiyat Grafiği</div>
           <button id="btnGraphRefresh" class="btnGhost" type="button">Yenile</button>
         </div>
-        <div class="miniHint">Favorilerinin fiyat geçmişi burada görünecek.</div>
-        <div id="graphRoot" class="cardBox">Grafik alanı</div>
+        <div class="graphInfo">
+          <p>Favori ürünlerinizin fiyat geçmişini takip edin</p>
+        </div>
+        <div id="graphRoot" class="graphContainer">
+          <div class="graphPlaceholder">
+            <div class="placeholderIcon">📈</div>
+            <h4>Fiyat Takibi</h4>
+            <p>Favorilere eklediğiniz ürünlerin fiyat değişimleri burada görünecek</p>
+          </div>
+        </div>
       </section>
 
       <!-- FAVORITES -->
       <section id="page-favs" class="page">
         <div class="pageHead">
-          <div class="pageTitle">Favoriler</div>
+          <div class="pageTitle">❤️ Favorilerim</div>
           <button id="btnFavRefresh" class="btnGhost" type="button">Yenile</button>
         </div>
-        <div id="favList" class="list"></div>
+        <div class="favStats">
+          <div class="favStat">
+            <span class="favStatValue" id="favCount">0</span>
+            <span class="favStatLabel">Favori</span>
+          </div>
+          <div class="favStat">
+            <span class="favStatValue" id="favSites">0</span>
+            <span class="favStatLabel">Site</span>
+          </div>
+        </div>
+        <div id="favList" class="list">
+          <div class="emptyFavState">
+            <div class="emptyIcon">❤️</div>
+            <h3>Favori Yok</h3>
+            <p>Arama sonuçlarından favorilere ekleyin</p>
+          </div>
+        </div>
       </section>
 
       <!-- SEPET SAYFASI -->
@@ -168,75 +335,125 @@
           <div class="pageTitle">🛒 Sepetim</div>
           <button class="btnGhost" onclick="clearCart()">Temizle</button>
         </div>
-        <div id="cartList" class="list"></div>
+        
+        <div class="cartSummary modernCard">
+          <div class="cartHeader">
+            <div class="cartTitle">Sipariş Özeti</div>
+            <div class="cartItemCount" id="cartItemCount">0 ürün</div>
+          </div>
+          <div class="cartDetails">
+            <div class="cartDetail">
+              <span>Ara Toplam</span>
+              <span id="cartSubtotal">₺0,00</span>
+            </div>
+            <div class="cartDetail">
+              <span>Kargo</span>
+              <span class="freeShipping">Ücretsiz</span>
+            </div>
+            <div class="cartTotal">
+              <span>Toplam</span>
+              <span id="cartTotalPrice" class="totalPrice">₺0,00</span>
+            </div>
+          </div>
+          <div class="cartActions">
+            <button class="cartActionBtn secondary" onclick="clearCart()">Sepeti Boşalt</button>
+            <button class="cartActionBtn primary" onclick="checkoutCart()">Siparişi Tamamla</button>
+          </div>
+        </div>
+        
+        <div id="cartList" class="list">
+          <div class="emptyCartState">
+            <div class="emptyIcon">🛒</div>
+            <h3>Sepet Boş</h3>
+            <p>Arama sonuçlarından sepete ürün ekleyin</p>
+            <button class="btnPrimary" onclick="showPage('home')">Alışverişe Başla</button>
+          </div>
+        </div>
       </section>
 
       <!-- SETTINGS -->
       <section id="page-settings" class="page">
         <div class="pageHead">
-          <div class="pageTitle">Ayarlar</div>
+          <div class="pageTitle">⚙️ Ayarlar</div>
         </div>
 
-        <div class="cardBox">
-          <div class="rowBetween">
-            <div>
-              <div class="cardTitle">API Ayarları</div>
-              <div class="miniHint">Fiyat API URL'si</div>
+        <div class="settingsSection">
+          <h3 class="sectionTitle">API Ayarları</h3>
+          <div class="settingCard">
+            <div class="settingInfo">
+              <div class="settingTitle">Fiyat API</div>
+              <div class="settingDesc">Backend API URL'si</div>
             </div>
-            <button id="btnApiSettings" class="btnPrimary" type="button">Düzenle</button>
+            <button id="btnApiSettings" class="settingBtn" type="button">Düzenle</button>
           </div>
         </div>
 
-        <div class="cardBox">
-          <div class="rowBetween">
-            <div>
-              <div class="cardTitle">🤖 AI Sistemi</div>
-              <div class="miniHint">AI özellikleri aktif</div>
+        <div class="settingsSection">
+          <h3 class="sectionTitle">AI Sistemi</h3>
+          <div class="settingCard">
+            <div class="settingInfo">
+              <div class="settingTitle">🤖 AI Asistan</div>
+              <div class="settingDesc">Akıllı öneri ve analiz</div>
             </div>
-            <button id="btnAiSettings" class="btnPrimary" type="button" style="background:linear-gradient(135deg, #7c5cff, #36d399);">Aktif</button>
+            <button id="btnAiSettings" class="settingBtn active" type="button">Aktif</button>
           </div>
         </div>
 
-        <div class="cardBox">
-          <div class="rowBetween">
-            <div>
-              <div class="cardTitle">Hesap</div>
-              <div class="miniHint">Çıkış yap</div>
+        <div class="settingsSection">
+          <h3 class="sectionTitle">Hesap</h3>
+          <div class="settingCard">
+            <div class="settingInfo">
+              <div class="settingTitle">Oturum</div>
+              <div class="settingDesc">Çıkış yap ve giriş yap</div>
             </div>
-            <button id="logoutBtn" class="btnGhost" type="button">Çıkış</button>
+            <button id="logoutBtn" class="settingBtn" type="button">Çıkış Yap</button>
           </div>
         </div>
 
-        <div class="miniHint">Cache sorunlarında: Site verilerini temizle / PWA'yı kaldır-ekle.</div>
+        <div class="settingsSection">
+          <h3 class="sectionTitle">Uygulama</h3>
+          <div class="settingCard">
+            <div class="settingInfo">
+              <div class="settingTitle">Önbellek</div>
+              <div class="settingDesc">Temizle ve yenile</div>
+            </div>
+            <button id="btnClearCache" class="settingBtn" type="button">Temizle</button>
+          </div>
+          
+          <div class="appInfo">
+            <div class="appVersion">v2.0.0</div>
+            <div class="appCopyright">© 2024 FiyatTakip</div>
+          </div>
+        </div>
       </section>
     </main>
 
     <!-- TABBAR -->
     <nav class="tabbar" aria-label="Alt Menü">
       <button class="tab active" type="button" data-page="home">
-        <span class="ico">🏠</span><span class="lbl">Ana</span>
+        <span class="ico">🏠</span>
+        <span class="lbl">Ana</span>
       </button>
 
       <button class="tab" type="button" data-page="graph">
-        <span class="ico">📊</span><span class="lbl">Grafik</span>
+        <span class="ico">📊</span>
+        <span class="lbl">Grafik</span>
       </button>
 
       <!-- KAMERA BUTONU -->
       <button class="cameraTab" type="button" id="cameraTabBtn">
-        <span class="ico">📸</span><span class="lbl">Kamera</span>
+        <span class="cameraIcon">📸</span>
       </button>
 
       <button class="tab" type="button" data-page="favs">
-        <span class="ico">❤️</span><span class="lbl">Fav</span>
+        <span class="ico">❤️</span>
+        <span class="lbl">Favori</span>
       </button>
 
       <!-- SEPET SEKMESİ -->
       <button class="tab" type="button" data-page="cart">
-        <span class="ico">🛒</span><span class="lbl">Sepet</span>
-      </button>
-
-      <button class="tab" type="button" data-page="settings">
-        <span class="ico">⚙️</span><span class="lbl">Ayar</span>
+        <span class="ico">🛒</span>
+        <span class="lbl">Sepet</span>
       </button>
     </nav>
   </div>
@@ -251,16 +468,25 @@
       </div>
 
       <div class="modalBody">
-        <div class="row">
+        <div class="settingField">
           <label class="lbl">API URL</label>
-          <input id="apiUrl" class="input inputDark" type="text" placeholder="https://fiyattakip-api.onrender.com" />
+          <input id="apiUrl" class="modernInput" type="text" placeholder="https://pc-scraper-backend.onrender.com" />
         </div>
 
-        <div class="row">
-          <button id="btnSaveApi" class="btnPrimary" type="button">Kaydet</button>
+        <div class="apiStatus">
+          <div class="statusLabel">API Durumu:</div>
+          <div id="apiStatus" class="statusValue offline">Bağlantı Yok</div>
         </div>
 
-        <div class="mini muted">Backend API URL'sini buraya yapıştır.</div>
+        <div class="modalActions">
+          <button id="btnTestApi" class="modalBtn secondary">Test Et</button>
+          <button id="btnSaveApi" class="modalBtn primary">Kaydet</button>
+        </div>
+
+        <div class="modalHint">
+          <div class="hintIcon">💡</div>
+          <div class="hintText">Backend API URL'sini buraya yapıştırın. Render.com üzerinde çalışan backend için kullanın.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -275,25 +501,44 @@
       </div>
 
       <div class="modalBody">
-        <div class="row">
+        <div class="settingField">
           <label class="lbl">AI Durumu</label>
-          <select id="aiEnabled" class="input inputDark">
+          <select id="aiEnabled" class="modernSelect">
             <option value="on">Aktif</option>
             <option value="off">Pasif</option>
           </select>
         </div>
 
-        <div class="row">
-          <button id="btnSaveAI" class="btnPrimary" type="button">Kaydet</button>
+        <div class="settingField">
+          <label class="lbl">AI Sağlayıcı</label>
+          <select id="aiProvider" class="modernSelect">
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI</option>
+            <option value="huggingface">Hugging Face</option>
+          </select>
         </div>
 
-        <div class="mini muted">AI özellikleri aktif</div>
+        <div class="settingField">
+          <label class="lbl">API Anahtarı (Opsiyonel)</label>
+          <input id="aiApiKey" class="modernInput" type="password" placeholder="API anahtarınızı girin" />
+        </div>
+
+        <div class="modalActions">
+          <button id="btnSaveAI" class="modalBtn primary">Kaydet</button>
+        </div>
+
+        <div class="modalHint">
+          <div class="hintIcon">🤖</div>
+          <div class="hintText">AI özellikleri aktif. Ürün analizi ve akıllı öneriler için kullanılır.</div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- SCRIPTS -->
-  <script src="firebase.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
