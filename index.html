@@ -1,3 +1,5 @@
+[file name]: index.html
+[file content begin]
 <!doctype html>
 <html lang="tr">
 <head>
@@ -18,11 +20,11 @@
   <div id="toast" class="toast hidden"></div>
 
   <!-- LOGIN MODAL -->
-  <div id="loginModal" class="modalWrap" aria-hidden="true">
+  <div id="loginModal" class="modalWrap" aria-hidden="true" style="display: none;">
     <div class="modalBack" id="loginBackdrop"></div>
     <div class="modalCard" role="dialog" aria-modal="true" aria-label="Giriş">
       <div class="modalTop">
-        <div class="modalTitle">Giriş Yap</div>
+        <div class="modalTitle">Giriş Yap / Kayıt Ol</div>
         <button id="closeLogin" class="iconBtn" type="button" aria-label="Kapat">✕</button>
       </div>
 
@@ -42,7 +44,10 @@
         <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••" />
         <div class="row">
           <button id="btnLogin" class="btnPrimary" type="button">Giriş Yap</button>
-          <button id="btnGoogleLogin" class="btnGhost" type="button">Google ile</button>
+          <button id="btnGoogleLogin" class="btnGhost" type="button">
+            <span class="btnIcon">G</span>
+            <span>Google ile</span>
+          </button>
         </div>
       </div>
 
@@ -55,7 +60,10 @@
         <input id="regPass2" type="password" autocomplete="new-password" placeholder="şifreyi tekrar yaz" />
         <div class="row">
           <button id="btnRegister" class="btnPrimary" type="button">Kayıt Ol</button>
-          <button id="btnGoogleLogin2" class="btnGhost" type="button">Google ile</button>
+          <button id="btnGoogleLogin2" class="btnGhost" type="button">
+            <span class="btnIcon">G</span>
+            <span>Google ile</span>
+          </button>
         </div>
         <div class="mini muted">Kayıt olunca otomatik giriş yapılır.</div>
       </div>
@@ -459,7 +467,7 @@
   </div>
 
   <!-- API AYARLARI MODAL -->
-  <div id="apiModal" class="modalWrap" aria-hidden="true">
+  <div id="apiModal" class="modalWrap" aria-hidden="true" style="display: none;">
     <div class="modalBack" id="apiBackdrop"></div>
     <div class="modalCard" role="dialog" aria-modal="true" aria-label="API Ayarları">
       <div class="modalTop">
@@ -492,7 +500,7 @@
   </div>
 
   <!-- AI AYARLARI MODAL -->
-  <div id="aiModal" class="modalWrap" aria-hidden="true">
+  <div id="aiModal" class="modalWrap" aria-hidden="true" style="display: none;">
     <div class="modalBack" id="aiBackdrop"></div>
     <div class="modalCard" role="dialog" aria-modal="true" aria-label="AI Ayarları">
       <div class="modalTop">
@@ -539,6 +547,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
+[file content end]
