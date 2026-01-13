@@ -7,6 +7,556 @@ const $ = (id) => document.getElementById(id);
 let cartItems = JSON.parse(localStorage.getItem('fiyattakip_cart') || '[]');
 let currentUser = null;
 let currentSearchType = 'all';
+// ========== PC TOPLAMA MOTORU (KURAL TABANLI) ==========
+// Not: Canlı veri/scraper & AI yokmuş gibi çalışır. Sadece "tanıma + uyumluluk + öneri" üretir.
+// Kullanıcı tercihi (profil + parça durumu)
+const BUILD_PROFILES = [
+  { key: "budget", label: "💸 Bütçe", desc: "Minimum bütçe / maksimum fiyat-performans" },
+  { key: "balanced", label: "⚖️ Dengeli", desc: "En mantıklı denge" },
+  { key: "performance", label: "🚀 Güçlü", desc: "Maksimum performans (mantıklı sınır)" }
+];
+
+let buildProfile = localStorage.getItem("pc_profile") || "balanced"; // budget|balanced|performance
+let partCondition = localStorage.getItem("pc_condition") || "secondhand"; // secondhand|new
+
+function setBuildProfile(key){
+  if (!BUILD_PROFILES.some(p => p.key === key)) return;
+  buildProfile = key;
+  localStorage.setItem("pc_profile", key);
+  // aktif aramayı yeniden çiz
+  const q = ($("qNormal")?.value || "").trim();
+  if ($("page-search")?.classList.contains("active") && q) showSearchResults(q);
+}
+
+function setPartCondition(key){
+  if (!["secondhand","new"].includes(key)) return;
+  partCondition = key;
+  localStorage.setItem("pc_condition", key);
+  const q = ($("qNormal")?.value || "").trim();
+  if ($("page-search")?.classList.contains("active") && q) showSearchResults(q);
+}
+
+// --- Model veri tabanı (genişletilebilir) ---
+// Kullanıcının yazdığı her şeyi bulabilmek için: (1) seri listeleri (2) regex tanıma (3) chipset/socket kuralları.
+const MODEL_DB = {
+  intelCpuSeries: {
+    "Arrow Lake (15th Gen)": ["i9-15900K","i7-15700K","i5-15500","i3-15300"],
+    "Raptor Lake (14th Gen)": ["i9-14900K","i7-14700K","i5-14600K","i3-14100"],
+    "Raptor Lake (13th Gen)": ["i9-13900K","i7-13700K","i5-13600K","i3-13100"],
+    "Alder Lake (12th Gen)": ["i9-12900K","i7-12700K","i5-12600K","i3-12100"],
+    "Rocket Lake (11th Gen)": ["i9-11900K","i7-11700K","i5-11600K","i3-11100"],
+    "Comet Lake (10th Gen)": ["i9-10900K","i7-10700K","i5-10600K","i3-10100"],
+    "Coffee Lake (9th Gen)": ["i9-9900K","i7-9700K","i5-9600K","i3-9100"],
+    "Coffee Lake (8th Gen)": ["i7-8700K","i5-8600K","i3-8100"],
+    "Kaby Lake (7th Gen)": ["i7-7700K","i5-7600K","i3-7100"],
+    "Skylake (6th Gen)": ["i7-6700K","i5-6600K","i3-6100"],
+    "Haswell (4th Gen)": ["i7-4790K","i5-4690K","i3-4160"],
+    "Sandy/Ivy Bridge (2nd/3rd Gen)": ["i7-2600K","i5-2500K","i3-2100"],
+    "Core 2 Duo/Quad": ["Q9650","Q6600","E8400"]
+  },
+  amdCpuSeries: {
+    "Zen 5 (Ryzen 9000)": ["R9 9950X","R9 9900X","R7 9700X","R5 9600X"],
+    "Zen 4 (Ryzen 7000)": ["R9 7950X","R7 7700X","R5 7600X"],
+    "Zen 3 (Ryzen 5000)": ["R9 5950X","R7 5800X3D","R5 5600X","R3 5300X"],
+    "Zen 2 (Ryzen 3000)": ["R9 3950X","R7 3700X","R5 3600","R3 3300X"],
+    "Zen+ (Ryzen 2000)": ["R7 2700X","R5 2600","R3 2200G"],
+    "Zen 1 (Ryzen 1000)": ["R7 1800X","R5 1600","R3 1200"],
+    "FX Series": ["FX-9590","FX-8350","FX-6300"],
+    "Phenom II/Athlon": ["Phenom II X6","Phenom II X4","Athlon II X4"]
+  },
+  nvidiaGpuSeries: {
+    "RTX 50 Series": ["RTX 5090","RTX 5080","RTX 5070 Ti","RTX 5070","RTX 5060 Ti","RTX 5060"],
+    "RTX 40 Series": ["RTX 4090","RTX 4080 Super","RTX 4070 Ti Super","RTX 4070 Super","RTX 4060 Ti","RTX 4060"],
+    "RTX 30 Series": ["RTX 3090 Ti","RTX 3080 Ti","RTX 3070 Ti","RTX 3060 Ti","RTX 3050"],
+    "RTX 20 Series": ["RTX 2080 Ti","RTX 2080 Super","RTX 2070 Super","RTX 2060 Super"],
+    "GTX 16 Series": ["GTX 1660 Ti","GTX 1660 Super","GTX 1650 Super"],
+    "GTX 10 Series": ["GTX 1080 Ti","GTX 1080","GTX 1070 Ti","GTX 1060 6GB","GTX 1050 Ti"],
+    "GTX 900 Series": ["GTX 980 Ti","GTX 980","GTX 970","GTX 960"],
+    "GTX 700 Series": ["GTX 780 Ti","GTX 780","GTX 770","GTX 760"],
+    "GTX 600 Series": ["GTX 680","GTX 670","GTX 660 Ti"],
+    "GTX 500 Series": ["GTX 580","GTX 570","GTX 560 Ti"]
+  },
+  amdGpuSeries: {
+    "RDNA 4 (RX 8000)": ["RX 8900 XT","RX 8800 XT","RX 8700 XT","RX 8600 XT"],
+    "RDNA 3 (RX 7000)": ["RX 7900 XTX","RX 7900 XT","RX 7800 XT","RX 7700 XT","RX 7600 XT","RX 7600"],
+    "RDNA 2 (RX 6000)": ["RX 6950 XT","RX 6900 XT","RX 6800 XT","RX 6700 XT","RX 6600 XT","RX 6600"],
+    "RDNA 1 (RX 5000)": ["RX 5700 XT","RX 5700","RX 5600 XT"],
+    "RX 500 (Polaris)": ["RX 590","RX 580","RX 570","RX 560","RX 550"],
+    "RX 400 (Polaris)": ["RX 480","RX 470","RX 460"],
+    "R9/R7 300": ["R9 390X","R9 390","R9 380X","R9 380"],
+    "R9/R7 200": ["R9 290X","R9 290","R9 280X","R7 270X"],
+    "HD 7000": ["HD 7970","HD 7950","HD 7870"],
+    "HD 6000": ["HD 6970","HD 6950","HD 6870"]
+  },
+  sockets: {
+    intel: {
+      "LGA1851": { chipsets: ["Z890","B860","H810"], ram: "DDR5", years: "2024-2026" },
+      "LGA1700": { chipsets: ["Z790","B760","H770","Z690","B660","H610"], ram: "DDR4/DDR5", years: "2021-2024" },
+      "LGA1200": { chipsets: ["Z590","B560","H570","Z490","B460","H410"], ram: "DDR4", years: "2020-2021" },
+      "LGA1151v2": { chipsets: ["Z390","B365","H370","Z370","B360","H310"], ram: "DDR4", years: "2018-2019" },
+      "LGA1151": { chipsets: ["Z270","B250","H270","Z170","B150","H110"], ram: "DDR4", years: "2015-2017" },
+      "LGA1150": { chipsets: ["Z97","H97","Z87","H87"], ram: "DDR3", years: "2013-2015" },
+      "LGA1155": { chipsets: ["Z77","H77","Z68","P67"], ram: "DDR3", years: "2011-2013" }
+    },
+    amd: {
+      "AM5": { chipsets: ["X670E","X670","B650E","B650","A620"], ram: "DDR5", years: "2022-2026" },
+      "AM4": { chipsets: ["X570","B550","A520","X470","B450","A320"], ram: "DDR4", years: "2017-2022" },
+      "AM3+": { chipsets: ["990FX","990X","970"], ram: "DDR3", years: "2011-2014" }
+    }
+  }
+};
+
+// --- yardımcılar ---
+function norm(s){
+  return (s||"")
+    .toLowerCase()
+    .replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c")
+    .replace(/[^a-z0-9\+\.\-\s]/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// Seviye sınıflandırması (basit ama işe yarar)
+function perfClassFromGpu(model){
+  const q = norm(model);
+  // Çok kaba sınıf: entry / mid / high / extreme
+  if (q.includes("5090") || q.includes("4090") || q.includes("7900 xtx") || q.includes("5080")) return "extreme";
+  if (q.includes("4080") || q.includes("5070 ti") || q.includes("7900 xt") || q.includes("7800 xt")) return "high";
+  if (q.includes("4070") || q.includes("7700 xt") || q.includes("6800") || q.includes("3060 ti") || q.includes("6700 xt")) return "mid";
+  if (q.includes("4060") || q.includes("7600") || q.includes("6600") || q.includes("3050") || q.includes("1660") || q.includes("580") ) return "entry";
+  return "mid";
+}
+
+// CPU sınıfını kabaca çıkar
+function perfClassFromCpu(model){
+  const q = norm(model);
+  if (q.includes("i9") || q.includes("r9") || q.includes("9950") || q.includes("7950") || q.includes("5950")) return "high";
+  if (q.includes("i7") || q.includes("r7") || q.includes("9900") || q.includes("5800") || q.includes("7700")) return "mid";
+  if (q.includes("i5") || q.includes("r5") || q.includes("5600") || q.includes("3600") || q.includes("14600") || q.includes("13600")) return "mid";
+  if (q.includes("i3") || q.includes("r3") || q.includes("12100") || q.includes("13100") || q.includes("3300") ) return "entry";
+  return "mid";
+}
+
+function detectPart(query){
+  const q = norm(query);
+
+  // PSU
+  const psuMatch = q.match(/\b(\d{3,4})\s*w\b/);
+  if (psuMatch){
+    const w = parseInt(psuMatch[1],10);
+    return { type:"psu", model: query, watts:w };
+  }
+
+  // RAM
+  if (q.includes("ddr")){
+    const ddr = (q.match(/\bddr\s*([2345])\b/)||[])[1] || (q.match(/\bddr([2345])\b/)||[])[1];
+    const size = (q.match(/\b(\d{1,3})\s*gb\b/)||[])[1];
+    const mhz = (q.match(/\b(\d{3,5})\s*mhz\b/)||[])[1] || (q.match(/\b(\d{4,5})\b/)||[])[1];
+    return { type:"ram", model: query, ddr: ddr ? `DDR${ddr}` : null, size: size?parseInt(size,10):null, mhz: mhz?parseInt(mhz,10):null };
+  }
+
+  // Motherboard (chipset tabanlı)
+  const mbChip = q.match(/\b(b\d{3}|h\d{3}|z\d{3}|x\d{3,4}|a\d{3}|x670e|b650e)\b/);
+  const looksLikeBoard = mbChip || q.includes("mobo") || q.includes("anakart") || q.includes("motherboard");
+  if (looksLikeBoard){
+    const chip = mbChip ? mbChip[1].toUpperCase() : null;
+    return { type:"motherboard", model: query, chipset: chip };
+  }
+
+  // GPU
+  const gpuN = q.match(/\b(rtx|gtx)\s*([0-9]{3,4})(\s*ti\s*super|\s*ti|\s*super)?\b/);
+  const gpuA = q.match(/\brx\s*([0-9]{3,4})(\s*xtx|\s*xt)?\b/);
+  if (gpuN){
+    const series = gpuN[2];
+    const suffix = (gpuN[3]||"").trim().toUpperCase();
+    const model = `${gpuN[1].toUpperCase()} ${series}${suffix?(" "+suffix.replace(/\s+/g," ")): ""}`.trim();
+    return { type:"gpu", brand:"nvidia", model };
+  }
+  if (gpuA){
+    const series = gpuA[1];
+    const suffix = (gpuA[2]||"").trim().toUpperCase();
+    const model = `RX ${series}${suffix?(" "+suffix): ""}`.trim();
+    return { type:"gpu", brand:"amd", model };
+  }
+
+  // CPU
+  const intel = q.match(/\b(i[3579])[\-\s]*([0-9]{4,5})([a-z]{0,3})\b/);
+  const ryzen = q.match(/\b(r[3579])[\-\s]*([0-9]{4,5})(x3d|x|g)?\b/);
+  const fx = q.match(/\bfx[\-\s]*([0-9]{4})\b/);
+  if (intel){
+    return { type:"cpu", brand:"intel", model: `${intel[1].toUpperCase()}-${intel[2]}${(intel[3]||"").toUpperCase()}` };
+  }
+  if (ryzen){
+    return { type:"cpu", brand:"amd", model: `Ryzen ${ryzen[1].toUpperCase().replace("R","")} ${ryzen[2]}${(ryzen[3]||"").toUpperCase()}`.replace(/\s+/g," ").trim() };
+  }
+  if (fx){
+    return { type:"cpu", brand:"amd", model: `FX-${fx[1]}` };
+  }
+
+  // fallback: bileşen türü belirsiz
+  return { type:"unknown", model: query };
+}
+
+function platformFromChipset(chipset){
+  const c = (chipset||"").toUpperCase();
+  if (!c) return null;
+
+  // AMD
+  if (c.startsWith("B4") || c.startsWith("X4") || ["X570","B550","B450","A520","A320"].includes(c)){
+    return { socket:"AM4", ram:"DDR4", level: c==="A320" ? "entry" : (c==="B450"||c==="A520" ? "entry" : "mid") };
+  }
+  if (["B650","B650E","X670","X670E","A620"].includes(c)){
+    return { socket:"AM5", ram:"DDR5", level: c==="A620" ? "entry" : "mid" };
+  }
+
+  // Intel
+  if (["H610","B660","Z690","B760","Z790","H770"].includes(c)){
+    return { socket:"LGA1700", ram:"DDR4/DDR5", level: c.startsWith("H") ? "entry" : (c.startsWith("B") ? "mid" : "high") };
+  }
+  if (["H410","B460","Z490","B560","Z590","H570"].includes(c)){
+    return { socket:"LGA1200", ram:"DDR4", level: c.startsWith("H") ? "entry" : (c.startsWith("B") ? "mid" : "high") };
+  }
+  if (["H310","B360","B365","Z370","Z390","H370"].includes(c)){
+    return { socket:"LGA1151v2", ram:"DDR4", level: c.startsWith("H") ? "entry" : (c.startsWith("B") ? "mid" : "high") };
+  }
+  if (["H110","B150","Z170","B250","Z270","H270"].includes(c)){
+    return { socket:"LGA1151", ram:"DDR4", level: c.startsWith("H") ? "entry" : (c.startsWith("B") ? "mid" : "high") };
+  }
+  if (["H87","Z87","H97","Z97"].includes(c)){
+    return { socket:"LGA1150", ram:"DDR3", level: c.startsWith("H") ? "entry" : "mid" };
+  }
+  if (["H77","Z77","Z68","P67"].includes(c)){
+    return { socket:"LGA1155", ram:"DDR3", level: c.startsWith("H") ? "entry" : "mid" };
+  }
+
+  return null;
+}
+
+function recommendBuild(input){
+  // Çıktı: { recognizedTitle, infoLines[], warnings[], profiles: {budget:{...}, balanced:{...}, performance:{...}} }
+  const base = {
+    recognizedTitle: "",
+    infoLines: [],
+    warnings: [],
+    profiles: {}
+  };
+
+  const profileKeys = ["budget","balanced","performance"];
+
+  function mkProfile(cpu, mobo, ram, gpu, psu){
+    return { cpu, mobo, ram, gpu, psu };
+  }
+
+  const type = input.type;
+
+  if (type === "motherboard"){
+    const p = platformFromChipset(input.chipset) || { socket:"(Bilinmiyor)", ram:"(Bilinmiyor)", level:"mid" };
+    base.recognizedTitle = `🧩 Anakart Tanındı: ${input.model}`;
+    base.infoLines.push(`• Chipset: ${input.chipset || "Bilinmiyor"}`);
+    base.infoLines.push(`• Soket: ${p.socket}`);
+    base.infoLines.push(`• RAM: ${p.ram}`);
+    base.infoLines.push(`• Seviye: ${p.level === "entry" ? "Giriş" : p.level === "mid" ? "Orta" : "Üst"}`);
+
+    // VRM/Seviye uyarıları (chipset tabanlı kaba)
+    if (p.level === "entry"){
+      base.warnings.push("⚠️ Giriş seviye anakart: çok güçlü CPU'lar (Ryzen 9 / i9) verimsiz olabilir (VRM/ısı).");
+    }
+
+    // Profil önerileri
+    base.profiles.budget = mkProfile(
+      p.socket.startsWith("AM") ? "Ryzen 5 3600 / Ryzen 5 5600" : "i5-10400 / i3-12100F",
+      input.model,
+      p.ram.includes("DDR5") ? "16GB DDR5 6000 (2x8)" : p.ram.includes("DDR4") ? "16GB DDR4 3200 (2x8)" : "16GB DDR3 1600 (2x8)",
+      p.level==="entry" ? "RX 580 / GTX 1660S" : "RX 6600 / RTX 3060",
+      p.level==="entry" ? "550W 80+ Bronze" : "650W 80+ Bronze"
+    );
+    base.profiles.balanced = mkProfile(
+      p.socket.startsWith("AM") ? (p.socket==="AM5" ? "Ryzen 5 7600" : "Ryzen 5 5600") : (p.socket==="LGA1700" ? "i5-12400F / i5-13400F" : "i5-10400F"),
+      input.model,
+      p.ram.includes("DDR5") ? "32GB DDR5 6000 (2x16)" : p.ram.includes("DDR4") ? "32GB DDR4 3200 (2x16)" : "16GB DDR3 1600 (2x8)",
+      p.socket==="AM5" ? "RX 7700 XT / RTX 4070" : "RX 6700 XT / RTX 3060 Ti",
+      "650W 80+ Gold"
+    );
+    base.profiles.performance = mkProfile(
+      p.socket.startsWith("AM") ? (p.socket==="AM5" ? "Ryzen 7 7800X3D" : "Ryzen 7 5800X3D") : (p.socket==="LGA1700" ? "i7-14700K" : "i7-9700K"),
+      input.model,
+      p.ram.includes("DDR5") ? "32GB DDR5 6000 CL30" : p.ram.includes("DDR4") ? "32GB DDR4 3600" : "16GB DDR3 1866",
+      p.socket==="AM5" ? "RTX 4080 Super / RX 7900 XT" : "RTX 4070 Super / RX 7800 XT",
+      "750W 80+ Gold"
+    );
+
+    // Uyumsuzluk açıklaması
+    if (input.chipset && input.chipset.toUpperCase()==="B450"){
+      base.warnings.push("❌ DDR5 takılamaz (AM4 = DDR4).");
+      base.warnings.push("⚠️ RTX 4070+ takılır ama 'mantıksız' olabilir: PCIe 3.0 + eski platform dengesi.");
+    }
+
+    return base;
+  }
+
+  if (type === "cpu"){
+    base.recognizedTitle = `🧠 CPU Tanındı: ${input.model}`;
+    const cls = perfClassFromCpu(input.model);
+    base.infoLines.push(`• Sınıf: ${cls === "entry" ? "Giriş" : cls === "mid" ? "Orta" : "Üst"}`);
+    // Socket tahmini (çok kaba)
+    const q = norm(input.model);
+    let platformHint = null;
+    if (q.includes("i3-12") || q.includes("i5-12") || q.includes("i7-12") || q.includes("i9-12") || q.includes("i3-13") || q.includes("i5-13") || q.includes("i7-13") || q.includes("i9-13") || q.includes("i3-14") || q.includes("i5-14") || q.includes("i7-14") || q.includes("i9-14")){
+      platformHint = { socket:"LGA1700", mobo: cls==="entry" ? "H610/B660" : cls==="mid" ? "B660/B760" : "Z690/Z790", ram:"DDR4/DDR5" };
+    } else if (q.includes("i5-10") || q.includes("i7-10") || q.includes("i9-10") || q.includes("i5-11") || q.includes("i7-11") || q.includes("i9-11")){
+      platformHint = { socket:"LGA1200", mobo: cls==="entry" ? "B460/H410" : "B560/Z590", ram:"DDR4" };
+    } else if (q.includes("2600") || q.includes("2500") || q.includes("2100")){
+      platformHint = { socket:"LGA1155", mobo:"Z77/H77/P67", ram:"DDR3" };
+    } else if (q.includes("ryzen")){
+      if (q.match(/\b(7|8|9)\d{3,4}\b/) || q.includes("7600") || q.includes("7700") || q.includes("7950") || q.includes("9700") || q.includes("9950")){
+        platformHint = { socket:"AM5", mobo:"B650/X670", ram:"DDR5" };
+      } else {
+        platformHint = { socket:"AM4", mobo:"B450/B550/X570", ram:"DDR4" };
+      }
+    } else if (q.includes("fx-")){
+      platformHint = { socket:"AM3+", mobo:"970/990FX", ram:"DDR3" };
+    }
+
+    if (platformHint){
+      base.infoLines.push(`• Soket Tahmini: ${platformHint.socket}`);
+      base.infoLines.push(`• Önerilen Chipset: ${platformHint.mobo}`);
+      base.infoLines.push(`• RAM: ${platformHint.ram}`);
+    }
+
+    // Profil önerileri (GPU + PSU)
+    base.profiles.budget = mkProfile(
+      input.model,
+      platformHint ? platformHint.mobo : "Uygun chipset",
+      platformHint?.ram?.includes("DDR5") ? "16GB DDR5 6000" : platformHint?.ram?.includes("DDR4") ? "16GB DDR4 3200" : "16GB DDR3 1600",
+      cls==="entry" ? "RX 580 / GTX 1660S" : "RX 6600 / RTX 3060",
+      cls==="entry" ? "550W Bronze" : "650W Bronze"
+    );
+    base.profiles.balanced = mkProfile(
+      input.model,
+      platformHint ? platformHint.mobo : "Uygun chipset",
+      platformHint?.ram?.includes("DDR5") ? "32GB DDR5 6000" : platformHint?.ram?.includes("DDR4") ? "32GB DDR4 3200" : "16GB DDR3 1600",
+      cls==="high" ? "RTX 4070 Super / RX 7800 XT" : "RX 6700 XT / RTX 3060 Ti",
+      "650W Gold"
+    );
+    base.profiles.performance = mkProfile(
+      input.model,
+      platformHint ? platformHint.mobo : "Uygun chipset",
+      platformHint?.ram?.includes("DDR5") ? "32GB DDR5 6000 CL30" : platformHint?.ram?.includes("DDR4") ? "32GB DDR4 3600" : "16GB DDR3 1866",
+      cls==="high" ? "RTX 4080 Super / RX 7900 XT" : "RTX 4070 / RX 7800 XT",
+      "750W Gold"
+    );
+
+    // Uyumsuzluk / darboğaz uyarısı
+    if (q.includes("i7-2600") || q.includes("i5-2500") || q.includes("i3-2100")){
+      base.warnings.push("⚠️ Çok eski platform: modern ekran kartlarında ciddi darboğaz olabilir.");
+      base.warnings.push("❌ DDR4/DDR5 uymaz (LGA1155 = DDR3).");
+    }
+    return base;
+  }
+
+  if (type === "gpu"){
+    base.recognizedTitle = `🎮 GPU Tanındı: ${input.model}`;
+    const cls = perfClassFromGpu(input.model);
+    base.infoLines.push(`• Sınıf: ${cls === "entry" ? "Giriş" : cls === "mid" ? "Orta" : cls === "high" ? "Üst" : "Extreme"}`);
+
+    // CPU önerileri (sınıfa göre)
+    const cpuBudget = cls==="entry" ? "i3-12100F / Ryzen 5 3600" : cls==="mid" ? "Ryzen 5 5600 / i5-12400F" : "Ryzen 7 7800X3D / i7-14700K";
+    const cpuBalanced = cls==="entry" ? "Ryzen 5 5600 / i5-12400F" : cls==="mid" ? "Ryzen 7 5700X / i5-13400F" : "Ryzen 7 7800X3D / i7-14700K";
+    const cpuPerf = cls==="entry" ? "Ryzen 5 7600 / i5-13600K" : cls==="mid" ? "Ryzen 7 7800X3D / i5-14600K" : "Ryzen 9 7950X / i9-14900K";
+
+    // Platform önerisi (DDR4/DDR5)
+    const moboBudget = (cls==="entry"||cls==="mid") ? "B450/B550 (AM4) veya H610/B660 (LGA1700)" : "B650 (AM5) veya Z790 (LGA1700)";
+    const ramBudget = (cls==="entry"||cls==="mid") ? "16GB DDR4 3200 (2x8)" : "32GB DDR5 6000 (2x16)";
+
+    // PSU önerisi
+    let psu = "650W 80+ Bronze";
+    if (cls==="entry") psu = "550W 80+ Bronze";
+    if (cls==="high") psu = "750W 80+ Gold";
+    if (cls==="extreme") psu = "850W+ 80+ Gold";
+
+    base.profiles.budget = mkProfile(cpuBudget, moboBudget, ramBudget, input.model, psu);
+    base.profiles.balanced = mkProfile(cpuBalanced, moboBudget, cls==="entry" ? "32GB DDR4 3200" : "32GB DDR5 6000", input.model, psu);
+    base.profiles.performance = mkProfile(cpuPerf, "B650E/X670E veya Z790 (kaliteli VRM)", "32GB DDR5 6000 CL30", input.model, psu);
+
+    // Uyarılar
+    if (cls==="high" || cls==="extreme"){
+      base.warnings.push("⚠️ Güçlü GPU: zayıf CPU ile darboğaz olur. CPU'yu da yükselt.");
+      base.warnings.push("⚠️ PSU kalitesi önemli (80+ Gold + bilinen marka önerilir).");
+    }
+    return base;
+  }
+
+  if (type === "ram"){
+    base.recognizedTitle = `💾 RAM Tanındı: ${input.model}`;
+    base.infoLines.push(`• Tip: ${input.ddr || "DDR?"}`);
+    if (input.size) base.infoLines.push(`• Kapasite: ${input.size}GB`);
+    if (input.mhz) base.infoLines.push(`• Hız: ${input.mhz} MHz (yaklaşık)`);
+    const ddr = input.ddr || "DDR4";
+
+    // Platform önerisi
+    let plat = ddr==="DDR5" ? "AM5 (B650/X670) veya LGA1700 (B760/Z790 DDR5)" :
+               ddr==="DDR4" ? "AM4 (B450/B550) veya LGA1700 (H610/B660 DDR4)" :
+               ddr==="DDR3" ? "LGA1155/LGA1150 veya AM3+ (eski sistem)" : "Eski sistem";
+
+    base.profiles.budget = mkProfile(
+      ddr==="DDR5" ? "Ryzen 5 7600" : ddr==="DDR4" ? "Ryzen 5 5600 / i3-12100F" : "i7-2600 / i5-4570",
+      plat,
+      ddr==="DDR5" ? "16GB DDR5 6000" : ddr==="DDR4" ? "16GB DDR4 3200" : "16GB DDR3 1600",
+      ddr==="DDR5" ? "RX 7700 XT" : "RX 6600",
+      ddr==="DDR5" ? "650W Gold" : "550W Bronze"
+    );
+    base.profiles.balanced = mkProfile(
+      ddr==="DDR5" ? "Ryzen 7 7800X3D / i5-14600K" : ddr==="DDR4" ? "Ryzen 5 5600 / i5-12400F" : "i7-4790K",
+      plat,
+      ddr==="DDR5" ? "32GB DDR5 6000" : ddr==="DDR4" ? "32GB DDR4 3200" : "16GB DDR3 1600",
+      ddr==="DDR5" ? "RTX 4070 Super" : "RX 6700 XT",
+      "650W Gold"
+    );
+    base.profiles.performance = mkProfile(
+      ddr==="DDR5" ? "Ryzen 9 7950X / i9-14900K" : ddr==="DDR4" ? "Ryzen 7 5800X3D / i7-13700K" : "i7-4790K",
+      ddr==="DDR5" ? "X670E/Z790" : ddr==="DDR4" ? "B550/X570 veya Z790 DDR4" : "Z97",
+      ddr==="DDR5" ? "32GB DDR5 6000 CL30" : ddr==="DDR4" ? "32GB DDR4 3600" : "16GB DDR3 1866",
+      ddr==="DDR5" ? "RTX 4080 Super" : "RTX 4070",
+      "750W Gold"
+    );
+
+    if (ddr==="DDR3"){
+      base.warnings.push("⚠️ DDR3 platform eski: sıfır almak mantıksız, 2. el daha mantıklı.");
+    }
+    if (ddr==="DDR5"){
+      base.warnings.push("❌ DDR5, AM4/B450 gibi DDR4 platformlarda çalışmaz.");
+    }
+    return base;
+  }
+
+  if (type === "psu"){
+    base.recognizedTitle = `⚡ PSU Tanındı: ${input.model}`;
+    base.infoLines.push(`• Güç: ${input.watts}W`);
+    if (input.watts < 500) base.warnings.push("⚠️ 500W altı: ekran kartı yükseltmede çok sınırlayıcı olabilir.");
+
+    const w = input.watts;
+    const maxCls = w < 550 ? "entry" : w < 650 ? "mid" : w < 750 ? "high" : "extreme";
+    base.infoLines.push(`• Yaklaşık GPU Sınırı: ${maxCls === "entry" ? "Giriş" : maxCls === "mid" ? "Orta" : maxCls === "high" ? "Üst" : "Extreme"}`);
+
+    base.profiles.budget = mkProfile("Ryzen 5 5600 / i3-12100F","B450/B550 veya H610","16GB DDR4 3200", maxCls==="entry" ? "RX 580 / GTX 1660S" : "RX 6600", `${Math.max(450,w)}W 80+ Bronze`);
+    base.profiles.balanced = mkProfile("Ryzen 5 7600 / i5-12400F","B650/B760","32GB DDR5 6000", maxCls==="mid" ? "RX 6700 XT / RTX 3060 Ti" : "RTX 4070", `${Math.max(650,w)}W 80+ Gold`);
+    base.profiles.performance = mkProfile("Ryzen 7 7800X3D / i7-14700K","X670E/Z790","32GB DDR5 6000 CL30", maxCls==="high" ? "RTX 4080 Super / RX 7900 XT" : "RTX 4090 / RX 7900 XTX", `${Math.max(750,w)}W 80+ Gold`);
+    return base;
+  }
+
+  // unknown
+  base.recognizedTitle = `ℹ️ Parça Tanınamadı: ${input.model}`;
+  base.infoLines.push("• Yine de bu arama terimiyle sitelerde arama yapabilirsiniz.");
+  base.warnings.push("İpucu: CPU/GPU/anakart/RAM/PSU modelini biraz daha net yaz (örn: 'i5 12400f', 'rx 6700 xt', 'b450', '16gb ddr4 3200', '650w psu').");
+  return base;
+}
+
+function buildSearchQueriesFor(part, profilePack){
+  // Kullanıcı için: kopyala-ara listesi (2.el/sıfır seçimine göre)
+  const which = partCondition === "secondhand" ? "ikinci el" : "sıfır";
+  const cpuQ = `${profilePack.cpu} ${which}`;
+  const mbQ = `${profilePack.mobo} anakart ${which}`;
+  const ramQ = `${profilePack.ram} ram ${which}`;
+  const gpuQ = `${profilePack.gpu} ekran karti ${which}`;
+  const psuQ = `${profilePack.psu} psu ${which}`;
+  return [cpuQ, mbQ, ramQ, gpuQ, psuQ];
+}
+
+function renderBuildCard(query){
+  const detected = detectPart(query);
+  const rec = recommendBuild(detected);
+
+  // Profil seçimi
+  const activeProfile = BUILD_PROFILES.find(p => p.key === buildProfile) || BUILD_PROFILES[1];
+  const pack = rec.profiles[activeProfile.key] || rec.profiles.balanced;
+
+  const queries = pack ? buildSearchQueriesFor(detected, pack) : [];
+
+  const chipsHtml = `
+    <div class="pcChipsRow">
+      <div class="pcChipGroup">
+        ${BUILD_PROFILES.map(p => `
+          <button class="pcChip ${p.key===activeProfile.key ? 'active' : ''}" onclick="setBuildProfile('${p.key}')">${p.label}</button>
+        `).join("")}
+      </div>
+      <div class="pcChipGroup">
+        <button class="pcChip ${partCondition==='secondhand' ? 'active' : ''}" onclick="setPartCondition('secondhand')">🔄 2. El</button>
+        <button class="pcChip ${partCondition==='new' ? 'active' : ''}" onclick="setPartCondition('new')">🛍️ Sıfır</button>
+      </div>
+    </div>
+  `;
+
+  const why = rec.warnings && rec.warnings.length ? `
+    <div class="pcWarn">
+      ${rec.warnings.map(w => `<div class="pcWarnItem">${escapeHtml(w)}</div>`).join("")}
+    </div>
+  ` : "";
+
+  const info = rec.infoLines && rec.infoLines.length ? `
+    <div class="pcMeta">
+      ${rec.infoLines.map(l => `<div class="pcMetaLine">${escapeHtml(l)}</div>`).join("")}
+    </div>
+  ` : "";
+
+  const build = pack ? `
+    <div class="pcBuildGrid">
+      <div class="pcBuildItem"><span class="k">CPU</span><span class="v">${escapeHtml(pack.cpu)}</span></div>
+      <div class="pcBuildItem"><span class="k">Anakart</span><span class="v">${escapeHtml(pack.mobo)}</span></div>
+      <div class="pcBuildItem"><span class="k">RAM</span><span class="v">${escapeHtml(pack.ram)}</span></div>
+      <div class="pcBuildItem"><span class="k">GPU</span><span class="v">${escapeHtml(pack.gpu)}</span></div>
+      <div class="pcBuildItem"><span class="k">PSU</span><span class="v">${escapeHtml(pack.psu)}</span></div>
+    </div>
+  ` : "";
+
+  const copyBlock = queries.length ? `
+    <div class="pcCopyWrap">
+      <div class="pcCopyTitle">📋 Kopyala & Ara (${partCondition==='secondhand' ? '2. el' : 'sıfır'})</div>
+      <div class="pcCopyList">
+        ${queries.map(q => `
+          <div class="pcCopyRow">
+            <div class="pcCopyText">${escapeHtml(q)}</div>
+            <button class="pcCopyBtn" onclick="copyToClipboard('${escapeJs(q)}')">⧉</button>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  ` : "";
+
+  return `
+    <div class="siteCard buildCard">
+      <div class="buildHeader">
+        <div class="buildTitle">${escapeHtml(rec.recognizedTitle || "PC Toplama Önerisi")}</div>
+        <div class="buildSub">Kural tabanlı uyumluluk + 3 profil (AI yok)</div>
+      </div>
+      ${chipsHtml}
+      ${info}
+      ${build}
+      ${why}
+      ${copyBlock}
+    </div>
+  `;
+}
+
+function escapeHtml(s){
+  return String(s||"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+function escapeJs(s){
+  return String(s||"")
+    .replace(/\\/g,"\\\\")
+    .replace(/'/g,"\\'")
+    .replace(/\n/g," ");
+}
+// global
+window.setBuildProfile = setBuildProfile;
+window.setPartCondition = setPartCondition;
+
 
 // ========== DÜZELTİLMİŞ SİTE URL YAPILARI ==========
 const SITES = {
@@ -214,10 +764,6 @@ function updateSearchInfo(query) {
 function showSearchResults(query) {
   const container = $("normalList");
   if (!container) return;
-
-  // ==== PC TOPLAMA MOTORU (kural tabanlı) ====
-  try { renderPcBuildCard(query); } catch (e) { console.warn("PC builder error", e); }
-
   
   // Mevcut arama tipine göre siteleri filtrele
   let sitesToShow = [];
@@ -234,7 +780,9 @@ function showSearchResults(query) {
   }
   
   // Her site için kart oluştur
-  let html = '';
+  let html = renderBuildCard(query) || '';
+  // Site kartları aşağıya eklenecek
+
   
   sitesToShow.forEach((site, index) => {
     const url = site.searchUrl(query);
@@ -869,671 +1417,3 @@ window.hideLoginModal = hideLoginModal;
 window.loginWithEmail = loginWithEmail;
 window.logout = logout;
 window.setSearchType = setSearchType;
-
-
-
-/* =====================================================================
-   PC TOPLAMA MOTORU - FULL (2010+ KURAL TABANLI)
-   - AI yok, canlı veri yok
-   - Her şeyi app.js içinde tutar (ek dosya yok)
-   - Yazım varyasyonlarını yakalar (5600x, 12400f, b610->h610 vb.)
-===================================================================== */
-
-const PCBUILDER = (() => {
-  const LS_PROFILE = "pcbuilder_profile";
-  const LS_COND = "pcbuilder_condition";
-  const profiles = ["budget","balanced","performance"];
-  const profileLabels = {budget:"💸 Bütçe", balanced:"⚖️ Dengeli", performance:"🚀 Güçlü"};
-  const condLabels = {secondhand:"🔄 2. El", new:"🛍️ Sıfır"};
-
-  function getProfile(){ return localStorage.getItem(LS_PROFILE) || "balanced"; }
-  function setProfile(p){ localStorage.setItem(LS_PROFILE, p); }
-  function getCond(){ return localStorage.getItem(LS_COND) || "secondhand"; }
-  function setCond(c){ localStorage.setItem(LS_COND, c); }
-
-  // ---------- Helpers ----------
-  const norm = (s) => (s||"")
-    .toLowerCase()
-    .replace(/\s+/g," ")
-    .trim();
-
-  const has = (q, x) => q.includes(x);
-
-  // ---------- Chipset DB (2010+) ----------
-  // NOTE: Tier here is "chipset feature tier" not board model quality.
-  // Board quality (VRM) varies by MODEL; we only guarantee platform+RAM.
-  const chipsetAliases = {
-    "b610":"h610",
-    "b710":"b760",
-    "z710":"z790",
-    "x650":"b650",
-  };
-
-  const CHIPSETS = [
-    // AMD AM3/AM3+
-    {k:"760g", brand:"amd", socket:"AM3", ram:"DDR3"},
-    {k:"770", brand:"amd", socket:"AM3", ram:"DDR3"},
-    {k:"780g", brand:"amd", socket:"AM3", ram:"DDR3"},
-    {k:"785g", brand:"amd", socket:"AM3", ram:"DDR3"},
-    {k:"870", brand:"amd", socket:"AM3", ram:"DDR3"},
-    {k:"880g", brand:"amd", socket:"AM3", ram:"DDR3"},
-    {k:"890gx", brand:"amd", socket:"AM3", ram:"DDR3"},
-    {k:"890fx", brand:"amd", socket:"AM3+", ram:"DDR3"},
-    {k:"970", brand:"amd", socket:"AM3+", ram:"DDR3"},
-    {k:"990x", brand:"amd", socket:"AM3+", ram:"DDR3"},
-    {k:"990fx", brand:"amd", socket:"AM3+", ram:"DDR3"},
-
-    // AMD FM1/FM2/FM2+
-    {k:"a55", brand:"amd", socket:"FM1", ram:"DDR3"},
-    {k:"a75", brand:"amd", socket:"FM1", ram:"DDR3"},
-    {k:"a85x", brand:"amd", socket:"FM2", ram:"DDR3"},
-    {k:"a88x", brand:"amd", socket:"FM2+", ram:"DDR3"},
-    {k:"a68h", brand:"amd", socket:"FM2+", ram:"DDR3"},
-    {k:"a78", brand:"amd", socket:"FM2+", ram:"DDR3"},
-
-    // AMD AM4
-    {k:"a320", brand:"amd", socket:"AM4", ram:"DDR4"},
-    {k:"a520", brand:"amd", socket:"AM4", ram:"DDR4"},
-    {k:"b350", brand:"amd", socket:"AM4", ram:"DDR4"},
-    {k:"b450", brand:"amd", socket:"AM4", ram:"DDR4"},
-    {k:"b550", brand:"amd", socket:"AM4", ram:"DDR4"},
-    {k:"x370", brand:"amd", socket:"AM4", ram:"DDR4"},
-    {k:"x470", brand:"amd", socket:"AM4", ram:"DDR4"},
-    {k:"x570", brand:"amd", socket:"AM4", ram:"DDR4"},
-
-    // AMD AM5
-    {k:"a620", brand:"amd", socket:"AM5", ram:"DDR5"},
-    {k:"b650e", brand:"amd", socket:"AM5", ram:"DDR5"},
-    {k:"b650", brand:"amd", socket:"AM5", ram:"DDR5"},
-    {k:"x670e", brand:"amd", socket:"AM5", ram:"DDR5"},
-    {k:"x670", brand:"amd", socket:"AM5", ram:"DDR5"},
-
-    // Intel LGA1155
-    {k:"h61", brand:"intel", socket:"LGA1155", ram:"DDR3"},
-    {k:"h67", brand:"intel", socket:"LGA1155", ram:"DDR3"},
-    {k:"p67", brand:"intel", socket:"LGA1155", ram:"DDR3"},
-    {k:"z68", brand:"intel", socket:"LGA1155", ram:"DDR3"},
-    {k:"h77", brand:"intel", socket:"LGA1155", ram:"DDR3"},
-    {k:"z77", brand:"intel", socket:"LGA1155", ram:"DDR3"},
-
-    // Intel LGA1150
-    {k:"h81", brand:"intel", socket:"LGA1150", ram:"DDR3"},
-    {k:"b85", brand:"intel", socket:"LGA1150", ram:"DDR3"},
-    {k:"h87", brand:"intel", socket:"LGA1150", ram:"DDR3"},
-    {k:"z87", brand:"intel", socket:"LGA1150", ram:"DDR3"},
-    {k:"h97", brand:"intel", socket:"LGA1150", ram:"DDR3"},
-    {k:"z97", brand:"intel", socket:"LGA1150", ram:"DDR3"},
-
-    // Intel LGA1151 (v1)
-    {k:"h110", brand:"intel", socket:"LGA1151", ram:"DDR4"},
-    {k:"b150", brand:"intel", socket:"LGA1151", ram:"DDR4"},
-    {k:"h170", brand:"intel", socket:"LGA1151", ram:"DDR4"},
-    {k:"z170", brand:"intel", socket:"LGA1151", ram:"DDR4"},
-    {k:"b250", brand:"intel", socket:"LGA1151", ram:"DDR4"},
-    {k:"h270", brand:"intel", socket:"LGA1151", ram:"DDR4"},
-    {k:"z270", brand:"intel", socket:"LGA1151", ram:"DDR4"},
-
-    // Intel LGA1151v2
-    {k:"h310", brand:"intel", socket:"LGA1151v2", ram:"DDR4"},
-    {k:"b360", brand:"intel", socket:"LGA1151v2", ram:"DDR4"},
-    {k:"b365", brand:"intel", socket:"LGA1151v2", ram:"DDR4"},
-    {k:"h370", brand:"intel", socket:"LGA1151v2", ram:"DDR4"},
-    {k:"z370", brand:"intel", socket:"LGA1151v2", ram:"DDR4"},
-    {k:"z390", brand:"intel", socket:"LGA1151v2", ram:"DDR4"},
-
-    // Intel LGA1200
-    {k:"h410", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-    {k:"b460", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-    {k:"h470", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-    {k:"z490", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-    {k:"h510", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-    {k:"b560", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-    {k:"h570", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-    {k:"z590", brand:"intel", socket:"LGA1200", ram:"DDR4"},
-
-    // Intel LGA1700
-    {k:"h610", brand:"intel", socket:"LGA1700", ram:"DDR4/DDR5"},
-    {k:"b660", brand:"intel", socket:"LGA1700", ram:"DDR4/DDR5"},
-    {k:"b760", brand:"intel", socket:"LGA1700", ram:"DDR4/DDR5"},
-    {k:"z690", brand:"intel", socket:"LGA1700", ram:"DDR4/DDR5"},
-    {k:"z790", brand:"intel", socket:"LGA1700", ram:"DDR4/DDR5"},
-
-    // Intel LGA1851 (Core Ultra / 200 series)
-    {k:"h810", brand:"intel", socket:"LGA1851", ram:"DDR5"},
-    {k:"b860", brand:"intel", socket:"LGA1851", ram:"DDR5"},
-    {k:"z890", brand:"intel", socket:"LGA1851", ram:"DDR5"},
-  ];
-
-  function detectChipset(q){
-    // apply alias replacements on token level
-    let qq = q;
-    for (const bad in chipsetAliases){
-      if (qq.includes(bad)) qq = qq.replaceAll(bad, chipsetAliases[bad]);
-    }
-    for (const c of CHIPSETS){
-      if (qq.includes(c.k)) return {chipset:c.k.toUpperCase(), ...c};
-    }
-    return null;
-  }
-
-  // ---------- CPU detection (pattern-based; "full" without listing every SKU) ----------
-  function detectCPU(q){
-    // AMD Ryzen: ryzen 3/5/7/9 ####(suffix)
-    let m = q.match(/\b(ryzen|r)\s*(3|5|7|9)\s*([0-9]{3,4})([a-z0-9]*)\b/);
-    if (m){
-      const series = parseInt(m[2],10);
-      const num = parseInt(m[3],10);
-      const suf = (m[4]||"").toLowerCase();
-      let socket="AM4", ram="DDR4", gen=null;
-      if (num>=9000){ socket="AM5"; ram="DDR5"; gen="Zen5"; }
-      else if (num>=8000){ socket="AM5"; ram="DDR5"; gen="Zen4/Zen4c"; }
-      else if (num>=7000){ socket="AM5"; ram="DDR5"; gen="Zen4"; }
-      else if (num>=5000){ socket="AM4"; ram="DDR4"; gen="Zen3"; }
-      else if (num>=3000){ socket="AM4"; ram="DDR4"; gen="Zen2"; }
-      else if (num>=2000){ socket="AM4"; ram="DDR4"; gen="Zen+"; }
-      else if (num>=1000){ socket="AM4"; ram="DDR4"; gen="Zen1"; }
-      // level heuristic
-      const level = series<=3 ? "entry" : (series==5 ? "mid" : (series==7 ? "high" : "high"));
-      return {brand:"AMD", family:"Ryzen", name:`Ryzen ${series} ${num}${suf.toUpperCase()}`, series, num, suffix:suf, socket, ram, gen, level, tdp: (series>=7?105:65)};
-    }
-
-    // Intel Core i3/i5/i7/i9 xxxx/xxxxx (optional suffix like k,f,kf)
-    m = q.match(/\b(i3|i5|i7|i9)\s*[- ]?\s*([0-9]{4,5})([a-z]{0,2})\b/);
-    if (m){
-      const tier = m[1].toUpperCase();
-      const model = m[2];
-      const suffix = (m[3]||"").toLowerCase();
-      const n = parseInt(model,10);
-      let genNum = null;
-      if (model.length===5) genNum = parseInt(model.slice(0,2),10);
-      else genNum = parseInt(model.slice(0,1),10); // 4-digit: 4xxx => 4th etc
-      let socket="LGA1150", ram="DDR3";
-      if (genNum<=3){ socket="LGA1155"; ram="DDR3"; }
-      else if (genNum<=5){ socket="LGA1150"; ram="DDR3"; }
-      else if (genNum<=7){ socket="LGA1151"; ram="DDR4"; }
-      else if (genNum<=9){ socket="LGA1151v2"; ram="DDR4"; }
-      else if (genNum<=11){ socket="LGA1200"; ram="DDR4"; }
-      else if (genNum<=14){ socket="LGA1700"; ram="DDR4/DDR5"; }
-      else { socket="LGA1851"; ram="DDR5"; } // future-safe
-      const level = (tier==="I3") ? "entry" : (tier==="I5" ? "mid" : "high");
-      return {brand:"Intel", family:"Core", name:`Core ${tier}-${model}${suffix.toUpperCase()}`, gen:genNum, socket, ram, level, tdp: (suffix.includes("k")?125:65)};
-    }
-
-    // Intel Core Ultra (very simplified): "ultra 5 245k" etc
-    m = q.match(/\b(ultra)\s*(3|5|7|9)\s*([0-9]{3})\s*([a-z]{0,2})\b/);
-    if (m){
-      const tierNum = parseInt(m[2],10);
-      const model = m[3];
-      const suffix = (m[4]||"").toLowerCase();
-      const level = (tierNum<=3)?"entry":(tierNum==5?"mid":"high");
-      return {brand:"Intel", family:"Core Ultra", name:`Core Ultra ${tierNum} ${model}${suffix.toUpperCase()}`, gen:"Ultra", socket:"LGA1851", ram:"DDR5", level, tdp:(suffix.includes("k")?125:65)};
-    }
-
-    return null;
-  }
-
-  // ---------- GPU detection ----------
-  function detectGPU(q){
-    // NVIDIA RTX/GTX
-    let m = q.match(/\b(rtx|gtx)\s*([0-9]{3,4})\s*(ti|super)?\b/);
-    if (m){
-      const fam = m[1].toUpperCase();
-      const num = parseInt(m[2],10);
-      const suf = (m[3]||"").toLowerCase();
-      const series = Math.floor(num/10)*10;
-      let level="mid";
-      if (num>=4070 || num>=7800) level="high";
-      if (num<=1660 || num<=1060) level="entry";
-      // PSU heuristic
-      let minPsu = 500;
-      if (num>=4070) minPsu = 650;
-      if (num>=4080) minPsu = 750;
-      if (num>=4090) minPsu = 850;
-      return {brand:"NVIDIA", family:fam, name:`${fam} ${num}${suf?(" "+suf.toUpperCase()):""}`, num, suffix:suf, level, minPsu, tdp:(num>=4070?200:170)};
-    }
-
-    // AMD RX
-    m = q.match(/\b(rx)\s*([0-9]{3,4})\s*(xtx|xt)?\b/);
-    if (m){
-      const num = parseInt(m[2],10);
-      const suf = (m[3]||"").toLowerCase();
-      let level="mid";
-      if (num<=590) level="entry";
-      if (num>=7800 || num>=7900) level="high";
-      let minPsu = 500;
-      if (num>=6700) minPsu = 650;
-      if (num>=7800) minPsu = 750;
-      if (num>=7900) minPsu = 850;
-      return {brand:"AMD", family:"RX", name:`RX ${num}${suf?(" "+suf.toUpperCase()):""}`, num, suffix:suf, level, minPsu, tdp:(num>=6700?230:160)};
-    }
-    return null;
-  }
-
-  function detectRAM(q){
-    const m = q.match(/\bddr(3|4|5)\b/);
-    if (!m) return null;
-    const type = `DDR${m[1]}`;
-    const size = (q.match(/\b([0-9]{1,3})\s*gb\b/)||[])[1] || null;
-    const speed = (q.match(/\b(1[0-9]{3}|2[0-9]{3}|3[0-9]{3}|4[0-9]{3}|5[0-9]{3}|6[0-9]{3})\s*mhz\b/)||[])[1] || null;
-    return {type, size, speed};
-  }
-
-  function detectPSU(q){
-    const m = q.match(/\b([4-9][0-9]{2,3})\s*w\b/);
-    if(!m) return null;
-    const watt = parseInt(m[1],10);
-    return {watt};
-  }
-
-  function classifyQuery(query){
-    const q = norm(query);
-    const cpu = detectCPU(q);
-    if (cpu) return {type:"cpu", cpu};
-    const gpu = detectGPU(q);
-    if (gpu) return {type:"gpu", gpu};
-    const chipset = detectChipset(q);
-    if (chipset) return {type:"mobo", mobo:chipset};
-    const ram = detectRAM(q);
-    if (ram) return {type:"ram", ram};
-    const psu = detectPSU(q);
-    if (psu) return {type:"psu", psu};
-    return {type:"unknown"};
-  }
-
-  // ---------- Recommendation rules ----------
-  function recommendFromCPU(cpu, profile){
-    const cond = getCond();
-    const base = {cpu: cpu.name, why: []};
-
-    // Motherboard chipset suggestion
-    let mobo = null;
-    if (cpu.socket==="AM4"){
-      if (profile==="budget") mobo = "A520 / B450";
-      if (profile==="balanced") mobo = "B450 (iyi model) / B550";
-      if (profile==="performance") mobo = "B550 (iyi) / X570";
-    } else if (cpu.socket==="AM5"){
-      if (profile==="budget") mobo = "A620";
-      if (profile==="balanced") mobo = "B650";
-      if (profile==="performance") mobo = "B650E / X670E";
-    } else if (cpu.socket==="LGA1700"){
-      if (profile==="budget") mobo = "H610";
-      if (profile==="balanced") mobo = "B660 / B760";
-      if (profile==="performance") mobo = "Z690 / Z790";
-    } else if (cpu.socket==="LGA1200"){
-      if (profile==="budget") mobo = "B460 / H510";
-      if (profile==="balanced") mobo = "B560 / H570";
-      if (profile==="performance") mobo = "Z490 / Z590";
-    } else if (cpu.socket==="LGA1151v2"){
-      if (profile==="budget") mobo = "H310 / B360";
-      if (profile==="balanced") mobo = "B365 / H370";
-      if (profile==="performance") mobo = "Z370 / Z390";
-    } else if (cpu.socket==="LGA1155"){
-      mobo = "H61/H67/H77/Z77 (DDR3)";
-    } else {
-      mobo = `${cpu.socket} chipset`;
-    }
-
-    // RAM
-    let ram = cpu.ram;
-    if (cpu.ram==="DDR4/DDR5"){
-      ram = (profile==="performance") ? "DDR5 6000 (32GB önerilir)" : "DDR4 3200 (16GB min)";
-    } else if (cpu.ram==="DDR5"){
-      ram = (profile==="budget") ? "DDR5 5200 (16GB)" : (profile==="balanced" ? "DDR5 6000 (16-32GB)" : "DDR5 6000+ (32GB)");
-    } else if (cpu.ram==="DDR4"){
-      ram = (profile==="budget") ? "DDR4 3200 (16GB)" : (profile==="balanced" ? "DDR4 3200 (16-32GB)" : "DDR4 3600 (32GB)");
-    } else if (cpu.ram==="DDR3"){
-      ram = "DDR3 1600 (16GB tavsiye)";
-    }
-
-    // GPU pairing heuristics
-    let gpu = "RX 6600 / RTX 3060 (örnek)";
-    if (profile==="budget"){
-      gpu = cpu.level==="high" ? "RX 6600 / RTX 3060" : "RX 580 / GTX 1660S";
-    } else if (profile==="balanced"){
-      gpu = cpu.level==="high" ? "RX 6700 XT / RTX 4060 Ti" : "RX 6600 / RTX 3060";
-    } else {
-      gpu = "RTX 4070 / RX 7800 XT";
-      if (cpu.level==="entry") gpu = "RX 6600 / RTX 3060 (daha mantıklı)";
-    }
-
-    // PSU
-    let psu = "650W Bronze";
-    if (profile==="budget") psu = "500-550W Bronze";
-    if (profile==="performance") psu = "750W Gold";
-
-    base.mobo = mobo;
-    base.ram = ram;
-    base.gpu = gpu;
-    base.psu = psu;
-
-    // Condition hint
-    if (cond==="new" && (cpu.socket==="LGA1155" || cpu.socket==="LGA1150" || cpu.socket==="AM3" || cpu.socket==="AM3+")){
-      base.why.push("Sıfır parça bulunması zor; 2. el daha mantıklı.");
-    }
-    if (cond==="secondhand") base.why.push("2. elde daha uygun fiyat/performans yakalanır.");
-
-    return base;
-  }
-
-  function recommendFromGPU(gpu, profile){
-    const cond = getCond();
-    const base = {gpu: gpu.name, why: []};
-
-    // CPU pairing
-    let cpu = "Ryzen 5 5600 / i5-12400 (örnek)";
-    if (gpu.level==="entry"){
-      cpu = (profile==="budget") ? "i3-10100 / Ryzen 5 2600" : "Ryzen 5 3600 / i5-10400";
-    } else if (gpu.level==="mid"){
-      cpu = (profile==="budget") ? "Ryzen 5 3600 / i5-10400" : (profile==="balanced" ? "Ryzen 5 5600 / i5-12400" : "Ryzen 7 5800X3D / i5-13600K");
-    } else {
-      cpu = (profile==="budget") ? "Ryzen 5 5600 / i5-12400" : (profile==="balanced" ? "Ryzen 7 5800X3D / i5-13600K" : "Ryzen 7 7800X3D / i7-14700K");
-    }
-
-    // Motherboard based on cpu pick (rough)
-    let mobo = "B550 / B650 / B760 (örnek)";
-    if (cpu.includes("7800X3D") || cpu.includes("AM5")) mobo = (profile==="performance")?"X670E":"B650";
-    else if (cpu.includes("13600") || cpu.includes("14700")) mobo = (profile==="performance")?"Z790":"B760";
-    else mobo = "B550 (AMD) / B760 (Intel)";
-
-    // RAM
-    let ram = "16GB DDR4 3200";
-    if (mobo.includes("B650") || mobo.includes("X670")) ram = (profile==="performance") ? "32GB DDR5 6000" : "16-32GB DDR5 6000";
-    if (mobo.includes("Z790")) ram = (profile==="performance") ? "32GB DDR5 6000" : "16-32GB DDR4 3200 veya DDR5";
-
-    // PSU
-    let psu = `${gpu.minPsu}W+ önerilir`;
-    if (profile==="performance") psu = `${Math.max(gpu.minPsu+100, 750)}W Gold önerilir`;
-
-    base.cpu = cpu;
-    base.mobo = mobo;
-    base.ram = ram;
-    base.psu = psu;
-
-    if (cond==="secondhand") base.why.push("2. elde ekran kartında fiyat avantajı yüksek olur.");
-    return base;
-  }
-
-  function recommendFromMobo(mobo, profile){
-    const cond = getCond();
-    const base = {mobo: `${mobo.chipset} (${mobo.socket})`, why: []};
-
-    // CPU suggestion by socket
-    let cpu = "Uyumlu CPU";
-    if (mobo.socket==="AM4"){
-      cpu = (profile==="budget") ? "Ryzen 5 2600 / 3600" : (profile==="balanced" ? "Ryzen 5 5600" : "Ryzen 7 5800X3D");
-    } else if (mobo.socket==="AM5"){
-      cpu = (profile==="budget") ? "Ryzen 5 7500F / 7600" : (profile==="balanced" ? "Ryzen 5 7600 / Ryzen 7 7700" : "Ryzen 7 7800X3D / Ryzen 9 7900");
-    } else if (mobo.socket==="LGA1700"){
-      cpu = (profile==="budget") ? "i3-12100F / i5-12400F" : (profile==="balanced" ? "i5-13400F / i5-12400" : "i5-13600K / i7-14700K");
-    } else if (mobo.socket==="LGA1200"){
-      cpu = (profile==="budget") ? "i3-10100 / i5-10400" : (profile==="balanced" ? "i5-11400" : "i7-11700K");
-    } else {
-      cpu = `Bu soket için uyumlu CPU ( ${mobo.socket} )`;
-    }
-
-    // RAM
-    let ram = mobo.ram.includes("DDR5") ? "DDR5 6000" : (mobo.ram.includes("DDR4") ? "DDR4 3200" : "DDR3 1600");
-    if (profile==="performance") ram = mobo.ram.includes("DDR5") ? "32GB DDR5 6000" : "32GB DDR4 3600";
-    else ram = mobo.ram.includes("DDR5") ? "16-32GB DDR5 6000" : "16GB DDR4 3200";
-
-    // GPU
-    let gpu = (profile==="budget") ? "RX 580 / GTX 1660S" : (profile==="balanced" ? "RX 6600 / RTX 3060" : "RTX 4070 / RX 7800 XT");
-    if (mobo.ram.includes("DDR3")) gpu = (profile==="performance") ? "GTX 970 / RX 580 (üst sınır)" : "GTX 960/1050Ti";
-
-    // PSU
-    let psu = (profile==="budget") ? "500W Bronze" : (profile==="balanced" ? "650W Bronze" : "750W Gold");
-
-    base.cpu = cpu;
-    base.ram = ram;
-    base.gpu = gpu;
-    base.psu = psu;
-
-    if (cond==="new" && (mobo.ram==="DDR3" || mobo.socket in {"LGA1155":1,"LGA1150":1})){
-      base.why.push("Sıfırda bulunması zor; 2. el daha mantıklı.");
-    }
-    return base;
-  }
-
-  function recommendFromRAM(ram, profile){
-    const base = {ram: `${ram.type}${ram.size?(" "+ram.size+"GB"):""}${ram.speed?(" "+ram.speed+"MHz"):""}`, why: []};
-    if (ram.type==="DDR3"){
-      base.mobo = "LGA1155/LGA1150 veya AM3/AM3+ (DDR3)";
-      base.cpu = "i7-2600 / i5-3470 / FX-8350 (örnek)";
-      base.gpu = "GTX 970 / RX 580";
-      base.psu = "500W Bronze";
-      base.why.push("DDR3 sadece eski platformlarda çalışır.");
-    } else if (ram.type==="DDR4"){
-      base.mobo = "AM4 (B450/B550) veya Intel 6-14. nesil DDR4 anakart";
-      base.cpu = (profile==="budget")?"Ryzen 5 3600 / i5-10400":"Ryzen 5 5600 / i5-12400";
-      base.gpu = (profile==="performance")?"RTX 4070 (CPU güçlü olmalı)":"RX 6600 / RTX 3060";
-      base.psu = (profile==="performance")?"750W Gold":"650W Bronze";
-    } else {
-      base.mobo = "AM5 (A620/B650/X670) veya Intel DDR5 anakart (B760/Z790)";
-      base.cpu = (profile==="budget")?"Ryzen 5 7600 / i5-12400":"Ryzen 7 7800X3D / i7-14700K";
-      base.gpu = (profile==="performance")?"RTX 4070 / RX 7800 XT":"RX 6700 XT / RTX 4060";
-      base.psu = (profile==="performance")?"750W Gold":"650W Bronze";
-    }
-    return base;
-  }
-
-  function recommendFromPSU(psu, profile){
-    const base = {psu: `${psu.watt}W`, why: []};
-    if (psu.watt < 450){
-      base.why.push("450W altı modern ekran kartlarında risklidir.");
-    }
-    if (psu.watt < 550){
-      base.gpu = "RX 580 / GTX 1660S ve altı";
-      base.cpu = "Ryzen 5 2600 / i5-8400";
-    } else if (psu.watt < 700){
-      base.gpu = "RX 6700 XT / RTX 3060-4060";
-      base.cpu = "Ryzen 5 5600 / i5-12400";
-    } else {
-      base.gpu = "RTX 4070 / RX 7800 XT ve üstü";
-      base.cpu = "Ryzen 7 7800X3D / i7-14700K";
-    }
-    base.mobo = "CPU seçimine göre (AM4/AM5/LGA1700)";
-    return base;
-  }
-
-  function buildRecommendations(classified){
-    const p = getProfile();
-    const result = {
-      detected: classified,
-      selectedProfile: p,
-      selectedCondition: getCond(),
-      profiles: {}
-    };
-    for (const prof of profiles){
-      if (classified.type==="cpu") result.profiles[prof] = recommendFromCPU(classified.cpu, prof);
-      else if (classified.type==="gpu") result.profiles[prof] = recommendFromGPU(classified.gpu, prof);
-      else if (classified.type==="mobo") result.profiles[prof] = recommendFromMobo(classified.mobo, prof);
-      else if (classified.type==="ram") result.profiles[prof] = recommendFromRAM(classified.ram, prof);
-      else if (classified.type==="psu") result.profiles[prof] = recommendFromPSU(classified.psu, prof);
-      else result.profiles[prof] = {why:["Parça tanınamadı. Chipset/CPU/GPU/RAM/PSU formatında yaz." ]};
-    }
-    return result;
-  }
-
-  // ---------- Compatibility warnings (hard + soft) ----------
-  function getWarnings(system){
-    const w = {hard:[], soft:[]};
-
-    // DDR mismatch
-    const ramStr = (system.ram||"").toUpperCase();
-    const moboStr = (system.mobo||"").toUpperCase();
-    if (ramStr.includes("DDR5") && (moboStr.includes("B450") || moboStr.includes("B550") || moboStr.includes("H610") || moboStr.includes("B660") || moboStr.includes("Z690") || moboStr.includes("Z790")===false)){
-      // don't overfit; but highlight known DDR4-only chipsets
-      if (moboStr.includes("B450") || moboStr.includes("B550")) w.hard.push("❌ DDR5, AM4 (B450/B550/X570) ile uymaz.");
-    }
-    if (ramStr.includes("DDR4") && (moboStr.includes("B650") || moboStr.includes("X670") || moboStr.includes("A620"))){
-      w.hard.push("❌ DDR4, AM5 (A620/B650/X670) ile uymaz.");
-    }
-    if (ramStr.includes("DDR3") && (moboStr.includes("B450") || moboStr.includes("B550") || moboStr.includes("B650") || moboStr.includes("Z790") || moboStr.includes("B760"))){
-      w.hard.push("❌ DDR3 modern platformlarla uymaz.");
-    }
-
-    // PSU warnings (if detected GPU)
-    const psuStr = (system.psu||"").toUpperCase();
-    const psuW = (psuStr.match(/([4-9][0-9]{2,3})W/)||[])[1];
-    if (psuW){
-      const watt = parseInt(psuW,10);
-      if ((system.gpu||"").toUpperCase().includes("RTX 4070") && watt < 650) w.hard.push("❌ RTX 4070 için 650W altı riskli.");
-      if ((system.gpu||"").toUpperCase().includes("RX 6700") && watt < 650) w.hard.push("❌ RX 6700 XT için 650W önerilir.");
-      if ((system.gpu||"").toUpperCase().includes("RX 580") && watt < 500) w.hard.push("❌ RX 580 için 500W altı riskli.");
-    }
-
-    // Soft: board quality hint
-    if (moboStr.includes("H610") && (system.cpu||"").includes("i7")) w.soft.push("⚠️ H610 + i7: VRM ısınması olabilir; B760/Z790 daha mantıklı.");
-    if (moboStr.includes("B450") && ((system.cpu||"").includes("Ryzen 7") || (system.cpu||"").includes("Ryzen 9"))) w.soft.push("⚠️ B450 giriş modellerinde Ryzen 7/9 uzun yükte ısınabilir; iyi VRM veya B550 önerilir.");
-    return w;
-  }
-
-  function renderPcBuildCard(query){
-    const container = document.getElementById("normalList");
-    if (!container) return;
-
-    // remove existing card if any
-    const existing = container.querySelector(".pcBuildCard");
-    if (existing) existing.remove();
-
-    const classified = classifyQuery(query);
-    const built = buildRecommendations(classified);
-
-    const activeProfile = getProfile();
-    const active = built.profiles[activeProfile] || {};
-    const warnings = getWarnings(active);
-
-    // Build UI
-    const card = document.createElement("div");
-    card.className = "pcBuildCard cardBox";
-    card.innerHTML = `
-      <div class="pcBuildTop">
-        <div class="pcBuildTitle">🧩 Sistem Kurma Önerisi</div>
-        <div class="pcBuildSub">Yazdığın parça: <b>${escapeHtml(query)}</b></div>
-      </div>
-
-      <div class="pcBuildSelectors">
-        <div class="pcSeg">
-          <div class="pcSegLabel">Profil</div>
-          <div class="pcSegBtns">
-            ${profiles.map(p=>`<button class="pcBtn ${getProfile()===p?"active":""}" data-prof="${p}">${profileLabels[p]}</button>`).join("")}
-          </div>
-        </div>
-        <div class="pcSeg">
-          <div class="pcSegLabel">Durum</div>
-          <div class="pcSegBtns">
-            ${["secondhand","new"].map(c=>`<button class="pcBtn ${getCond()===c?"active":""}" data-cond="${c}">${condLabels[c]}</button>`).join("")}
-          </div>
-        </div>
-      </div>
-
-      <div class="pcBuildDetected">
-        <span class="tag">Tanınan: <b>${escapeHtml(classified.type.toUpperCase())}</b></span>
-        ${classified.type==="cpu" ? `<span class="tag">${escapeHtml(classified.cpu.name)} • ${escapeHtml(classified.cpu.socket)} • ${escapeHtml(classified.cpu.ram)}</span>` : ""}
-        ${classified.type==="gpu" ? `<span class="tag">${escapeHtml(classified.gpu.name)} • min PSU: ${classified.gpu.minPsu}W</span>` : ""}
-        ${classified.type==="mobo" ? `<span class="tag">${escapeHtml(classified.mobo.chipset)} • ${escapeHtml(classified.mobo.socket)} • ${escapeHtml(classified.mobo.ram)}</span>` : ""}
-        ${classified.type==="ram" ? `<span class="tag">${escapeHtml(classified.ram.type)} ${classified.ram.size?escapeHtml(classified.ram.size+"GB"):""}</span>` : ""}
-        ${classified.type==="psu" ? `<span class="tag">${classified.psu.watt}W PSU</span>` : ""}
-      </div>
-
-      ${warnings.hard.length ? `<div class="pcWarn hard">${warnings.hard.map(x=>`<div>${escapeHtml(x)}</div>`).join("")}</div>` : `<div class="pcOk">✅ Kritik uyumsuzluk yok</div>`}
-      ${warnings.soft.length ? `<div class="pcWarn soft">${warnings.soft.map(x=>`<div>${escapeHtml(x)}</div>`).join("")}</div>` : ""}
-
-      <div class="pcBuildGrid">
-        <div><div class="pcLbl">CPU</div><div class="pcVal">${escapeHtml(active.cpu||"-")}</div></div>
-        <div><div class="pcLbl">GPU</div><div class="pcVal">${escapeHtml(active.gpu||"-")}</div></div>
-        <div><div class="pcLbl">Anakart</div><div class="pcVal">${escapeHtml(active.mobo||"-")}</div></div>
-        <div><div class="pcLbl">RAM</div><div class="pcVal">${escapeHtml(active.ram||"-")}</div></div>
-        <div><div class="pcLbl">PSU</div><div class="pcVal">${escapeHtml(active.psu||"-")}</div></div>
-      </div>
-
-      <div class="pcBuildActions">
-        <button class="btnPrimary pcAction" id="pcCopySearch">📋 Kopyala & Ara</button>
-        <button class="btnSecondary pcAction" id="pcShowAll">📌 3 Profil Göster</button>
-      </div>
-
-      <div class="pcProfilesAll" style="display:none;">
-        ${profiles.map(p=>{
-          const s = built.profiles[p]||{};
-          return `
-            <div class="pcProfileBox">
-              <div class="pcProfileHead">${profileLabels[p]}</div>
-              <div class="pcProfileLine"><b>CPU:</b> ${escapeHtml(s.cpu||"-")}</div>
-              <div class="pcProfileLine"><b>GPU:</b> ${escapeHtml(s.gpu||"-")}</div>
-              <div class="pcProfileLine"><b>Anakart:</b> ${escapeHtml(s.mobo||"-")}</div>
-              <div class="pcProfileLine"><b>RAM:</b> ${escapeHtml(s.ram||"-")}</div>
-              <div class="pcProfileLine"><b>PSU:</b> ${escapeHtml(s.psu||"-")}</div>
-              ${s.why && s.why.length ? `<div class="pcWhy">${s.why.map(x=>`<div>• ${escapeHtml(x)}</div>`).join("")}</div>` : ""}
-            </div>
-          `;
-        }).join("")}
-      </div>
-    `;
-
-    // Insert on top
-    container.prepend(card);
-
-    // Wire events
-    card.querySelectorAll("button[data-prof]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        setProfile(btn.getAttribute("data-prof"));
-        renderPcBuildCard(query);
-      });
-    });
-    card.querySelectorAll("button[data-cond]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        setCond(btn.getAttribute("data-cond"));
-        renderPcBuildCard(query);
-      });
-    });
-
-    const copyBtn = card.querySelector("#pcCopySearch");
-    const showAllBtn = card.querySelector("#pcShowAll");
-    const allBox = card.querySelector(".pcProfilesAll");
-
-    showAllBtn.addEventListener("click", ()=>{
-      const shown = allBox.style.display !== "none";
-      allBox.style.display = shown ? "none" : "block";
-      showAllBtn.textContent = shown ? "📌 3 Profil Göster" : "📌 3 Profili Gizle";
-    });
-
-    copyBtn.addEventListener("click", async ()=>{
-      const searchLines = [
-        (active.cpu ? `${active.cpu} ${getCond()==="secondhand"?"ikinci el":"sıfır"}` : ""),
-        (active.gpu ? `${active.gpu} ${getCond()==="secondhand"?"ikinci el":"sıfır"}` : ""),
-        (active.mobo ? `${active.mobo} anakart ${getCond()==="secondhand"?"ikinci el":"sıfır"}` : ""),
-        (active.ram ? `${active.ram} ram ${getCond()==="secondhand"?"ikinci el":"sıfır"}` : ""),
-        (active.psu ? `${active.psu} psu ${getCond()==="secondhand"?"ikinci el":"sıfır"}` : ""),
-      ].filter(Boolean).join("\n");
-      try {
-        await navigator.clipboard.writeText(searchLines);
-        toast("Kopyalandı! Sitelerden aratabilirsin ✅", "success");
-      } catch(e){
-        // fallback
-        const ta=document.createElement("textarea");
-        ta.value=searchLines;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-        toast("Kopyalandı ✅", "success");
-      }
-    });
-  }
-
-  function escapeHtml(str){
-    return (str??"").toString()
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  return { renderPcBuildCard };
-})();
-
-// Global wrapper used in performSearch hook
-function renderPcBuildCard(query){
-  PCBUILDER.renderPcBuildCard(query);
-}
