@@ -1,4 +1,4 @@
-// app.js - SİTE URL YAPILARI GÜNCELLENDİ
+// app.js - TÜM SİTE URL'LERİ DÜZELTİLDİ (Ürünler Açılacak)
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -8,7 +8,7 @@ let cartItems = JSON.parse(localStorage.getItem('fiyattakip_cart') || '[]');
 let currentUser = null;
 let currentSearchType = 'all';
 
-// ========== SİTE LİSTESİ ve URL YAPILARI ==========
+// ========== DÜZELTİLMİŞ SİTE URL YAPILARI ==========
 const SITES = {
   new: [
     { 
@@ -58,21 +58,31 @@ const SITES = {
       icon: "💾", 
       type: "new", 
       domain: "vatanbilgisayar.com",
-      searchUrl: (query) => `https://www.vatanbilgisayar.com/arama/?w=${encodeURIComponent(query)}&srt=PRICE_LOW`
+      searchUrl: (query) => {
+        // Boşluğu %20 ile değiştir
+        const encodedQuery = query.replace(/ /g, '%20');
+        return `https://www.vatanbilgisayar.com/arama/${encodedQuery}/?srt=UP`;
+      }
     },
     { 
       name: "MediaMarkt", 
       icon: "📺", 
       type: "new", 
       domain: "mediamarkt.com.tr",
-      searchUrl: (query) => `https://www.mediamarkt.com.tr/tr/category/_?q=${encodeURIComponent(query)}&sort=price_low`
+      searchUrl: (query) => {
+        const encodedQuery = query.replace(/ /g, '%20');
+        return `https://www.mediamarkt.com.tr/tr/search.html?query=${encodedQuery}&sort=currentprice+asc`;
+      }
     },
     { 
       name: "İdefix", 
       icon: "📚", 
       type: "new", 
       domain: "idefix.com",
-      searchUrl: (query) => `https://www.idefix.com/search?q=${encodeURIComponent(query)}&srt=PRICE_LOW`
+      searchUrl: (query) => {
+        const encodedQuery = query.replace(/ /g, '+');
+        return `https://www.idefix.com/arama?q=${encodedQuery}&typing=false&siralama=asc_price`;
+      }
     },
     { 
       name: "PTT AVM", 
