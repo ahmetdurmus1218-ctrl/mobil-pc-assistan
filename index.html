@@ -1,369 +1,463 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>FiyatTakip - Akıllı Fiyat Karşılaştırma</title>
-  <meta name="description" content="Trendyol, Hepsiburada, n11, Amazon, Sahibinden, Dolap, Letgo fiyat karşılaştırma">
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiyatTakip - Akıllı Fiyat Karşılaştırma</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
 </head>
-
 <body>
-  <!-- TOAST MESAJ -->
-  <div id="toast" class="toast hidden"></div>
+    <!-- Toast Mesajları -->
+    <div id="toast" class="toast hidden"></div>
 
-  <!-- LOGIN MODAL -->
-  <div id="loginModal" class="modalWrap hidden">
-    <div class="modalBack" id="loginBackdrop"></div>
-    <div class="modalCard">
-      <div class="modalHeader">
-        <div class="modalTitle">Giriş Yap / Kayıt Ol</div>
-        <button id="closeLogin" class="iconBtn">✕</button>
-      </div>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modalWrap hidden">
+        <div class="modalBack" id="loginBackdrop"></div>
+        <div class="modalCard">
+            <div class="modalHeader">
+                <h2 class="modalTitle">Giriş Yap / Kayıt Ol</h2>
+                <button id="closeLogin" class="iconBtn closeBtn">✕</button>
+            </div>
+            
+            <div class="authTabs">
+                <button id="tabLogin" class="tabBtn active">Giriş Yap</button>
+                <button id="tabRegister" class="tabBtn">Kayıt Ol</button>
+            </div>
 
-      <div class="authTabs">
-        <button id="tabLogin" class="tabBtn active">Giriş</button>
-        <button id="tabRegister" class="tabBtn">Kayıt</button>
-      </div>
+            <div id="loginPane" class="authPane">
+                <div class="formGroup">
+                    <label class="formLabel">E-posta</label>
+                    <input type="email" id="loginEmail" class="formInput" placeholder="ornek@mail.com" required>
+                </div>
+                <div class="formGroup">
+                    <label class="formLabel">Şifre</label>
+                    <input type="password" id="loginPass" class="formInput" placeholder="••••••••" required>
+                </div>
+                <div class="formActions">
+                    <button id="btnLogin" class="btn primary full">Giriş Yap</button>
+                    <button id="btnGoogleLogin" class="btn ghost full">
+                        <span class="btnIcon">G</span> Google ile Giriş
+                    </button>
+                </div>
+            </div>
 
-      <div id="loginPane" class="authPane">
-        <div class="formGroup">
-          <label class="formLabel">E-posta</label>
-          <input id="loginEmail" type="email" class="formInput" placeholder="ornek@mail.com">
+            <div id="registerPane" class="authPane hidden">
+                <div class="formGroup">
+                    <label class="formLabel">E-posta</label>
+                    <input type="email" id="regEmail" class="formInput" placeholder="ornek@mail.com" required>
+                </div>
+                <div class="formGroup">
+                    <label class="formLabel">Şifre</label>
+                    <input type="password" id="regPass" class="formInput" placeholder="En az 6 karakter" required minlength="6">
+                </div>
+                <div class="formGroup">
+                    <label class="formLabel">Şifre Tekrar</label>
+                    <input type="password" id="regPass2" class="formInput" placeholder="Şifreyi tekrar yazın" required minlength="6">
+                </div>
+                <div class="formActions">
+                    <button id="btnRegister" class="btn primary full">Kayıt Ol</button>
+                    <button id="btnGoogleLogin2" class="btn ghost full">
+                        <span class="btnIcon">G</span> Google ile Kayıt
+                    </button>
+                </div>
+                <div class="formHint">
+                    Kayıt olunca otomatik giriş yapılır.
+                </div>
+            </div>
         </div>
-        <div class="formGroup">
-          <label class="formLabel">Şifre</label>
-          <input id="loginPass" type="password" class="formInput" placeholder="••••••••">
-        </div>
-        <div class="formActions">
-          <button id="btnLogin" class="btn primary full">Giriş Yap</button>
-          <button id="btnGoogleLogin" class="btn ghost full">
-            <span class="btnIcon">G</span>
-            Google ile
-          </button>
-        </div>
-      </div>
-
-      <div id="registerPane" class="authPane hidden">
-        <div class="formGroup">
-          <label class="formLabel">E-posta</label>
-          <input id="regEmail" type="email" class="formInput" placeholder="ornek@mail.com">
-        </div>
-        <div class="formGroup">
-          <label class="formLabel">Şifre</label>
-          <input id="regPass" type="password" class="formInput" placeholder="en az 6 karakter">
-        </div>
-        <div class="formGroup">
-          <label class="formLabel">Şifre (Tekrar)</label>
-          <input id="regPass2" type="password" class="formInput" placeholder="şifreyi tekrar yaz">
-        </div>
-        <div class="formActions">
-          <button id="btnRegister" class="btn primary full">Kayıt Ol</button>
-          <button id="btnGoogleLogin2" class="btn ghost full">
-            <span class="btnIcon">G</span>
-            Google ile
-          </button>
-        </div>
-        <div class="formHint">Kayıt olunca otomatik giriş yapılır.</div>
-      </div>
     </div>
-  </div>
 
-  <!-- APP -->
-  <div id="app" class="appShell">
-    <!-- TOP HEADER -->
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo">F</div>
-        <div class="brandContent">
-          <div class="brandText gradient-text">FiyatTakip</div>
-          <div class="brandSub">Akıllı Fiyat Karşılaştırma</div>
-        </div>
-      </div>
-      <div class="headerActions">
-        <button id="cartIcon" class="iconBtn">
-          🛒
-          <span id="cartCount" class="cartBadge hidden">0</span>
-        </button>
-        <button id="btnBell" class="iconBtn">🔔</button>
-      </div>
-    </header>
-
-    <!-- PAGES -->
-    <main class="pages">
-      <!-- HOME -->
-      <section id="page-home" class="page active">
-        <div class="searchCard">
-          <div class="searchHeader">
-            <div class="searchIcon">🔍</div>
-            <div class="searchTitle">Ne Arıyorsun?</div>
-          </div>
-          
-          <div class="searchRow">
-            <input id="qNormal" class="searchInput" placeholder="Ürün ara... (örn: 8gb ddr4 ram, rtx 3060, iphone 15)">
-            <button id="btnMic" class="micBtn">🎙️</button>
-          </div>
-
-          <div class="modeToggle">
-            <button id="modeNormal" class="modeBtn active">🔗 Link</button>
-            <button id="modeFiyat" class="modeBtn">💰 Fiyat</button>
-            <button id="modeAI" class="modeBtn">🤖 AI</button>
-          </div>
-          
-          <div class="searchTypeToggle">
-            <button id="searchTypeAll" class="searchTypeBtn active">🔍 Tümü</button>
-            <button id="searchTypeNew" class="searchTypeBtn">🛍️ Yeni</button>
-            <button id="searchTypeSecondHand" class="searchTypeBtn">🔄 İkinci El</button>
-          </div>
-          
-          <div class="modeHint" id="modeHint">14 sitede en düşük fiyatı bul</div>
-
-          <button id="btnNormal" class="primaryBtn">
-            <span class="btnIcon">🚀</span>
-            <span>AKILLI ARA</span>
-          </button>
-          
-          <div class="featuresGrid">
-            <div class="feature">
-              <div class="featureIcon">🎯</div>
-              <div class="featureText">Alakasız Sonuçları Filtrele</div>
+    <!-- Main App -->
+    <div id="app" class="appShell">
+        <!-- Header -->
+        <header class="topbar">
+            <div class="brand">
+                <div class="logo">💰</div>
+                <div class="brandContent">
+                    <h1 class="brandText">FiyatTakip</h1>
+                    <p class="brandSub">Akıllı Fiyat Karşılaştırma</p>
+                </div>
             </div>
-            <div class="feature">
-              <div class="featureIcon">⬆️</div>
-              <div class="featureText">En Düşük Fiyat Sıralı</div>
+            <div class="headerActions">
+                <button id="cartIcon" class="iconBtn cartBtn">
+                    🛒
+                    <span id="cartCount" class="cartBadge hidden">0</span>
+                </button>
+                <button id="btnBell" class="iconBtn">🔔</button>
             </div>
-            <div class="feature">
-              <div class="featureIcon">⚡</div>
-              <div class="featureText">Hızlı Site Linkleri</div>
-            </div>
-          </div>
-        </div>
+        </header>
 
-        <div class="statsCard">
-          <div class="statsGrid">
-            <div class="statItem">
-              <div class="statValue">14</div>
-              <div class="statLabel">Site</div>
-            </div>
-            <div class="statItem">
-              <div class="statValue">🎯</div>
-              <div class="statLabel">Filtreli</div>
-            </div>
-            <div class="statItem">
-              <div class="statValue">⬆️</div>
-              <div class="statLabel">En Düşük</div>
-            </div>
-            <div class="statItem">
-              <div class="statValue">🔍</div>
-              <div class="statLabel">İlgili</div>
-            </div>
-          </div>
-        </div>
+        <!-- Main Content -->
+        <main class="pages">
+            <!-- Home Page -->
+            <section id="page-home" class="page active">
+                <div class="searchCard">
+                    <div class="searchHeader">
+                        <div class="searchIcon">🔍</div>
+                        <div class="searchContent">
+                            <h2 class="searchTitle">Ne Arıyorsun?</h2>
+                            <p class="searchSub">14 sitede en uygun fiyatı bul</p>
+                        </div>
+                    </div>
 
-        <div class="promoBanner">
-          <div class="bannerContent">
-            <div class="bannerIcon">⚡</div>
-            <div>
-              <div class="bannerTitle">Akıllı Fiyat Karşılaştırma</div>
-              <div class="bannerSub">Alakasız sonuçları otomatik filtreler, en düşük fiyatı bulur</div>
-            </div>
-          </div>
-          <button class="bannerBtn" onclick="showPage('search')">Hemen Dene →</button>
-        </div>
+                    <div class="searchBox">
+                        <div class="searchInputWrapper">
+                            <input type="text" id="qNormal" class="searchInput" placeholder="Örn: iPhone 13, RTX 3060, 16GB RAM..." autocomplete="off">
+                            <button id="btnMic" class="micBtn" title="Sesle ara">🎤</button>
+                        </div>
+                    </div>
 
-        <div class="quickSearches">
-          <h3 class="sectionTitle"><span class="sectionIcon">🏷️</span> Popüler Aramalar</h3>
-          <div class="quickTags">
-            <div class="quickTag" data-query="8gb ddr4 ram">
-              <div class="tagIcon">💾</div>
-              <div class="tagText">RAM</div>
-            </div>
-            <div class="quickTag" data-query="rtx 3060">
-              <div class="tagIcon">🎮</div>
-              <div class="tagText">Ekran Kartı</div>
-            </div>
-            <div class="quickTag" data-query="iphone 15">
-              <div class="tagIcon">📱</div>
-              <div class="tagText">iPhone</div>
-            </div>
-            <div class="quickTag" data-query="ssd 1tb">
-              <div class="tagIcon">💿</div>
-              <div class="tagText">SSD</div>
-            </div>
-            <div class="quickTag" data-query="playstation 5">
-              <div class="tagIcon">🎮</div>
-              <div class="tagText">PS5</div>
-            </div>
-            <div class="quickTag" data-query="laptop">
-              <div class="tagIcon">💻</div>
-              <div class="tagText">Laptop</div>
-            </div>
-          </div>
-        </div>
+                    <!-- Search Mode Toggle -->
+                    <div class="modeToggle">
+                        <div class="modeBtnGroup">
+                            <button id="modeNormal" class="modeBtn active" data-mode="normal">
+                                <span class="modeIcon">🔗</span>
+                                <span class="modeText">Link Arama</span>
+                            </button>
+                            <button id="modeFiyat" class="modeBtn" data-mode="fiyat">
+                                <span class="modeIcon">💰</span>
+                                <span class="modeText">Fiyat Karşılaştır</span>
+                            </button>
+                            <button id="modeAI" class="modeBtn" data-mode="ai">
+                                <span class="modeIcon">🤖</span>
+                                <span class="modeText">AI Destekli</span>
+                            </button>
+                        </div>
+                    </div>
 
-        <div class="recentSearchesCard">
-          <div class="recentHeader">
-            <h3 class="sectionTitle"><span class="sectionIcon">📝</span> Son Aramalar</h3>
-            <button class="clearRecent" onclick="clearRecentSearches()">Temizle</button>
-          </div>
-          <div class="recentList" id="recentList">
-            <div class="recentEmpty">Henüz arama yapılmadı</div>
-          </div>
-        </div>
-      </section>
+                    <!-- Search Type Toggle -->
+                    <div class="searchTypeToggle">
+                        <div class="typeBtnGroup">
+                            <button id="searchTypeAll" class="typeBtn active" data-type="all">
+                                <span class="typeIcon">🔍</span>
+                                <span class="typeText">Tüm Siteler</span>
+                            </button>
+                            <button id="searchTypeNew" class="typeBtn" data-type="new">
+                                <span class="typeIcon">🛍️</span>
+                                <span class="typeText">Yeni Ürünler</span>
+                            </button>
+                            <button id="searchTypeSecondHand" class="typeBtn" data-type="secondhand">
+                                <span class="typeIcon">🔄</span>
+                                <span class="typeText">İkinci El</span>
+                            </button>
+                        </div>
+                    </div>
 
-      <!-- SEARCH RESULTS -->
-      <section id="page-search" class="page">
-        <div class="pageHeader">
-          <div class="pageTitle">🔍 Arama Sonuçları</div>
-          <button id="btnClearSearch" class="btn ghost small">Temizle</button>
-        </div>
-        
-        <div id="normalList" class="resultsList">
-          <div class="emptyState">
-            <div class="emptyIcon">🔍</div>
-            <h3>Arama Yapın</h3>
-            <p>Ürün adını yazıp arama yaparak başlayın</p>
-          </div>
-        </div>
-      </section>
+                    <button id="btnNormal" class="primaryBtn large">
+                        <span class="btnIcon">🚀</span>
+                        <span class="btnText">AKILLI ARA</span>
+                    </button>
 
-      <!-- FAVORITES -->
-      <section id="page-favs" class="page">
-        <div class="pageHeader">
-          <div class="pageTitle">❤️ Favorilerim</div>
-          <button id="btnFavRefresh" class="btn ghost small">Yenile</button>
-        </div>
-        <div class="favStats">
-          <div class="favStat">
-            <div class="favStatValue" id="favCount">0</div>
-            <div class="favStatLabel">Favori</div>
-          </div>
-        </div>
-        <div id="favList" class="resultsList">
-          <div class="emptyState">
-            <div class="emptyIcon">❤️</div>
-            <h3>Favori Yok</h3>
-            <p>Arama sonuçlarından favorilere ekleyin</p>
-          </div>
-        </div>
-      </section>
+                    <!-- Features -->
+                    <div class="featuresGrid">
+                        <div class="feature">
+                            <div class="featureIcon">🎯</div>
+                            <div class="featureText">Akıllı Filtreleme</div>
+                        </div>
+                        <div class="feature">
+                            <div class="featureIcon">⚡</div>
+                            <div class="featureText">Hızlı Sonuçlar</div>
+                        </div>
+                        <div class="feature">
+                            <div class="featureIcon">💰</div>
+                            <div class="featureText">En Uygun Fiyat</div>
+                        </div>
+                        <div class="feature">
+                            <div class="featureIcon">🔄</div>
+                            <div class="featureText">Gerçek Zamanlı</div>
+                        </div>
+                    </div>
+                </div>
 
-      <!-- SEPET SAYFASI -->
-      <section id="page-cart" class="page">
-        <div class="pageHeader">
-          <div class="pageTitle">🛒 Sepetim</div>
-          <button class="btn ghost small" onclick="clearCart()">Temizle</button>
-        </div>
-        
-        <div class="cartSummary">
-          <div class="cartHeader">
-            <div class="cartTitle">Sipariş Özeti</div>
-            <div class="cartItemCount" id="cartItemCount">0 ürün</div>
-          </div>
-          <div class="cartDetails">
-            <div class="cartDetail">
-              <span>Ara Toplam</span>
-              <span id="cartSubtotal">₺0,00</span>
-            </div>
-            <div class="cartDetail">
-              <span>Kargo</span>
-              <span class="freeShipping">Ücretsiz</span>
-            </div>
-            <div class="cartTotal">
-              <span>Toplam</span>
-              <span id="cartTotalPrice" class="totalPrice">₺0,00</span>
-            </div>
-          </div>
-          <div class="cartActions">
-            <button class="btn secondary" onclick="clearCart()">Sepeti Boşalt</button>
-            <button class="btn primary" onclick="checkoutCart()">Siparişi Tamamla</button>
-          </div>
-        </div>
-        
-        <div id="cartList" class="resultsList">
-          <div class="emptyState">
-            <div class="emptyIcon">🛒</div>
-            <h3>Sepet Boş</h3>
-            <p>Arama sonuçlarından sepete ürün ekleyin</p>
-            <button class="btn primary mt-4" onclick="showPage('home')">Alışverişe Başla</button>
-          </div>
-        </div>
-      </section>
+                <!-- Stats -->
+                <div class="statsCard">
+                    <div class="statsGrid">
+                        <div class="statItem">
+                            <div class="statValue">14</div>
+                            <div class="statLabel">Site</div>
+                        </div>
+                        <div class="statItem">
+                            <div class="statValue">1M+</div>
+                            <div class="statLabel">Ürün</div>
+                        </div>
+                        <div class="statItem">
+                            <div class="statValue">⚡</div>
+                            <div class="statLabel">Hızlı</div>
+                        </div>
+                        <div class="statItem">
+                            <div class="statValue">🎯</div>
+                            <div class="statLabel">Doğru</div>
+                        </div>
+                    </div>
+                </div>
 
-      <!-- SETTINGS -->
-      <section id="page-settings" class="page">
-        <div class="pageHeader">
-          <div class="pageTitle">⚙️ Ayarlar</div>
-        </div>
+                <!-- Promo Banner -->
+                <div class="promoBanner">
+                    <div class="bannerContent">
+                        <div class="bannerIcon">🚀</div>
+                        <div class="bannerText">
+                            <h3 class="bannerTitle">En Uygun Fiyatı Bul!</h3>
+                            <p class="bannerSub">14 farklı sitede anında fiyat karşılaştır</p>
+                        </div>
+                    </div>
+                    <button class="bannerBtn" onclick="showPage('search')">Hemen Dene →</button>
+                </div>
 
-        <div class="settingsSection">
-          <h3 class="sectionTitle">Hesap</h3>
-          <div class="settingCard">
-            <div class="settingInfo">
-              <div class="settingTitle">Oturum</div>
-              <div class="settingDesc">Çıkış yap ve giriş yap</div>
-            </div>
-            <button id="logoutBtn" class="btn ghost small">Çıkış Yap</button>
-          </div>
-        </div>
+                <!-- Quick Searches -->
+                <div class="quickSearches">
+                    <h3 class="sectionTitle">
+                        <span class="sectionIcon">🔥</span>
+                        Popüler Aramalar
+                    </h3>
+                    <div class="quickTags">
+                        <button class="quickTag" data-query="iPhone 13">
+                            <span class="tagIcon">📱</span>
+                            <span class="tagText">iPhone 13</span>
+                        </button>
+                        <button class="quickTag" data-query="RTX 3060">
+                            <span class="tagIcon">🎮</span>
+                            <span class="tagText">RTX 3060</span>
+                        </button>
+                        <button class="quickTag" data-query="16GB RAM">
+                            <span class="tagIcon">💾</span>
+                            <span class="tagText">16GB RAM</span>
+                        </button>
+                        <button class="quickTag" data-query="PlayStation 5">
+                            <span class="tagIcon">🎮</span>
+                            <span class="tagText">PS5</span>
+                        </button>
+                        <button class="quickTag" data-query="AirPods Pro">
+                            <span class="tagIcon">🎧</span>
+                            <span class="tagText">AirPods</span>
+                        </button>
+                        <button class="quickTag" data-query="SSD 1TB">
+                            <span class="tagIcon">💿</span>
+                            <span class="tagText">SSD 1TB</span>
+                        </button>
+                        <button class="quickTag" data-query="MacBook Air">
+                            <span class="tagIcon">💻</span>
+                            <span class="tagText">MacBook</span>
+                        </button>
+                        <button class="quickTag" data-query="Samsung TV">
+                            <span class="tagIcon">📺</span>
+                            <span class="tagText">Smart TV</span>
+                        </button>
+                    </div>
+                </div>
 
-        <div class="settingsSection">
-          <h3 class="sectionTitle">Uygulama</h3>
-          <div class="settingCard">
-            <div class="settingInfo">
-              <div class="settingTitle">Önbellek</div>
-              <div class="settingDesc">Temizle ve yenile</div>
-            </div>
-            <button id="btnClearCache" class="btn ghost small">Temizle</button>
-          </div>
-          
-          <div class="appInfo">
-            <div class="appVersion">v2.0.0</div>
-            <div class="appCopyright">© 2024 FiyatTakip</div>
-          </div>
-        </div>
-      </section>
-    </main>
+                <!-- Recent Searches -->
+                <div class="recentSearches">
+                    <div class="recentHeader">
+                        <h3 class="sectionTitle">
+                            <span class="sectionIcon">🕒</span>
+                            Son Aramalar
+                        </h3>
+                        <button class="clearBtn" onclick="clearRecentSearches()">Temizle</button>
+                    </div>
+                    <div class="recentList" id="recentList">
+                        <div class="recentEmpty">Henüz arama yapılmadı</div>
+                    </div>
+                </div>
+            </section>
 
-    <!-- TABBAR -->
-    <nav class="tabbar">
-      <button class="tab active" data-page="home">
-        <span class="ico">🏠</span>
-        <span class="lbl">Ana</span>
-      </button>
+            <!-- Search Results Page -->
+            <section id="page-search" class="page">
+                <div class="pageHeader">
+                    <h2 class="pageTitle">
+                        <span class="pageIcon">🔍</span>
+                        Arama Sonuçları
+                    </h2>
+                    <div class="pageActions">
+                        <button id="btnClearSearch" class="btn ghost small">Temizle</button>
+                        <button id="btnFilter" class="btn ghost small">Filtrele</button>
+                    </div>
+                </div>
 
-      <button class="tab" data-page="favs">
-        <span class="ico">❤️</span>
-        <span class="lbl">Favori</span>
-      </button>
+                <div class="searchInfo" id="searchInfo">
+                    <div class="searchQuery">Arama yapılmadı</div>
+                    <div class="searchStats">0 sonuç</div>
+                </div>
 
-      <button class="cameraTab" id="cameraTabBtn">
-        <span class="cameraIcon">📸</span>
-      </button>
+                <div class="resultsContainer">
+                    <div id="normalList" class="resultsList">
+                        <div class="emptyState">
+                            <div class="emptyIcon">🔍</div>
+                            <h3>Arama Yapın</h3>
+                            <p>Ürün adını yazıp arama yaparak başlayın</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      <button class="tab" data-page="cart">
-        <span class="ico">🛒</span>
-        <span class="lbl">Sepet</span>
-      </button>
+            <!-- Favorites Page -->
+            <section id="page-favs" class="page">
+                <div class="pageHeader">
+                    <h2 class="pageTitle">
+                        <span class="pageIcon">❤️</span>
+                        Favorilerim
+                    </h2>
+                    <div class="pageActions">
+                        <button id="btnFavRefresh" class="btn ghost small">Yenile</button>
+                        <button id="btnFavClear" class="btn ghost small">Temizle</button>
+                    </div>
+                </div>
 
-      <button class="tab" data-page="settings">
-        <span class="ico">⚙️</span>
-        <span class="lbl">Ayarlar</span>
-      </button>
-    </nav>
-  </div>
+                <div class="favStats">
+                    <div class="favStat">
+                        <div class="favStatValue" id="favCount">0</div>
+                        <div class="favStatLabel">Favori</div>
+                    </div>
+                    <div class="favStat">
+                        <div class="favStatValue" id="favSites">0</div>
+                        <div class="favStatLabel">Site</div>
+                    </div>
+                </div>
 
-  <!-- SCRIPTS -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
-  <script src="app.js"></script>
+                <div class="resultsContainer">
+                    <div id="favList" class="resultsList">
+                        <div class="emptyState">
+                            <div class="emptyIcon">❤️</div>
+                            <h3>Favori Yok</h3>
+                            <p>Arama sonuçlarından favorilere ekleyin</p>
+                            <button class="btn primary" onclick="showPage('home')">Arama Yap</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cart Page -->
+            <section id="page-cart" class="page">
+                <div class="pageHeader">
+                    <h2 class="pageTitle">
+                        <span class="pageIcon">🛒</span>
+                        Sepetim
+                    </h2>
+                    <div class="pageActions">
+                        <button class="btn ghost small" onclick="clearCart()">Temizle</button>
+                    </div>
+                </div>
+
+                <div class="cartSummary">
+                    <div class="summaryHeader">
+                        <h3 class="summaryTitle">Sipariş Özeti</h3>
+                        <div class="itemCount" id="cartItemCount">0 ürün</div>
+                    </div>
+                    <div class="summaryDetails">
+                        <div class="detailRow">
+                            <span>Ara Toplam</span>
+                            <span id="cartSubtotal">₺0,00</span>
+                        </div>
+                        <div class="detailRow">
+                            <span>Kargo</span>
+                            <span class="freeShipping">Ücretsiz</span>
+                        </div>
+                        <div class="detailRow total">
+                            <span>Toplam</span>
+                            <span id="cartTotalPrice" class="totalPrice">₺0,00</span>
+                        </div>
+                    </div>
+                    <div class="summaryActions">
+                        <button class="btn secondary full" onclick="clearCart()">Sepeti Boşalt</button>
+                        <button class="btn primary full" onclick="checkoutCart()">Siparişi Tamamla</button>
+                    </div>
+                </div>
+
+                <div class="cartItems">
+                    <div id="cartList" class="itemsList">
+                        <div class="emptyState">
+                            <div class="emptyIcon">🛒</div>
+                            <h3>Sepet Boş</h3>
+                            <p>Arama sonuçlarından sepete ürün ekleyin</p>
+                            <button class="btn primary" onclick="showPage('home')">Alışverişe Başla</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="page-settings" class="page">
+                <div class="pageHeader">
+                    <h2 class="pageTitle">
+                        <span class="pageIcon">⚙️</span>
+                        Ayarlar
+                    </h2>
+                </div>
+
+                <div class="settingsSection">
+                    <h3 class="sectionTitle">Hesap</h3>
+                    <div class="settingItem">
+                        <div class="settingInfo">
+                            <div class="settingTitle">Kullanıcı</div>
+                            <div class="settingDesc" id="currentUser">Misafir</div>
+                        </div>
+                        <button id="logoutBtn" class="btn ghost small">Çıkış Yap</button>
+                    </div>
+                </div>
+
+                <div class="settingsSection">
+                    <h3 class="sectionTitle">Uygulama</h3>
+                    <div class="settingItem">
+                        <div class="settingInfo">
+                            <div class="settingTitle">Tema</div>
+                            <div class="settingDesc">Koyu Mod</div>
+                        </div>
+                        <button class="btn ghost small">Değiştir</button>
+                    </div>
+                    <div class="settingItem">
+                        <div class="settingInfo">
+                            <div class="settingTitle">Önbellek</div>
+                            <div class="settingDesc">Temizle ve yenile</div>
+                        </div>
+                        <button id="btnClearCache" class="btn ghost small">Temizle</button>
+                    </div>
+                </div>
+
+                <div class="settingsSection">
+                    <h3 class="sectionTitle">Hakkında</h3>
+                    <div class="aboutInfo">
+                        <div class="appName">FiyatTakip</div>
+                        <div class="appVersion">v2.0.0</div>
+                        <div class="appDesc">Akıllı Fiyat Karşılaştırma Uygulaması</div>
+                        <div class="appCopyright">© 2024 Tüm hakları saklıdır.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Tab Bar -->
+        <nav class="tabbar">
+            <button class="tab active" data-page="home">
+                <span class="tabIcon">🏠</span>
+                <span class="tabLabel">Ana</span>
+            </button>
+            
+            <button class="tab" data-page="search">
+                <span class="tabIcon">🔍</span>
+                <span class="tabLabel">Ara</span>
+            </button>
+            
+            <button class="cameraTab" id="cameraTabBtn">
+                <span class="cameraIcon">📸</span>
+            </button>
+            
+            <button class="tab" data-page="favs">
+                <span class="tabIcon">❤️</span>
+                <span class="tabLabel">Favori</span>
+            </button>
+            
+            <button class="tab" data-page="cart">
+                <span class="tabIcon">🛒</span>
+                <span class="tabLabel">Sepet</span>
+                <span id="tabCartCount" class="tabBadge hidden">0</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Scripts -->
+    <script src="firebase.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
