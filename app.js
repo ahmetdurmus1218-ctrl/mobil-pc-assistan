@@ -1,4 +1,6 @@
-// app.js - Fiyat Takip Uygulaması (GÜNCELLENMİŞ)
+[file name]: app.js
+[file content begin]
+// app.js - Fiyat Takip Uygulaması (GÜNCELLENMİŞ - Tüm Eksikler Düzeltildi)
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -24,7 +26,7 @@ let cartTotal = 0;
 // Current user
 window.currentUser = null;
 
-// ========== SİTE LİSTESİ (GÜNCELLENMİŞ - Teknobiyotik ve GittiGidiyor KALDIRILDI) ==========
+// ========== SİTE LİSTESİ (GÜNCELLENMİŞ - Dolap Düzeltildi) ==========
 const SITES = [
   // YENİ E-TİCARET
   { 
@@ -97,7 +99,7 @@ const SITES = [
   }
 ];
 
-// İKİNCİ EL SİTELER (AYRI LİSTE)
+// İKİNCİ EL SİTELER (DOLAP DÜZELTMESİ)
 const SECOND_HAND_SITES = [
   { 
     key: "sahibinden", 
@@ -112,7 +114,7 @@ const SECOND_HAND_SITES = [
     name: "Dolap", 
     build: q => {
       const encodedQ = encodeURIComponent(q);
-      return `https://www.dolap.com/ara?q=${encodedQ}&sort=price_asc`;
+      return `https://www.dolap.com/ara?q=${encodedQ}&sort=price_asc&sira=artan-fiyat`;
     }
   },
   { 
@@ -154,6 +156,96 @@ function showPage(key) {
     if (query) {
       renderSiteList($("normalList"), query);
     }
+  }
+}
+
+// ========== LOGIN SİSTEMİ ==========
+function openLogin() {
+  const modal = document.getElementById("loginModal");
+  if (modal) {
+    modal.classList.add("show");
+    modal.style.display = "flex";
+    modal.setAttribute("aria-hidden", "false");
+  }
+}
+
+function closeLogin() {
+  const modal = document.getElementById("loginModal");
+  if (modal) {
+    modal.classList.remove("show");
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+async function doEmailLogin(isRegister = false) {
+  try {
+    let email, password;
+    
+    if (isRegister) {
+      email = $("regEmail")?.value;
+      password = $("regPass")?.value;
+      const password2 = $("regPass2")?.value;
+      
+      if (!email || !password) {
+        toast("E-posta ve şifre gerekli", "error");
+        return;
+      }
+      
+      if (password !== password2) {
+        toast("Şifreler uyuşmuyor", "error");
+        return;
+      }
+      
+      if (password.length < 6) {
+        toast("Şifre en az 6 karakter olmalı", "error");
+        return;
+      }
+      
+      await window.firebaseApp.createUserWithEmailAndPassword(email, password);
+      toast("Hesap oluşturuldu! Giriş yapılıyor...", "success");
+      
+    } else {
+      email = $("loginEmail")?.value;
+      password = $("loginPass")?.value;
+      
+      if (!email || !password) {
+        toast("E-posta ve şifre gerekli", "error");
+        return;
+      }
+      
+      await window.firebaseApp.signInWithEmailAndPassword(email, password);
+      toast("Giriş başarılı!", "success");
+    }
+    
+    closeLogin();
+    
+  } catch (error) {
+    console.error("Giriş hatası:", error);
+    let errorMsg = "Giriş başarısız";
+    
+    if (error.code === 'auth/user-not-found') {
+      errorMsg = "Kullanıcı bulunamadı";
+    } else if (error.code === 'auth/wrong-password') {
+      errorMsg = "Yanlış şifre";
+    } else if (error.code === 'auth/email-already-in-use') {
+      errorMsg = "Bu e-posta zaten kullanımda";
+    } else if (error.code === 'auth/weak-password') {
+      errorMsg = "Şifre çok zayıf";
+    }
+    
+    toast(errorMsg, "error");
+  }
+}
+
+async function doGoogleLogin() {
+  try {
+    await window.firebaseApp.signInWithPopup();
+    toast("Google ile giriş başarılı!", "success");
+    closeLogin();
+  } catch (error) {
+    console.error("Google giriş hatası:", error);
+    toast("Google girişi başarısız", "error");
   }
 }
 
@@ -289,8 +381,8 @@ function renderSiteList(container, query) {
           <div class="siteInfo">
             <div class="siteName">${site.name}</div>
             <div class="siteQuery">${cleanQuery}</div>
-            <div class="siteBadge ${site.key.includes('secondhand') ? 'secondhandBadge' : 'newBadge'}">
-              ${site.key.includes('secondhand') ? '🔄 İkinci El' : '🛍️ Yeni'}
+            <div class="siteBadge ${SECOND_HAND_SITES.includes(site) ? 'secondhandBadge' : 'newBadge'}">
+              ${SECOND_HAND_SITES.includes(site) ? '🔄 İkinci El' : '🛍️ Yeni'}
             </div>
           </div>
         </div>
@@ -308,10 +400,10 @@ function renderSiteList(container, query) {
                   data-site-key="${site.key}" 
                   data-site-name="${site.name}" 
                   data-query="${cleanQuery}">
-            <span class="btnIcon">🤍</span>
+            <span class="btnIcon favIcon">🤍</span>
             <span>Favori</span>
           </button>
-          <button class="modernBtn cart" data-cart-url="${url}">
+          <button class="modernBtn cart" onclick="addToCartFromSite('${site.name}', '${cleanQuery}', '${url}')">
             <span class="btnIcon">🛒</span>
             <span>Sepet</span>
           </button>
@@ -386,12 +478,517 @@ function getSiteIcon(siteKey) {
   return icons[siteKey] || '🔍';
 }
 
+// ========== FAVORİ SİSTEMİ (TAMAMLANDI) ==========
+async function toggleFavorite(userId, favoriteData) {
+  if (!userId) {
+    toast("Önce giriş yapmalısınız", "error");
+    openLogin();
+    return;
+  }
+
+  try {
+    const favRef = window.firebaseApp.getUserFavoritesRef(userId);
+    const query = window.firebaseApp.query(favRef, 'url', '==', favoriteData.url);
+    const snapshot = await window.firebaseApp.getDocs(query);
+
+    if (snapshot.empty) {
+      // Favoriye ekle
+      await window.firebaseApp.addDoc(favRef, {
+        ...favoriteData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      toast("Favorilere eklendi ❤️", "success");
+    } else {
+      // Favoriden çıkar
+      const docId = snapshot.docs[0].id;
+      await window.firebaseApp.deleteDoc(window.firebaseApp.doc(`users/${userId}/favorites/${docId}`));
+      toast("Favorilerden çıkarıldı", "info");
+    }
+    
+    await loadFavorites(userId);
+    applyFavUI();
+  } catch (error) {
+    console.error("Favori hatası:", error);
+    toast("Favori işlemi başarısız", "error");
+  }
+}
+
+async function loadFavorites(userId) {
+  try {
+    if (!userId) {
+      favCache = [];
+      return;
+    }
+    
+    const favRef = window.firebaseApp.getUserFavoritesRef(userId);
+    const snapshot = await window.firebaseApp.getDocs(favRef);
+    favCache = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    updateFavCounter();
+  } catch (error) {
+    console.error("Favori yükleme hatası:", error);
+    favCache = [];
+  }
+}
+
+function updateFavCounter() {
+  const counter = $("favCount");
+  if (counter) {
+    counter.textContent = favCache.length;
+  }
+}
+
+function applyFavUI() {
+  document.querySelectorAll('.modernBtn.fav').forEach(btn => {
+    const url = btn.getAttribute('data-fav-url');
+    const isFav = favCache.some(fav => fav.url === url);
+    const favIcon = btn.querySelector('.favIcon');
+    
+    if (isFav) {
+      if (favIcon) favIcon.textContent = '❤️';
+      btn.classList.add('isFav');
+    } else {
+      if (favIcon) favIcon.textContent = '🤍';
+      btn.classList.remove('isFav');
+    }
+  });
+}
+
+async function renderFavoritesPage(userId) {
+  if (!userId) {
+    $("favList").innerHTML = `
+      <div class="emptyFavState">
+        <div class="emptyIcon">🔒</div>
+        <h3>Giriş Yapın</h3>
+        <p>Favorilerinizi görmek için giriş yapın</p>
+        <button class="btnPrimary" onclick="openLogin()">Giriş Yap</button>
+      </div>
+    `;
+    return;
+  }
+
+  await loadFavorites(userId);
+  
+  if (favCache.length === 0) {
+    $("favList").innerHTML = `
+      <div class="emptyFavState">
+        <div class="emptyIcon">❤️</div>
+        <h3>Favori Yok</h3>
+        <p>Arama sonuçlarından favorilere ekleyin</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  favCache.forEach(fav => {
+    html += `
+      <div class="siteCard modernCard">
+        <div class="siteHeader">
+          <div class="siteIcon">${getSiteIcon(fav.siteKey)}</div>
+          <div class="siteInfo">
+            <div class="siteName">${fav.siteName}</div>
+            <div class="siteQuery">${fav.query}</div>
+            <div class="siteBadge ${SECOND_HAND_SITES.some(s => s.key === fav.siteKey) ? 'secondhandBadge' : 'newBadge'}">
+              ${SECOND_HAND_SITES.some(s => s.key === fav.siteKey) ? '🔄 İkinci El' : '🛍️ Yeni'}
+            </div>
+          </div>
+        </div>
+        <div class="siteActions">
+          <button class="modernBtn primary" onclick="window.open('${fav.url}', '_blank')">
+            <span class="btnIcon">🔍</span>
+            <span>Ara</span>
+          </button>
+          <button class="modernBtn ghost" onclick="copyToClipboard('${fav.url}')">
+            <span class="btnIcon">⧉</span>
+            <span>Kopyala</span>
+          </button>
+          <button class="modernBtn fav isFav" onclick="removeFavorite('${userId}', '${fav.id}')">
+            <span class="btnIcon">❤️</span>
+            <span>Kaldır</span>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  $("favList").innerHTML = html;
+}
+
+async function removeFavorite(userId, favId) {
+  try {
+    await window.firebaseApp.deleteDoc(window.firebaseApp.doc(`users/${userId}/favorites/${favId}`));
+    await loadFavorites(userId);
+    renderFavoritesPage(userId);
+    toast("Favoriden çıkarıldı", "info");
+  } catch (error) {
+    console.error("Favori silme hatası:", error);
+    toast("Favori silinemedi", "error");
+  }
+}
+
+// ========== COPY LINK SİSTEMİ (TAMAMLANDI) ==========
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      toast("Link kopyalandı! 📋", "success");
+    } else {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast("Link kopyalandı! 📋", "success");
+    }
+  } catch (error) {
+    console.error("Copy error:", error);
+    toast("Kopyalama başarısız", "error");
+  }
+}
+
+// ========== SEPET SİSTEMİ (TAMAMLANDI) ==========
+function addToCartFromSite(siteName, query, url) {
+  const product = {
+    title: `${siteName}: ${query}`,
+    price: "Arama sonucu",
+    site: siteName,
+    link: url,
+    type: "search_link",
+    addedAt: new Date().toISOString()
+  };
+  
+  addToCart(product);
+}
+
+function addToCart(product) {
+  // Check if already in cart
+  const existingIndex = cartItems.findIndex(item => item.link === product.link);
+  
+  if (existingIndex > -1) {
+    // Increase quantity if already in cart
+    cartItems[existingIndex].quantity += 1;
+    toast(`"${product.title.substring(0,30)}..." miktarı arttırıldı`, "info");
+  } else {
+    // Add new item to cart
+    const cartItem = {
+      id: 'cart_' + Date.now() + Math.random().toString(36).substr(2, 9),
+      title: product.title || product.urun || "Ürün",
+      price: product.price || product.fiyat || "₺???",
+      site: product.site || "",
+      link: product.link || "",
+      quantity: 1,
+      addedAt: new Date().toISOString()
+    };
+    
+    cartItems.push(cartItem);
+    toast(`"${cartItem.title.substring(0,30)}..." sepete eklendi`, "success");
+  }
+  
+  localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
+  updateCartCounter();
+  updateCartButtonStates();
+  
+  if ($("page-cart")?.classList.contains("active")) {
+    renderCartPage();
+  }
+}
+
+function removeFromCart(itemId) {
+  cartItems = cartItems.filter(item => item.id !== itemId);
+  localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
+  updateCartCounter();
+  updateCartButtonStates();
+  renderCartPage();
+  toast("Ürün sepetten çıkarıldı", "info");
+}
+
+function updateCartQuantity(itemId, newQuantity) {
+  if (newQuantity < 1) {
+    removeFromCart(itemId);
+    return;
+  }
+  
+  const itemIndex = cartItems.findIndex(item => item.id === itemId);
+  if (itemIndex > -1) {
+    cartItems[itemIndex].quantity = newQuantity;
+    localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
+    updateCartCounter();
+    renderCartPage();
+  }
+}
+
+function clearCart() {
+  if (cartItems.length === 0) {
+    toast("Sepet zaten boş", "info");
+    return;
+  }
+  
+  if (confirm("Sepeti tamamen boşaltmak istediğinize emin misiniz?")) {
+    cartItems = [];
+    localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
+    updateCartCounter();
+    updateCartButtonStates();
+    renderCartPage();
+    toast("Sepet temizlendi", "success");
+  }
+}
+
+function checkoutCart() {
+  if (cartItems.length === 0) {
+    toast("Sepet boş", "error");
+    return;
+  }
+  
+  const message = `Sepetinizde ${cartItems.length} ürün var. Toplam: ${formatPrice(cartTotal)}`;
+  toast(message, "info");
+  
+  // Here you would typically redirect to checkout page
+  // For now, just show a message
+  setTimeout(() => {
+    if (confirm("Siparişi tamamlamak istiyor musunuz?")) {
+      toast("Siparişiniz alındı! (Demo)", "success");
+    }
+  }, 500);
+}
+
+function renderCartPage() {
+  const cartList = $("cartList");
+  const cartSubtotal = $("cartSubtotal");
+  const cartTotalPrice = $("cartTotalPrice");
+  const cartItemCount = $("cartItemCount");
+  
+  if (!cartList) return;
+  
+  if (cartItems.length === 0) {
+    cartList.innerHTML = `
+      <div class="emptyCartState">
+        <div class="emptyIcon">🛒</div>
+        <h3>Sepet Boş</h3>
+        <p>Arama sonuçlarından sepete ürün ekleyin</p>
+        <button class="btnPrimary" onclick="showPage('home')">Alışverişe Başla</button>
+      </div>
+    `;
+    
+    if (cartSubtotal) cartSubtotal.textContent = "₺0,00";
+    if (cartTotalPrice) cartTotalPrice.textContent = "₺0,00";
+    if (cartItemCount) cartItemCount.textContent = "0 ürün";
+    return;
+  }
+  
+  // Calculate totals
+  cartTotal = cartItems.reduce((total, item) => {
+    const priceStr = item.price.toString().replace(/[^\d.,]/g, '');
+    const price = parseFloat(priceStr.replace(',', '.')) || 0;
+    return total + (price * item.quantity);
+  }, 0);
+  
+  // Render cart items
+  let html = '';
+  cartItems.forEach(item => {
+    html += `
+      <div class="cartItem modernCard">
+        <div class="cartItemHeader">
+          <div class="cartItemTitle">${item.title}</div>
+          <button class="cartItemRemove" onclick="removeFromCart('${item.id}')">✕</button>
+        </div>
+        <div class="cartItemDetails">
+          <div class="cartItemSite">${item.site}</div>
+          <div class="cartItemPrice">${item.price}</div>
+        </div>
+        <div class="cartItemActions">
+          <div class="quantityControls">
+            <button class="quantityBtn" onclick="updateCartQuantity('${item.id}', ${item.quantity - 1})">−</button>
+            <span class="quantityValue">${item.quantity}</span>
+            <button class="quantityBtn" onclick="updateCartQuantity('${item.id}', ${item.quantity + 1})">+</button>
+          </div>
+          <a href="${item.link}" target="_blank" class="visitProductBtn">
+            Ürüne Git <span class="btnIcon">↗</span>
+          </a>
+        </div>
+      </div>
+    `;
+  });
+  
+  cartList.innerHTML = html;
+  
+  // Update summary
+  if (cartSubtotal) cartSubtotal.textContent = formatPrice(cartTotal);
+  if (cartTotalPrice) cartTotalPrice.textContent = formatPrice(cartTotal);
+  if (cartItemCount) {
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    cartItemCount.textContent = `${totalItems} ürün`;
+  }
+}
+
+function formatPrice(price) {
+  return new Intl.NumberFormat('tr-TR', {
+    style: 'currency',
+    currency: 'TRY',
+    minimumFractionDigits: 2
+  }).format(price);
+}
+
+function updateCartCounter() {
+  const count = cartItems.length;
+  const counter = $("cartCount");
+  
+  if (counter) {
+    counter.textContent = count;
+    counter.style.display = count > 0 ? 'flex' : 'none';
+  }
+  
+  // Recalculate total
+  cartTotal = cartItems.reduce((total, item) => {
+    const priceStr = item.price.toString().replace(/[^\d.,]/g, '');
+    const price = parseFloat(priceStr.replace(',', '.')) || 0;
+    return total + (price * item.quantity);
+  }, 0);
+}
+
+function updateCartButtonStates() {
+  document.querySelectorAll('.modernBtn.cart').forEach(btn => {
+    const url = btn.getAttribute('data-cart-url') || btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    if (!url) return;
+    
+    const isInCart = cartItems.some(item => item.link === url);
+    
+    if (isInCart) {
+      btn.innerHTML = '<span class="btnIcon">✓</span><span>Sepette</span>';
+      btn.classList.add('inCart');
+    } else {
+      btn.innerHTML = '<span class="btnIcon">🛒</span><span>Sepet</span>';
+      btn.classList.remove('inCart');
+    }
+  });
+}
+
+// ========== DİĞER FONKSİYONLAR ==========
+function fiyatAra(query) {
+  toast("Fiyat arama modu aktif (Demo)", "info");
+  // Burada gerçek API çağrısı yapılacak
+}
+
+function handleRecentSearch(query) {
+  let recent = JSON.parse(localStorage.getItem('fiyattakip_recent') || '[]');
+  recent = recent.filter(q => q !== query);
+  recent.unshift(query);
+  if (recent.length > 10) recent = recent.slice(0, 10);
+  localStorage.setItem('fiyattakip_recent', JSON.stringify(recent));
+  renderRecentSearches();
+}
+
+function removeRecentSearch(query) {
+  let recent = JSON.parse(localStorage.getItem('fiyattakip_recent') || '[]');
+  recent = recent.filter(q => q !== query);
+  localStorage.setItem('fiyattakip_recent', JSON.stringify(recent));
+  renderRecentSearches();
+}
+
+function clearRecentSearches() {
+  localStorage.removeItem('fiyattakip_recent');
+  renderRecentSearches();
+  toast("Son aramalar temizlendi", "info");
+}
+
+function renderRecentSearches() {
+  const recentList = $("recentList");
+  if (!recentList) return;
+  
+  const recent = JSON.parse(localStorage.getItem('fiyattakip_recent') || '[]');
+  
+  if (recent.length === 0) {
+    recentList.innerHTML = '<div class="recentEmpty">Henüz arama yapılmadı</div>';
+    return;
+  }
+  
+  let html = '';
+  recent.forEach(query => {
+    html += `
+      <div class="recentItem" onclick="$('qNormal').value='${query}'; $('btnNormal').click();">
+        <span>🔍</span>
+        <span>${query}</span>
+        <button class="recentRemove" onclick="event.stopPropagation(); removeRecentSearch('${query}')">✕</button>
+      </div>
+    `;
+  });
+  
+  recentList.innerHTML = html;
+}
+
+function cameraAiSearch() {
+  toast("Kamera arama özelliği yakında gelecek!", "info");
+}
+
+function clearAppCache() {
+  if (confirm("Tüm önbelleği temizlemek istediğinize emin misiniz?")) {
+    localStorage.clear();
+    cartItems = [];
+    favCache = [];
+    updateCartCounter();
+    updateCartButtonStates();
+    renderRecentSearches();
+    toast("Önbellek temizlendi", "success");
+  }
+}
+
+function openAPIModal() {
+  const modal = document.getElementById("apiModal");
+  if (modal) {
+    modal.classList.add("show");
+    modal.style.display = "flex";
+  }
+}
+
+function closeAPIModal() {
+  const modal = document.getElementById("apiModal");
+  if (modal) {
+    modal.classList.remove("show");
+    modal.style.display = "none";
+  }
+}
+
+function saveAPISettings() {
+  const url = $("apiUrl")?.value || "";
+  if (url) {
+    localStorage.setItem('fiyattakip_api_url', url);
+    API_URL = url;
+    toast("API URL kaydedildi", "success");
+  }
+  closeAPIModal();
+}
+
+function openAIModal() {
+  const modal = document.getElementById("aiModal");
+  if (modal) {
+    modal.classList.add("show");
+    modal.style.display = "flex";
+  }
+}
+
+function closeAIModal() {
+  const modal = document.getElementById("aiModal");
+  if (modal) {
+    modal.classList.remove("show");
+    modal.style.display = "none";
+  }
+}
+
 // Event listener'ları ekle
 function attachEventListeners() {
   // Favori butonları
   document.querySelectorAll('.modernBtn.fav').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!window.currentUser) return openLogin();
+      if (!window.currentUser) {
+        toast("Önce giriş yapmalısınız", "error");
+        openLogin();
+        return;
+      }
       
       const url = btn.getAttribute('data-fav-url');
       const siteKey = btn.getAttribute('data-site-key');
@@ -408,84 +1005,28 @@ function attachEventListeners() {
     });
   });
   
-  // Sepet butonları
-  document.querySelectorAll('.modernBtn.cart').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const url = btn.getAttribute('data-cart-url');
+  // Copy butonları
+  document.addEventListener("click", async (e) => {
+    if (e.target.closest('.modernBtn.ghost')) {
+      const btn = e.target.closest('.modernBtn.ghost');
       const siteCard = btn.closest('.siteCard');
-      const siteName = siteCard?.querySelector('.siteName')?.textContent || '';
-      const query = siteCard?.querySelector('.siteQuery')?.textContent || '';
-      
-      addToCart({
-        title: `${siteName}: ${query}`,
-        price: "Arama sonucu",
-        site: siteName,
-        link: url,
-        type: "search_link"
-      });
-    });
-  });
-}
-
-// ========== SEPET SİSTEMİ ==========
-function addToCart(product) {
-  if (cartItems.some(item => item.link === product.link)) {
-    toast("Bu ürün zaten sepette", "info");
-    return;
-  }
-  
-  const cartItem = {
-    id: 'cart_' + Date.now(),
-    title: product.title || product.urun || "Ürün",
-    price: product.price || product.fiyat || "₺???",
-    site: product.site || "",
-    link: product.link || "",
-    quantity: 1,
-    addedAt: new Date().toISOString()
-  };
-  
-  cartItems.push(cartItem);
-  localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
-  
-  updateCartCounter();
-  updateCartButtonStates();
-  
-  toast(`"${cartItem.title.substring(0,30)}..." sepete eklendi`, "success");
-}
-
-function updateCartCounter() {
-  const count = cartItems.length;
-  const counter = $("cartCount");
-  
-  if (counter) {
-    counter.textContent = count;
-    counter.style.display = count > 0 ? 'flex' : 'none';
-  }
-  
-  cartTotal = cartItems.reduce((total, item) => {
-    const priceStr = item.price.toString().replace(/[^\d.,]/g, '');
-    const price = parseFloat(priceStr.replace(',', '.')) || 0;
-    return total + (price * item.quantity);
-  }, 0);
-}
-
-function updateCartButtonStates() {
-  document.querySelectorAll('.modernBtn.cart').forEach(btn => {
-    const url = btn.getAttribute('data-cart-url');
-    const isInCart = cartItems.some(item => item.link === url);
-    
-    if (isInCart) {
-      btn.innerHTML = '<span class="btnIcon">✓</span><span>Sepette</span>';
-      btn.classList.add('inCart');
-    } else {
-      btn.innerHTML = '<span class="btnIcon">🛒</span><span>Sepet</span>';
-      btn.classList.remove('inCart');
+      if (siteCard) {
+        const siteName = siteCard.querySelector('.siteName')?.textContent || '';
+        const query = siteCard.querySelector('.siteQuery')?.textContent || '';
+        
+        // URL'yi bul
+        const openBtn = siteCard.querySelector('.modernBtn.primary');
+        if (openBtn && openBtn.onclick) {
+          const onclickStr = openBtn.getAttribute('onclick') || '';
+          const match = onclickStr.match(/window\.open\('([^']+)'/);
+          if (match && match[1]) {
+            await copyToClipboard(match[1]);
+          }
+        }
+      }
     }
   });
 }
-
-// Kalan fonksiyonlar aynı kalacak (toast, showPage, favori sistemi, vs.)
-// Sadece yukarıdaki değişen kısımları gösterdim.
 
 // ========== UYGULAMA BAŞLANGICI ==========
 window.addEventListener("DOMContentLoaded", async () => {
@@ -514,10 +1055,22 @@ window.addEventListener("DOMContentLoaded", async () => {
       console.log("Kullanıcı giriş yaptı:", user.email);
       await loadFavorites(user.uid);
       applyFavUI();
+      
+      // Kullanıcı adını göster
+      const userEmail = document.querySelector('.userEmail');
+      if (userEmail) {
+        userEmail.textContent = user.email;
+      }
     } else {
       console.log("Kullanıcı çıkış yaptı");
       favCache = [];
       applyFavUI();
+      
+      // Kullanıcı adını temizle
+      const userEmail = document.querySelector('.userEmail');
+      if (userEmail) {
+        userEmail.textContent = "Misafir";
+      }
     }
   });
   
@@ -530,6 +1083,8 @@ function wireUI() {
   $("btnNormal")?.addEventListener("click", () => {
     const query = ($("qNormal")?.value || "").trim();
     if (!query) return toast("Ürün adı girin", "error");
+    
+    handleRecentSearch(query);
     
     const mode = getSearchMode();
     if (mode === "fiyat") {
@@ -579,14 +1134,6 @@ function wireUI() {
         renderSiteList($("normalList"), query);
       }
     });
-  });
-
-  // Copy butonları
-  document.addEventListener("click", async (e) => {
-    const btn = e.target?.closest?.("[data-copy-url]");
-    if (!btn) return;
-    const url = btn.getAttribute("data-copy-url") || "";
-    if (url) await copyToClipboard(url);
   });
 
   // Login/Register
@@ -645,6 +1192,7 @@ function wireUI() {
     try {
       await window.firebaseApp.signOut();
       toast("Çıkış yapıldı", "info");
+      showPage('home');
     } catch (error) {
       console.error("Çıkış hatası:", error);
     }
@@ -673,8 +1221,16 @@ window.handleRecentSearch = handleRecentSearch;
 window.removeRecentSearch = removeRecentSearch;
 window.cameraAiSearch = cameraAiSearch;
 window.addToCart = addToCart;
+window.addToCartFromSite = addToCartFromSite;
 window.removeFromCart = removeFromCart;
 window.updateCartQuantity = updateCartQuantity;
 window.clearCart = clearCart;
 window.checkoutCart = checkoutCart;
 window.setSearchType = setSearchType;
+window.openLogin = openLogin;
+window.closeLogin = closeLogin;
+window.doEmailLogin = doEmailLogin;
+window.doGoogleLogin = doGoogleLogin;
+window.toggleFavorite = toggleFavorite;
+window.removeFavorite = removeFavorite;
+[file content end]
