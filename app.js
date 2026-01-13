@@ -1,6 +1,4 @@
-[file name]: app.js
-[file content begin]
-// app.js - Fiyat Takip Uygulaması (GÜNCELLENMİŞ - Tüm Eksikler Düzeltildi)
+// app.js - Fiyat Takip Uygulaması (TÜM EKSİKLER DÜZELTİLDİ)
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -26,7 +24,7 @@ let cartTotal = 0;
 // Current user
 window.currentUser = null;
 
-// ========== SİTE LİSTESİ (GÜNCELLENMİŞ - Dolap Düzeltildi) ==========
+// ========== SİTE LİSTESİ (DOLAP DÜZELTMESİ) ==========
 const SITES = [
   // YENİ E-TİCARET
   { 
@@ -130,7 +128,11 @@ const SECOND_HAND_SITES = [
 // ========== TEMEL FONKSİYONLAR ==========
 function toast(msg, type = 'info') {
   const t = $("toast");
-  if (!t) { console.log(msg); return; }
+  if (!t) { 
+    console.log("[TOAST]", msg); 
+    return; 
+  }
+  
   t.textContent = msg;
   t.className = `toast ${type}`;
   t.classList.remove("hidden");
@@ -139,46 +141,79 @@ function toast(msg, type = 'info') {
 }
 
 function showPage(key) {
+  console.log("Sayfa değiştiriliyor:", key);
+  
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
 
   const page = $(`page-${key}`);
-  if (page) page.classList.add("active");
+  if (page) {
+    page.classList.add("active");
+    console.log("Sayfa aktif:", key);
+  }
 
   const tab = document.querySelector(`.tab[data-page="${key}"]`);
-  if (tab) tab.classList.add("active");
+  if (tab) {
+    tab.classList.add("active");
+    console.log("Tab aktif:", key);
+  }
 
-  if (key === 'favs') renderFavoritesPage(window.currentUser?.uid);
-  if (key === 'home') renderRecentSearches();
-  if (key === 'cart') renderCartPage();
-  if (key === 'search') {
+  if (key === 'favs') {
+    renderFavoritesPage(window.currentUser?.uid);
+  } else if (key === 'home') {
+    renderRecentSearches();
+  } else if (key === 'cart') {
+    renderCartPage();
+  } else if (key === 'search') {
     const query = $("qNormal")?.value;
-    if (query) {
+    if (query && query.trim()) {
       renderSiteList($("normalList"), query);
+    } else {
+      $("normalList").innerHTML = `
+        <div class="emptySearchState">
+          <div class="emptyIcon">🔍</div>
+          <h3>Arama Yapın</h3>
+          <p>Ürün adını yazıp arama yaparak başlayın</p>
+        </div>
+      `;
     }
   }
 }
 
 // ========== LOGIN SİSTEMİ ==========
 function openLogin() {
+  console.log("Login modal açılıyor");
   const modal = document.getElementById("loginModal");
   if (modal) {
-    modal.classList.add("show");
     modal.style.display = "flex";
+    modal.classList.add("show");
     modal.setAttribute("aria-hidden", "false");
+    
+    // Formları sıfırla
+    $("loginEmail").value = "";
+    $("loginPass").value = "";
+    $("regEmail").value = "";
+    $("regPass").value = "";
+    $("regPass2").value = "";
+    
+    // Giriş sekmesini aktif yap
+    $("tabLogin").click();
   }
 }
 
 function closeLogin() {
+  console.log("Login modal kapatılıyor");
   const modal = document.getElementById("loginModal");
   if (modal) {
-    modal.classList.remove("show");
     modal.style.display = "none";
+    modal.classList.remove("show");
     modal.setAttribute("aria-hidden", "true");
   }
 }
 
 async function doEmailLogin(isRegister = false) {
+  console.log("Email login başlatıldı:", isRegister ? "Kayıt" : "Giriş");
+  
   try {
     let email, password;
     
@@ -239,6 +274,7 @@ async function doEmailLogin(isRegister = false) {
 }
 
 async function doGoogleLogin() {
+  console.log("Google login başlatıldı");
   try {
     await window.firebaseApp.signInWithPopup();
     toast("Google ile giriş başarılı!", "success");
@@ -251,10 +287,21 @@ async function doGoogleLogin() {
 
 // ========== ARAMA SİSTEMİ ==========
 function setSearchMode(mode) {
+  console.log("Arama modu değiştiriliyor:", mode);
   localStorage.setItem("searchMode", mode);
-  $("modeNormal")?.classList.toggle("active", mode === "normal");
-  $("modeFiyat")?.classList.toggle("active", mode === "fiyat");
-  $("modeAI")?.classList.toggle("active", mode === "ai");
+  
+  // Butonları güncelle
+  document.querySelectorAll('.modeBtn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  if (mode === "normal") {
+    $("modeNormal")?.classList.add('active');
+  } else if (mode === "fiyat") {
+    $("modeFiyat")?.classList.add('active');
+  } else if (mode === "ai") {
+    $("modeAI")?.classList.add('active');
+  }
   
   const hint = $("modeHint");
   if (hint) {
@@ -273,15 +320,26 @@ function getSearchMode() {
 
 // ARAMA TÜRÜ SEÇİMİ
 function setSearchType(type) {
+  console.log("Arama türü değiştiriliyor:", type);
   localStorage.setItem("searchType", type);
-  $("searchTypeAll")?.classList.toggle("active", type === "all");
-  $("searchTypeNew")?.classList.toggle("active", type === "new");
-  $("searchTypeSecondHand")?.classList.toggle("active", type === "secondhand");
+  
+  // Butonları güncelle
+  document.querySelectorAll('.searchTypeBtn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  if (type === "all") {
+    $("searchTypeAll")?.classList.add('active');
+  } else if (type === "new") {
+    $("searchTypeNew")?.classList.add('active');
+  } else if (type === "secondhand") {
+    $("searchTypeSecondHand")?.classList.add('active');
+  }
   
   // Eğer arama sayfasındaysak yenile
   if ($("page-search")?.classList.contains("active")) {
     const query = $("qNormal")?.value;
-    if (query) {
+    if (query && query.trim()) {
       renderSiteList($("normalList"), query);
     }
   }
@@ -291,13 +349,15 @@ function getSearchType() {
   return localStorage.getItem("searchType") || "all";
 }
 
-// SİTE LİSTESİNİ GÖSTER (GÜNCELLENMİŞ - Arama türüne göre filtreleme)
+// SİTE LİSTESİNİ GÖSTER (GÜNCELLENMİŞ)
 function renderSiteList(container, query) {
+  console.log("Site listesi render ediliyor:", query);
+  
   if (!container) return;
   const q = String(query || "").trim();
   
   if (!q) {
-    container.innerHTML = `<div class="cardBox"><b>Bir şey yaz.</b></div>`;
+    container.innerHTML = `<div class="cardBox"><b>Lütfen bir arama terimi girin.</b></div>`;
     return;
   }
 
@@ -478,8 +538,10 @@ function getSiteIcon(siteKey) {
   return icons[siteKey] || '🔍';
 }
 
-// ========== FAVORİ SİSTEMİ (TAMAMLANDI) ==========
+// ========== FAVORİ SİSTEMİ ==========
 async function toggleFavorite(userId, favoriteData) {
+  console.log("Favori toggle:", favoriteData);
+  
   if (!userId) {
     toast("Önce giriş yapmalısınız", "error");
     openLogin();
@@ -527,6 +589,7 @@ async function loadFavorites(userId) {
       id: doc.id,
       ...doc.data()
     }));
+    console.log("Favoriler yüklendi:", favCache.length);
     updateFavCounter();
   } catch (error) {
     console.error("Favori yükleme hatası:", error);
@@ -558,6 +621,8 @@ function applyFavUI() {
 }
 
 async function renderFavoritesPage(userId) {
+  console.log("Favoriler sayfası render ediliyor");
+  
   if (!userId) {
     $("favList").innerHTML = `
       <div class="emptyFavState">
@@ -630,8 +695,9 @@ async function removeFavorite(userId, favId) {
   }
 }
 
-// ========== COPY LINK SİSTEMİ (TAMAMLANDI) ==========
+// ========== COPY LINK SİSTEMİ ==========
 async function copyToClipboard(text) {
+  console.log("Kopyalama işlemi:", text.substring(0, 50) + "...");
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
@@ -652,8 +718,9 @@ async function copyToClipboard(text) {
   }
 }
 
-// ========== SEPET SİSTEMİ (TAMAMLANDI) ==========
+// ========== SEPET SİSTEMİ ==========
 function addToCartFromSite(siteName, query, url) {
+  console.log("Sepete ekleniyor:", siteName, query);
   const product = {
     title: `${siteName}: ${query}`,
     price: "Arama sonucu",
@@ -667,6 +734,8 @@ function addToCartFromSite(siteName, query, url) {
 }
 
 function addToCart(product) {
+  console.log("Sepete ekle:", product.title);
+  
   // Check if already in cart
   const existingIndex = cartItems.findIndex(item => item.link === product.link);
   
@@ -700,6 +769,7 @@ function addToCart(product) {
 }
 
 function removeFromCart(itemId) {
+  console.log("Sepetten çıkar:", itemId);
   cartItems = cartItems.filter(item => item.id !== itemId);
   localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
   updateCartCounter();
@@ -709,6 +779,7 @@ function removeFromCart(itemId) {
 }
 
 function updateCartQuantity(itemId, newQuantity) {
+  console.log("Sepet miktarı güncelle:", itemId, newQuantity);
   if (newQuantity < 1) {
     removeFromCart(itemId);
     return;
@@ -724,6 +795,7 @@ function updateCartQuantity(itemId, newQuantity) {
 }
 
 function clearCart() {
+  console.log("Sepet temizleniyor");
   if (cartItems.length === 0) {
     toast("Sepet zaten boş", "info");
     return;
@@ -740,6 +812,7 @@ function clearCart() {
 }
 
 function checkoutCart() {
+  console.log("Ödeme işlemi başlatılıyor");
   if (cartItems.length === 0) {
     toast("Sepet boş", "error");
     return;
@@ -758,6 +831,7 @@ function checkoutCart() {
 }
 
 function renderCartPage() {
+  console.log("Sepet sayfası render ediliyor");
   const cartList = $("cartList");
   const cartSubtotal = $("cartSubtotal");
   const cartTotalPrice = $("cartTotalPrice");
@@ -853,23 +927,28 @@ function updateCartCounter() {
 
 function updateCartButtonStates() {
   document.querySelectorAll('.modernBtn.cart').forEach(btn => {
-    const url = btn.getAttribute('data-cart-url') || btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
-    if (!url) return;
-    
-    const isInCart = cartItems.some(item => item.link === url);
-    
-    if (isInCart) {
-      btn.innerHTML = '<span class="btnIcon">✓</span><span>Sepette</span>';
-      btn.classList.add('inCart');
-    } else {
-      btn.innerHTML = '<span class="btnIcon">🛒</span><span>Sepet</span>';
-      btn.classList.remove('inCart');
+    const onclickAttr = btn.getAttribute('onclick');
+    if (onclickAttr) {
+      const match = onclickAttr.match(/'([^']+)'/g);
+      if (match && match[2]) {
+        const url = match[2].replace(/'/g, '');
+        const isInCart = cartItems.some(item => item.link === url);
+        
+        if (isInCart) {
+          btn.innerHTML = '<span class="btnIcon">✓</span><span>Sepette</span>';
+          btn.classList.add('inCart');
+        } else {
+          btn.innerHTML = '<span class="btnIcon">🛒</span><span>Sepet</span>';
+          btn.classList.remove('inCart');
+        }
+      }
     }
   });
 }
 
 // ========== DİĞER FONKSİYONLAR ==========
 function fiyatAra(query) {
+  console.log("Fiyat arama başlatıldı:", query);
   toast("Fiyat arama modu aktif (Demo)", "info");
   // Burada gerçek API çağrısı yapılacak
 }
@@ -940,16 +1019,16 @@ function clearAppCache() {
 function openAPIModal() {
   const modal = document.getElementById("apiModal");
   if (modal) {
-    modal.classList.add("show");
     modal.style.display = "flex";
+    modal.classList.add("show");
   }
 }
 
 function closeAPIModal() {
   const modal = document.getElementById("apiModal");
   if (modal) {
-    modal.classList.remove("show");
     modal.style.display = "none";
+    modal.classList.remove("show");
   }
 }
 
@@ -966,24 +1045,28 @@ function saveAPISettings() {
 function openAIModal() {
   const modal = document.getElementById("aiModal");
   if (modal) {
-    modal.classList.add("show");
     modal.style.display = "flex";
+    modal.classList.add("show");
   }
 }
 
 function closeAIModal() {
   const modal = document.getElementById("aiModal");
   if (modal) {
-    modal.classList.remove("show");
     modal.style.display = "none";
+    modal.classList.remove("show");
   }
 }
 
 // Event listener'ları ekle
 function attachEventListeners() {
+  console.log("Event listener'lar ekleniyor...");
+  
   // Favori butonları
   document.querySelectorAll('.modernBtn.fav').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      
       if (!window.currentUser) {
         toast("Önce giriş yapmalısınız", "error");
         openLogin();
@@ -1005,16 +1088,16 @@ function attachEventListeners() {
     });
   });
   
-  // Copy butonları
+  // Copy butonları için event delegation
   document.addEventListener("click", async (e) => {
-    if (e.target.closest('.modernBtn.ghost')) {
-      const btn = e.target.closest('.modernBtn.ghost');
-      const siteCard = btn.closest('.siteCard');
+    const copyBtn = e.target.closest('.modernBtn.ghost');
+    if (copyBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // URL'yi bul
+      const siteCard = copyBtn.closest('.siteCard');
       if (siteCard) {
-        const siteName = siteCard.querySelector('.siteName')?.textContent || '';
-        const query = siteCard.querySelector('.siteQuery')?.textContent || '';
-        
-        // URL'yi bul
         const openBtn = siteCard.querySelector('.modernBtn.primary');
         if (openBtn && openBtn.onclick) {
           const onclickStr = openBtn.getAttribute('onclick') || '';
@@ -1026,6 +1109,34 @@ function attachEventListeners() {
       }
     }
   });
+}
+
+// ========== ARAMA FONKSİYONU ==========
+function performSearch() {
+  console.log("Arama başlatılıyor...");
+  const query = ($("qNormal")?.value || "").trim();
+  
+  if (!query) {
+    toast("Lütfen bir ürün adı girin", "error");
+    return;
+  }
+  
+  console.log("Arama sorgusu:", query);
+  
+  // Son aramalara ekle
+  handleRecentSearch(query);
+  
+  const mode = getSearchMode();
+  console.log("Arama modu:", mode);
+  
+  if (mode === "fiyat") {
+    fiyatAra(query);
+  } else {
+    showPage("search");
+    setTimeout(() => {
+      renderSiteList($("normalList"), query);
+    }, 100);
+  }
 }
 
 // ========== UYGULAMA BAŞLANGICI ==========
@@ -1079,42 +1190,67 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 // ========== WIRE UI GÜNCELLENMİŞ ==========
 function wireUI() {
+  console.log("UI event listener'ları bağlanıyor...");
+  
   // Arama butonu
-  $("btnNormal")?.addEventListener("click", () => {
-    const query = ($("qNormal")?.value || "").trim();
-    if (!query) return toast("Ürün adı girin", "error");
-    
-    handleRecentSearch(query);
-    
-    const mode = getSearchMode();
-    if (mode === "fiyat") {
-      fiyatAra(query);
-    } else {
-      showPage("search");
-      renderSiteList($("normalList"), query);
-    }
-  });
+  const searchBtn = $("btnNormal");
+  if (searchBtn) {
+    searchBtn.addEventListener("click", performSearch);
+    console.log("Arama butonu bağlandı");
+  } else {
+    console.error("Arama butonu bulunamadı!");
+  }
 
   // Enter tuşu ile arama
-  $("qNormal")?.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      $("btnNormal").click();
-    }
-  });
+  const searchInput = $("qNormal");
+  if (searchInput) {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        performSearch();
+      }
+    });
+    console.log("Enter tuşu bağlandı");
+  }
 
   // Arama modu butonları
-  $("modeNormal")?.addEventListener("click", () => setSearchMode("normal"));
-  $("modeFiyat")?.addEventListener("click", () => setSearchMode("fiyat"));
-  $("modeAI")?.addEventListener("click", () => setSearchMode("ai"));
+  $("modeNormal")?.addEventListener("click", () => {
+    setSearchMode("normal");
+    console.log("Normal mod seçildi");
+  });
+  
+  $("modeFiyat")?.addEventListener("click", () => {
+    setSearchMode("fiyat");
+    console.log("Fiyat modu seçildi");
+  });
+  
+  $("modeAI")?.addEventListener("click", () => {
+    setSearchMode("ai");
+    console.log("AI modu seçildi");
+  });
   
   // Arama türü butonları
-  $("searchTypeAll")?.addEventListener("click", () => setSearchType("all"));
-  $("searchTypeNew")?.addEventListener("click", () => setSearchType("new"));
-  $("searchTypeSecondHand")?.addEventListener("click", () => setSearchType("secondhand"));
+  $("searchTypeAll")?.addEventListener("click", () => {
+    setSearchType("all");
+    console.log("Tümü seçildi");
+  });
+  
+  $("searchTypeNew")?.addEventListener("click", () => {
+    setSearchType("new");
+    console.log("Yeni seçildi");
+  });
+  
+  $("searchTypeSecondHand")?.addEventListener("click", () => {
+    setSearchType("secondhand");
+    console.log("İkinci El seçildi");
+  });
   
   // Tab butonları
   document.querySelectorAll(".tab[data-page]").forEach(btn => {
-    btn.addEventListener("click", () => showPage(btn.dataset.page));
+    btn.addEventListener("click", (e) => {
+      const page = e.currentTarget.dataset.page;
+      console.log("Tab tıklandı:", page);
+      showPage(page);
+    });
   });
 
   // Kamera butonu
@@ -1124,6 +1260,7 @@ function wireUI() {
   document.querySelectorAll(".quickTag").forEach(tag => {
     tag.addEventListener("click", () => {
       const query = tag.dataset.query;
+      console.log("Hızlı arama:", query);
       $("qNormal").value = query;
       const mode = getSearchMode();
       
@@ -1131,12 +1268,14 @@ function wireUI() {
         fiyatAra(query);
       } else {
         showPage("search");
-        renderSiteList($("normalList"), query);
+        setTimeout(() => {
+          renderSiteList($("normalList"), query);
+        }, 100);
       }
     });
   });
 
-  // Login/Register
+  // Login/Register tabs
   $("tabLogin")?.addEventListener("click", () => {
     $("loginPane").classList.remove("hidden");
     $("registerPane").classList.add("hidden");
@@ -1151,6 +1290,7 @@ function wireUI() {
     $("tabRegister").classList.add("isActive");
   });
   
+  // Login/Register buttons
   $("btnLogin")?.addEventListener("click", () => doEmailLogin(false));
   $("btnRegister")?.addEventListener("click", () => doEmailLogin(true));
   $("btnGoogleLogin")?.addEventListener("click", doGoogleLogin);
@@ -1211,6 +1351,8 @@ function wireUI() {
     showPage('cart');
     renderCartPage();
   });
+  
+  console.log("Tüm event listener'lar bağlandı");
 }
 
 // GLOBAL FONKSİYONLAR
@@ -1233,4 +1375,6 @@ window.doEmailLogin = doEmailLogin;
 window.doGoogleLogin = doGoogleLogin;
 window.toggleFavorite = toggleFavorite;
 window.removeFavorite = removeFavorite;
-[file content end]
+window.performSearch = performSearch;
+
+console.log("App.js yüklendi!");
