@@ -1,4 +1,4 @@
-// app.js - TAM ÇALIŞAN VERSİYON (Güncel)
+// app.js - BASİTLEŞTİRİLMİŞ VERSİYON (Kategorisiz)
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -6,6 +6,31 @@ const $ = (id) => document.getElementById(id);
 // Sepet ve önbellek
 let cartItems = JSON.parse(localStorage.getItem('fiyattakip_cart') || '[]');
 let currentUser = null;
+let currentSearchType = 'all'; // 'all', 'new', 'secondhand'
+let currentPage = 1;
+let itemsPerPage = 4; // Her sayfada 4 site göster
+
+// ========== SADE SİTE LİSTESİ ==========
+const SITES = {
+  new: [
+    { name: "Trendyol", icon: "🛍️", type: "new", domain: "trendyol.com" },
+    { name: "Hepsiburada", icon: "📦", type: "new", domain: "hepsiburada.com" },
+    { name: "Amazon TR", icon: "📦", type: "new", domain: "amazon.com.tr" },
+    { name: "n11", icon: "🏪", type: "new", domain: "n11.com" },
+    { name: "ÇiçekSepeti", icon: "🌸", type: "new", domain: "ciceksepeti.com" },
+    { name: "Teknosa", icon: "💻", type: "new", domain: "teknosa.com" },
+    { name: "Vatan Bilgisayar", icon: "💾", type: "new", domain: "vatanbilgisayar.com" },
+    { name: "MediaMarkt", icon: "📺", type: "new", domain: "mediamarkt.com.tr" },
+    { name: "İdefix", icon: "📚", type: "new", domain: "idefix.com" },
+    { name: "PTT AVM", icon: "📮", type: "new", domain: "pttavm.com" }
+  ],
+  secondhand: [
+    { name: "Sahibinden", icon: "🏠", type: "secondhand", domain: "sahibinden.com" },
+    { name: "Dolap", icon: "👗", type: "secondhand", domain: "dolap.com" },
+    { name: "Letgo", icon: "🔄", type: "secondhand", domain: "letgo.com" },
+    { name: "Facebook Marketplace", icon: "📱", type: "secondhand", domain: "facebook.com/marketplace" }
+  ]
+};
 
 // ========== TEMEL FONKSİYONLAR ==========
 function toast(msg, type = 'info') {
@@ -60,153 +85,6 @@ function showPage(key) {
   }
 }
 
-// ========== AUTH SİSTEMİ ==========
-function showLoginModal() {
-  $("loginModal").classList.remove("hidden");
-}
-
-function hideLoginModal() {
-  $("loginModal").classList.add("hidden");
-}
-
-function loginWithEmail() {
-  const email = $("loginEmail").value.trim();
-  const password = $("loginPass").value;
-  
-  if (!email || !password) {
-    toast("Lütfen tüm alanları doldurun", "error");
-    return;
-  }
-  
-  try {
-    if (window.firebaseApp) {
-      window.firebaseApp.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          currentUser = userCredential.user;
-          toast("Giriş başarılı! ✅", "success");
-          hideLoginModal();
-          updateUserInfo();
-        })
-        .catch((error) => {
-          console.error("Login error:", error);
-          toast("Giriş başarısız: " + error.message, "error");
-        });
-    } else {
-      // Mock login (Firebase yoksa)
-      currentUser = {
-        email: email,
-        displayName: email.split('@')[0],
-        uid: 'mock_' + Date.now()
-      };
-      toast("Demo: Giriş başarılı! ✅", "success");
-      hideLoginModal();
-      updateUserInfo();
-    }
-  } catch (error) {
-    console.error("Login error:", error);
-    toast("Giriş işlemi başarısız", "error");
-  }
-}
-
-function registerWithEmail() {
-  const email = $("regEmail").value.trim();
-  const password = $("regPass").value;
-  const password2 = $("regPass2").value;
-  
-  if (!email || !password || !password2) {
-    toast("Lütfen tüm alanları doldurun", "error");
-    return;
-  }
-  
-  if (password !== password2) {
-    toast("Şifreler eşleşmiyor", "error");
-    return;
-  }
-  
-  if (password.length < 6) {
-    toast("Şifre en az 6 karakter olmalı", "error");
-    return;
-  }
-  
-  try {
-    if (window.firebaseApp) {
-      window.firebaseApp.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          currentUser = userCredential.user;
-          toast("Kayıt başarılı! Hoş geldiniz 🎉", "success");
-          hideLoginModal();
-          updateUserInfo();
-        })
-        .catch((error) => {
-          console.error("Register error:", error);
-          toast("Kayıt başarısız: " + error.message, "error");
-        });
-    } else {
-      // Mock registration
-      currentUser = {
-        email: email,
-        displayName: email.split('@')[0],
-        uid: 'mock_' + Date.now()
-      };
-      toast("Demo: Kayıt başarılı! 🎉", "success");
-      hideLoginModal();
-      updateUserInfo();
-    }
-  } catch (error) {
-    console.error("Register error:", error);
-    toast("Kayıt işlemi başarısız", "error");
-  }
-}
-
-function loginWithGoogle() {
-  toast("Google ile giriş yakında gelecek! ⏳", "info");
-  
-  if (window.firebaseApp) {
-    window.firebaseApp.signInWithPopup()
-      .then((result) => {
-        currentUser = result.user;
-        toast("Google ile giriş başarılı! ✅", "success");
-        hideLoginModal();
-        updateUserInfo();
-      })
-      .catch((error) => {
-        console.error("Google login error:", error);
-        toast("Google girişi başarısız", "error");
-      });
-  }
-}
-
-function logout() {
-  if (window.firebaseApp) {
-    window.firebaseApp.signOut()
-      .then(() => {
-        currentUser = null;
-        toast("Çıkış yapıldı", "info");
-        updateUserInfo();
-      })
-      .catch((error) => {
-        console.error("Logout error:", error);
-      });
-  } else {
-    currentUser = null;
-    toast("Demo: Çıkış yapıldı", "info");
-    updateUserInfo();
-  }
-}
-
-function updateUserInfo() {
-  const userElement = $("currentUser");
-  if (!userElement) return;
-  
-  if (currentUser) {
-    userElement.textContent = currentUser.email || currentUser.displayName || "Kullanıcı";
-    $("logoutBtn").textContent = "Çıkış Yap";
-  } else {
-    userElement.textContent = "Misafir";
-    $("logoutBtn").textContent = "Giriş Yap";
-  }
-}
-
 // ========== ARAMA SİSTEMİ ==========
 function performSearch() {
   const query = ($("qNormal")?.value || "").trim();
@@ -228,7 +106,7 @@ function performSearch() {
   updateSearchInfo(query);
   
   // Sonuçları göster
-  showMockResults(query);
+  showSearchResults(query);
 }
 
 function updateSearchInfo(query) {
@@ -237,31 +115,36 @@ function updateSearchInfo(query) {
   
   searchInfo.innerHTML = `
     <div class="searchQuery">"${query}"</div>
-    <div class="searchStats">6 sitede araştırılıyor...</div>
+    <div class="searchStats">Sitelerde araştırılıyor...</div>
   `;
 }
 
-function showMockResults(query) {
+function showSearchResults(query) {
   const container = $("normalList");
   if (!container) return;
   
-  const sites = [
-    { name: "Trendyol", icon: "🛍️", type: "new" },
-    { name: "Hepsiburada", icon: "📦", type: "new" },
-    { name: "Amazon", icon: "📦", type: "new" },
-    { name: "Sahibinden", icon: "🏠", type: "secondhand" },
-    { name: "Dolap", icon: "👗", type: "secondhand" },
-    { name: "Teknosa", icon: "💻", type: "new" }
-  ];
+  // Mevcut arama tipine göre siteleri filtrele
+  let sitesToShow = [];
   
+  if (currentSearchType === 'all') {
+    // Tüm siteleri birleştir
+    sitesToShow = [...SITES.new, ...SITES.secondhand];
+  } else if (currentSearchType === 'new') {
+    // Sadece yeni ürün siteleri
+    sitesToShow = SITES.new;
+  } else if (currentSearchType === 'secondhand') {
+    // Sadece ikinci el siteleri
+    sitesToShow = SITES.secondhand;
+  }
+  
+  // Her site için kart oluştur
   let html = '';
   
-  sites.forEach((site, index) => {
-    const url = `https://${site.name.toLowerCase().replace(' ', '')}.com/ara?q=${encodeURIComponent(query)}`;
-    const delay = index * 100;
+  sitesToShow.forEach((site, index) => {
+    const url = `https://${site.domain}/ara?q=${encodeURIComponent(query)}`;
     
     html += `
-      <div class="siteCard" style="animation-delay: ${delay}ms">
+      <div class="siteCard">
         <div class="siteHeader">
           <div class="siteIcon">${site.icon}</div>
           <div class="siteInfo">
@@ -281,7 +164,7 @@ function showMockResults(query) {
             <span class="btnIcon">⧉</span>
             <span>Kopyala</span>
           </button>
-          <button class="actionBtn btnFav" onclick="addFavorite('${site.name}', '${query}', '${url}')">
+          <button class="actionBtn btnFav" onclick="addFavorite('${site.name}', '${query}', '${url}', '${site.type}')">
             <span class="btnIcon">🤍</span>
             <span>Favori</span>
           </button>
@@ -299,6 +182,19 @@ function showMockResults(query) {
   });
   
   container.innerHTML = html;
+  
+  // Arama istatistiklerini güncelle
+  updateSearchStats(sitesToShow.length, query);
+}
+
+function updateSearchStats(count, query) {
+  const searchInfo = $("searchInfo");
+  if (!searchInfo) return;
+  
+  searchInfo.innerHTML = `
+    <div class="searchQuery">"${query}"</div>
+    <div class="searchStats">${count} sitede araştırılıyor</div>
+  `;
 }
 
 // ========== COPY LINK ==========
@@ -313,7 +209,7 @@ async function copyToClipboard(text) {
 }
 
 // ========== FAVORİ SİSTEMİ ==========
-function addFavorite(siteName, query, url) {
+function addFavorite(siteName, query, url, type) {
   let favorites = JSON.parse(localStorage.getItem('fiyattakip_favorites') || '[]');
   
   const favorite = {
@@ -321,8 +217,8 @@ function addFavorite(siteName, query, url) {
     siteName: siteName,
     query: query,
     url: url,
-    addedAt: new Date().toISOString(),
-    type: siteName.toLowerCase().includes('sahibinden') ? 'secondhand' : 'new'
+    type: type,
+    addedAt: new Date().toISOString()
   };
   
   // Aynı URL zaten favorilerde mi?
@@ -388,7 +284,10 @@ function renderFavoritesPage() {
     html += `
       <div class="siteCard">
         <div class="siteHeader">
-          <div class="siteIcon">${fav.siteName.includes('Sahibinden') ? '🏠' : '🛍️'}</div>
+          <div class="siteIcon">${fav.siteName.includes('Sahibinden') ? '🏠' : 
+                                 fav.siteName.includes('Facebook') ? '📱' :
+                                 fav.siteName.includes('Dolap') ? '👗' :
+                                 fav.siteName.includes('Letgo') ? '🔄' : '🛍️'}</div>
           <div class="siteInfo">
             <div class="siteName">${fav.siteName}</div>
             <div class="siteQuery">${fav.query}</div>
@@ -622,6 +521,71 @@ function renderRecentSearches() {
   recentList.innerHTML = html;
 }
 
+// ========== AYARLAR ve KULLANICI ==========
+function showLoginModal() {
+  $("loginModal").classList.remove("hidden");
+}
+
+function hideLoginModal() {
+  $("loginModal").classList.add("hidden");
+}
+
+function loginWithEmail() {
+  const email = $("loginEmail").value.trim();
+  const password = $("loginPass").value;
+  
+  if (!email || !password) {
+    toast("Lütfen tüm alanları doldurun", "error");
+    return;
+  }
+  
+  // Demo login
+  currentUser = {
+    email: email,
+    displayName: email.split('@')[0],
+    uid: 'mock_' + Date.now()
+  };
+  toast("Demo: Giriş başarılı! ✅", "success");
+  hideLoginModal();
+  updateUserInfo();
+}
+
+function logout() {
+  currentUser = null;
+  toast("Demo: Çıkış yapıldı", "info");
+  updateUserInfo();
+}
+
+function updateUserInfo() {
+  const userElement = $("currentUser");
+  if (!userElement) return;
+  
+  if (currentUser) {
+    userElement.textContent = currentUser.email || currentUser.displayName || "Kullanıcı";
+    $("logoutBtn").textContent = "Çıkış Yap";
+  } else {
+    userElement.textContent = "Misafir";
+    $("logoutBtn").textContent = "Giriş Yap";
+  }
+}
+
+// ========== ARAMA TİPLERİNİ YÖNET ==========
+function setSearchType(type) {
+  currentSearchType = type;
+  
+  // UI'da aktif butonu güncelle
+  document.querySelectorAll(".typeBtn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+  
+  const activeBtn = document.querySelector(`.typeBtn[data-type="${type}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add("active");
+  }
+  
+  toast(`Arama tipi: ${type === 'all' ? 'Tüm Siteler' : type === 'new' ? 'Yeni Ürünler' : 'İkinci El'}`, "info");
+}
+
 // ========== EVENT LISTENERS ==========
 function wireUI() {
   console.log("UI bağlantıları kuruluyor...");
@@ -714,37 +678,12 @@ function wireUI() {
   $("loginBackdrop")?.addEventListener("click", hideLoginModal);
   $("closeLogin")?.addEventListener("click", hideLoginModal);
   
-  // Login tabları
-  $("tabLogin")?.addEventListener("click", () => {
-    $("tabLogin").classList.add("active");
-    $("tabRegister").classList.remove("active");
-    $("loginPane").classList.remove("hidden");
-    $("registerPane").classList.add("hidden");
-  });
-  
-  $("tabRegister")?.addEventListener("click", () => {
-    $("tabRegister").classList.add("active");
-    $("tabLogin").classList.remove("active");
-    $("registerPane").classList.remove("hidden");
-    $("loginPane").classList.add("hidden");
-  });
-  
-  // Auth butonları
-  $("btnLogin")?.addEventListener("click", loginWithEmail);
-  $("btnRegister")?.addEventListener("click", registerWithEmail);
-  $("btnGoogleLogin")?.addEventListener("click", loginWithGoogle);
-  $("btnGoogleLogin2")?.addEventListener("click", loginWithGoogle);
-  
-  // Favori butonları
-  $("btnFavRefresh")?.addEventListener("click", renderFavoritesPage);
-  $("btnFavClear")?.addEventListener("click", clearFavorites);
-  
-  // Enter key for login
-  $("loginPass")?.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") loginWithEmail();
-  });
-  $("regPass2")?.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") registerWithEmail();
+  // Arama tipi butonları
+  document.querySelectorAll(".typeBtn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const type = e.currentTarget.dataset.type;
+      setSearchType(type);
+    });
   });
   
   // Arama modları
@@ -756,13 +695,16 @@ function wireUI() {
     });
   });
   
-  // Arama tipleri
-  document.querySelectorAll(".typeBtn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      document.querySelectorAll(".typeBtn").forEach(b => b.classList.remove("active"));
-      e.currentTarget.classList.add("active");
-      toast(`Arama tipi: ${e.currentTarget.dataset.type}`, "info");
-    });
+  // Favori butonları
+  $("btnFavRefresh")?.addEventListener("click", renderFavoritesPage);
+  $("btnFavClear")?.addEventListener("click", clearFavorites);
+  
+  // Demo login butonları
+  $("btnLogin")?.addEventListener("click", loginWithEmail);
+  
+  // Enter key for login
+  $("loginPass")?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") loginWithEmail();
   });
 }
 
@@ -772,15 +714,6 @@ window.addEventListener("DOMContentLoaded", () => {
   
   // UI bağlantılarını kur
   wireUI();
-  
-  // Firebase auth durumunu dinle
-  if (window.firebaseApp) {
-    window.firebaseApp.onAuthStateChanged((user) => {
-      currentUser = user;
-      updateUserInfo();
-      console.log("Auth state:", user ? "Logged in" : "Logged out");
-    });
-  }
   
   // Sepet sayacını güncelle
   updateCartCounter();
@@ -811,6 +744,5 @@ window.clearRecentSearches = clearRecentSearches;
 window.showLoginModal = showLoginModal;
 window.hideLoginModal = hideLoginModal;
 window.loginWithEmail = loginWithEmail;
-window.registerWithEmail = registerWithEmail;
-window.loginWithGoogle = loginWithGoogle;
 window.logout = logout;
+window.setSearchType = setSearchType;
