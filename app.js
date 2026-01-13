@@ -729,14 +729,6 @@ function wireUI() {
       performSearch();
     }
   });
-
-  // Yazarken öneri (autocomplete)
-  if (window.initTypeahead && $("qNormal")) {
-    initTypeahead($("qNormal"), ({canonical}) => {
-      $("qNormal").value = canonical;
-      performSearch();
-    });
-  }
   
   // Tab butonları
   document.querySelectorAll(".tab[data-page]").forEach(btn => {
@@ -1060,30 +1052,24 @@ function wireUI() {
     return null;
   }
 
-  
-function detectPart(q){
-  const nq = normalizeQuery(q);
-  const cpuA = parseAmdRyzen(nq);
-  if(cpuA) return {type:"cpu", data:cpuA};
+  function detectPart(q){
+    const nq = normalizeQuery(q);
+    const cpuA = parseAmdRyzen(nq);
+    const cpuI = parseIntelCPU(nq);
+    const gpu = parseGpu(nq);
+    const cs = detectChipset(nq);
+    const ram = detectRam(nq);
+    const psu = detectPsu(nq);
 
-  const cpuI = parseIntelCPU(nq);
-  if(cpuI) return {type:"cpu", data:cpuI};
-
-  const gpu = parseGpu(nq);
-  if(gpu) return {type:"gpu", data:gpu};
-
-  const cs = detectChipset(nq);
-  if(cs) return {type:"mobo", data:cs};
-
-  const ram = detectRam(nq);
-  if(ram) return {type:"ram", data:ram};
-
-  const psu = detectPsu(nq);
-  if(psu) return {type:"psu", data:psu};
-
-  return null;
-}
-
+    // decide by strongest match
+    if(cpuA && /ryzen|\br[3579]\b/i.test(nq)) return {type:"cpu", data:cpuA};
+    if(cpuI && /\bi[3579]\b|\b\d{4,5}[a-z]{0,2}\b/i.test(nq)) return {type:"cpu", data:cpuI};
+    if(gpu) return {type:"gpu", data:gpu};
+    if(cs) return {type:"mobo", data:cs};
+    if(ram) return {type:"ram", data:ram};
+    if(psu) return {type:"psu", data:psu};
+    return null;
+  }
 
   function pickMoboByProfile(socket, profile){
     // generic pick by socket & profile
@@ -1308,300 +1294,6 @@ function detectPart(q){
   PC.isPcRelated = isPcRelated;
   window.PCBuilder = PC;
 })();
-
-/* ===== TYPEAHEAD / AUTOCOMPLETE (GENİŞ SÖZLÜK) ===== */
-(function(){
-  // Build a big local suggestion dictionary (AI yok / canlı veri yok)
-  function uniqPush(map, arr, label, canonical){
-    const c = (canonical || label || "").toLowerCase().trim();
-    if(!c) return;
-    if(map.has(c)) return;
-    map.set(c, true);
-    arr.push({ label, canonical: c });
-  }
-
-  function titleCaseCpu(s){
-    // Simple pretty label
-    return s.replace(/\bryzen\b/ig,"Ryzen")
-            .replace(/\br(\d)\b/ig,"R$1")
-            .replace(/\bcore\b/ig,"Core")
-            .replace(/\bi([3579])\b/ig,"i$1")
-            .replace(/\brtx\b/ig,"RTX")
-            .replace(/\bgtx\b/ig,"GTX")
-            .replace(/\brx\b/ig,"RX")
-            .replace(/\bddr\b/ig,"DDR")
-            .replace(/\bpsu\b/ig,"PSU");
-  }
-
-  function buildSearchIndex(){
-    const out = [];
-    const seen = new Map();
-
-    // ---- CPU: AMD Ryzen (common SKUs 2017-2026) ----
-    const ryzen = [
-      "ryzen 3 1200","ryzen 3 1300x","ryzen 5 1400","ryzen 5 1500x","ryzen 5 1600","ryzen 7 1700","ryzen 7 1700x","ryzen 7 1800x",
-      "ryzen 3 2200g","ryzen 5 2400g","ryzen 5 2600","ryzen 5 2600x","ryzen 7 2700","ryzen 7 2700x",
-      "ryzen 3 3100","ryzen 3 3300x","ryzen 5 3500","ryzen 5 3600","ryzen 5 3600x","ryzen 7 3700x","ryzen 7 3800x","ryzen 9 3900x","ryzen 9 3950x",
-      "ryzen 5 4500","ryzen 5 4600g","ryzen 5 5500","ryzen 5 5600","ryzen 5 5600x","ryzen 7 5700x","ryzen 7 5800x","ryzen 7 5800x3d","ryzen 9 5900x","ryzen 9 5950x",
-      "ryzen 5 7500f","ryzen 5 7600","ryzen 5 7600x","ryzen 7 7700","ryzen 7 7700x","ryzen 7 7800x3d","ryzen 9 7900","ryzen 9 7900x","ryzen 9 7950x",
-      "ryzen 5 9600x","ryzen 7 9700x","ryzen 9 9900x","ryzen 9 9950x"
-    ];
-    for(const c of ryzen){
-      uniqPush(seen, out, titleCaseCpu(c), c);
-      // aliases: r5 5600, 5600x, 7600 etc
-      const m = c.match(/ryzen\s*(\d)\s*(\d{4}[a-z0-9]*)/i);
-      if(m){
-        uniqPush(seen, out, `R${m[1]} ${m[2]}`.toUpperCase().replace("R","R"), `r${m[1]} ${m[2]}`);
-        uniqPush(seen, out, titleCaseCpu(m[2]), m[2]);
-      }
-    }
-
-    // ---- CPU: Intel Core (popular 2nd-15th gen) ----
-    const intel = [
-      "i3 2100","i5 2400","i5 2500k","i7 2600","i7 2600k",
-      "i5 3470","i5 3570k","i7 3770","i7 3770k",
-      "i5 4570","i5 4670k","i7 4770","i7 4790k",
-      "i3 6100","i5 6500","i5 6600k","i7 6700","i7 6700k",
-      "i3 7100","i5 7400","i5 7600k","i7 7700","i7 7700k",
-      "i3 8100","i5 8400","i5 8600k","i7 8700","i7 8700k",
-      "i3 9100f","i5 9400f","i5 9600k","i7 9700k","i9 9900k",
-      "i3 10100","i5 10400f","i5 10600k","i7 10700k","i9 10900k",
-      "i5 11400f","i5 11600k","i7 11700k","i9 11900k",
-      "i3 12100f","i5 12400f","i5 12600k","i7 12700f","i7 12700k","i9 12900k",
-      "i3 13100f","i5 13400f","i5 13600k","i7 13700k","i9 13900k",
-      "i3 14100f","i5 14400f","i5 14600k","i7 14700k","i9 14900k",
-      "i5 15500","i7 15700k","i9 15900k"
-    ];
-    for(const c of intel){
-      uniqPush(seen, out, titleCaseCpu(c), c);
-      const m = c.match(/\b(i[3579])\s*(\d{4,5}[a-z]?)\b/i);
-      if(m){
-        uniqPush(seen, out, titleCaseCpu(m[2]), m[2]);
-        uniqPush(seen, out, titleCaseCpu(`${m[1]}-${m[2]}`), `${m[1]}-${m[2]}`);
-        // f suffix common for intel: add f variant suggestion
-        if(!m[2].lower().endswith("f") and m[2].isdigit() and int(m[2])>=10000):
-          pass
-      }
-    }
-
-    // ---- GPU: NVIDIA ----
-    const nvidia = [
-      "gtx 750 ti","gtx 950","gtx 960","gtx 970","gtx 980","gtx 980 ti",
-      "gtx 1050 ti","gtx 1060 6gb","gtx 1070","gtx 1070 ti","gtx 1080","gtx 1080 ti",
-      "gtx 1650","gtx 1650 super","gtx 1660","gtx 1660 super","gtx 1660 ti",
-      "rtx 2060","rtx 2060 super","rtx 2070 super","rtx 2080 super","rtx 2080 ti",
-      "rtx 3050","rtx 3060","rtx 3060 ti","rtx 3070","rtx 3070 ti","rtx 3080","rtx 3080 ti","rtx 3090","rtx 3090 ti",
-      "rtx 4060","rtx 4060 ti","rtx 4070","rtx 4070 super","rtx 4070 ti","rtx 4070 ti super","rtx 4080","rtx 4080 super","rtx 4090",
-      "rtx 5060","rtx 5060 ti","rtx 5070","rtx 5070 ti","rtx 5080","rtx 5090"
-    ];
-    for(const c of nvidia){
-      uniqPush(seen, out, titleCaseCpu(c), c);
-      // short alias: 4070, 3060 etc
-      const mm = c.match(/\b(rtx|gtx)\s*(\d{3,4})\b/i);
-      if(mm){
-        uniqPush(seen, out, titleCaseCpu(mm[2]), mm[2]);
-      }
-    }
-
-    // ---- GPU: AMD ----
-    const amdGpu = [
-      "rx 470","rx 480","rx 550","rx 560","rx 570","rx 580","rx 590",
-      "rx 5500 xt","rx 5600 xt","rx 5700","rx 5700 xt",
-      "rx 6600","rx 6600 xt","rx 6650 xt","rx 6700 xt","rx 6750 xt","rx 6800","rx 6800 xt","rx 6900 xt","rx 6950 xt",
-      "rx 7600","rx 7600 xt","rx 7700 xt","rx 7800 xt","rx 7900 xt","rx 7900 xtx",
-      "rx 8600 xt","rx 8700 xt","rx 8800 xt","rx 8900 xt"
-    ];
-    for(const c of amdGpu){
-      uniqPush(seen, out, titleCaseCpu(c), c);
-      const mm = c.match(/\brx\s*(\d{3,4})\b/i);
-      if(mm) uniqPush(seen, out, titleCaseCpu(mm[1]), mm[1]);
-    }
-
-    // ---- Motherboard chipsets + common model words (very wide) ----
-    const chipsets = [
-      "h61","h77","z77","h81","b85","z97","h110","b150","z170","z270","h310","b360","b365","z390",
-      "h410","b460","b560","z590","h610","b660","b760","z690","z790","h810","b860","z890",
-      "760g","970","990fx","a320","a520","b350","b450","b550","x570","a620","b650","b650e","x670","x670e"
-    ];
-    const brands = ["asus","msi","gigabyte","asrock","biostar"];
-    const words = ["m","m-atx","atx","itx","prime","tuf","rog","strix","aorus","gaming","pro","plus","elite","edge","tomahawk","ds3h","s2h","ud","wifi","ax","ac"];
-    for(const cs of chipsets){
-      uniqPush(seen, out, cs.toUpperCase()+" anakart", cs);
-      // generate chipset + keywords combinations
-      uniqPush(seen, out, `${cs}m`, `${cs}m`);
-      uniqPush(seen, out, `${cs}m ds3h`, `${cs}m ds3h`);
-      uniqPush(seen, out, `${cs}m s2h`, `${cs}m s2h`);
-      uniqPush(seen, out, `${cs} tomahawk`, `${cs} tomahawk`);
-      uniqPush(seen, out, `${cs} tuf`, `${cs} tuf`);
-      uniqPush(seen, out, `${cs} prime`, `${cs} prime`);
-      uniqPush(seen, out, `${cs} aorus`, `${cs} aorus`);
-      // brand combos
-      for(const b of brands){
-        uniqPush(seen, out, `${b} ${cs}`, `${b} ${cs}`);
-        uniqPush(seen, out, `${b} ${cs} ${words[(hashCode(cs+b)+3)%words.length]}`, `${b} ${cs} ${words[(hashCode(cs+b)+3)%words.length]}`);
-      }
-    }
-
-    // ---- RAM suggestions (sizes, ddr, speeds) ----
-    const sizes = [4,8,16,32,64];
-    const ddr3 = [1333,1600,1866];
-    const ddr4 = [2666,3000,3200,3600];
-    const ddr5 = [4800,5200,5600,6000,6400];
-    for(const s of sizes){
-      uniqPush(seen, out, `${s}GB DDR4`, `${s}gb ddr4`);
-      uniqPush(seen, out, `${s}GB DDR5`, `${s}gb ddr5`);
-      uniqPush(seen, out, `${s}GB DDR3`, `${s}gb ddr3`);
-    }
-    for(const mhz of ddr3) uniqPush(seen, out, `DDR3 ${mhz}MHz`, `ddr3 ${mhz}`);
-    for(const mhz of ddr4) uniqPush(seen, out, `DDR4 ${mhz}MHz`, `ddr4 ${mhz}`);
-    for(const mhz of ddr5) uniqPush(seen, out, `DDR5 ${mhz}MHz`, `ddr5 ${mhz}`);
-    uniqPush(seen, out, "16GB DDR4 3200", "16gb ddr4 3200");
-    uniqPush(seen, out, "32GB DDR4 3600", "32gb ddr4 3600");
-    uniqPush(seen, out, "16GB DDR5 5600", "16gb ddr5 5600");
-    uniqPush(seen, out, "32GB DDR5 6000", "32gb ddr5 6000");
-
-    // ---- PSU suggestions ----
-    const watts = [400,450,500,550,600,650,700,750,800,850,1000];
-    for(const w of watts){
-      uniqPush(seen, out, `${w}W PSU`, `${w}w psu`);
-      uniqPush(seen, out, `${w}W Bronze PSU`, `${w}w bronze psu`);
-      if(w>=650) uniqPush(seen, out, `${w}W Gold PSU`, `${w}w gold psu`);
-    }
-
-    // Small helpers
-    function hashCode(str){
-      let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; }
-      return Math.abs(h);
-    }
-
-    return out;
-  }
-
-  const SEARCH_INDEX = buildSearchIndex();
-
-  function scoreMatch(q, item){
-    // Higher is better
-    const c = item.canonical;
-    if(c===q) return 1000;
-    if(c.startsWith(q)) return 800 - (c.length - q.length);
-    // token starts
-    const qt = q.split(" ").filter(Boolean);
-    let tokenHits = 0;
-    for(const t of qt){
-      if(c.startsWith(t) || c.includes(" "+t)) tokenHits += 30;
-      else if(c.includes(t)) tokenHits += 15;
-    }
-    // includes
-    let inc = c.includes(q) ? 200 : 0;
-    // compact includes
-    const cq = c.replace(/\s+/g,"");
-    const qq = q.replace(/\s+/g,"");
-    if(qq.length>=3 && cq.includes(qq)) inc += 120;
-    return inc + tokenHits;
-  }
-
-  function getSuggestions(raw, limit=10){
-    const q = (raw||"").toLowerCase().trim();
-    if(q.length<2) return [];
-    const ranked = [];
-    for(const it of SEARCH_INDEX){
-      const s = scoreMatch(q, it);
-      if(s>0) ranked.push([s,it]);
-    }
-    ranked.sort((a,b)=>b[0]-a[0]);
-    const out = [];
-    const seen = new Set();
-    for(const [,it] of ranked){
-      if(seen.has(it.canonical)) continue;
-      seen.add(it.canonical);
-      out.push(it);
-      if(out.length>=limit) break;
-    }
-    return out;
-  }
-
-  function ensureBox(input){
-    const id = input.id ? `${input.id}Typeahead` : "typeaheadBox";
-    let box = document.getElementById(id);
-    if(!box){
-      box = document.createElement("div");
-      box.id = id;
-      box.className = "typeaheadBox hidden";
-      input.parentElement?.appendChild(box);
-      if(!input.parentElement) input.insertAdjacentElement("afterend", box);
-    }
-    return box;
-  }
-
-  function initTypeahead(input, onPick){
-    if(!input) return;
-    const box = ensureBox(input);
-    let active = -1;
-    let last = "";
-
-    function hide(){
-      box.classList.add("hidden");
-      box.innerHTML = "";
-      active = -1;
-    }
-
-    function render(list){
-      if(!list.length){ hide(); return; }
-      box.classList.remove("hidden");
-      box.innerHTML = list.map((it, idx)=>`
-        <div class="typeaheadItem ${idx===active?"active":""}" data-c="${it.canonical}">
-          <span>${it.label}</span>
-          <small>${it.canonical}</small>
-        </div>
-      `).join("");
-    }
-
-    input.addEventListener("input", ()=>{
-      const q = input.value || "";
-      last = q;
-      const list = getSuggestions(q, 12);
-      active = -1;
-      render(list);
-    });
-
-    input.addEventListener("keydown", (e)=>{
-      if(box.classList.contains("hidden")) return;
-      const items = Array.from(box.querySelectorAll(".typeaheadItem"));
-      if(!items.length) return;
-
-      if(e.key==="ArrowDown"){ e.preventDefault(); active = (active+1)%items.length; render(items.map(x=>({label:x.querySelector("span").textContent, canonical:x.dataset.c}))); }
-      if(e.key==="ArrowUp"){ e.preventDefault(); active = (active-1+items.length)%items.length; render(items.map(x=>({label:x.querySelector("span").textContent, canonical:x.dataset.c}))); }
-      if(e.key==="Escape"){ hide(); }
-      if(e.key==="Enter"){
-        if(active>=0 && items[active]){
-          e.preventDefault();
-          const c = items[active].dataset.c;
-          const label = items[active].querySelector("span").textContent;
-          onPick?.({canonical:c,label});
-          hide();
-        }
-      }
-    });
-
-    box.addEventListener("mousedown", (e)=>{
-      const it = e.target.closest(".typeaheadItem");
-      if(!it) return;
-      const c = it.dataset.c;
-      const label = it.querySelector("span").textContent;
-      onPick?.({canonical:c,label});
-      hide();
-    });
-
-    document.addEventListener("click", (e)=>{
-      if(e.target===input || box.contains(e.target)) return;
-      hide();
-    });
-  }
-
-  // Expose init
-  window.initTypeahead = initTypeahead;
-})();
-
 
 window.addEventListener("DOMContentLoaded", () => {
   console.log("Uygulama başlatılıyor...");
