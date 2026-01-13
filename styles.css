@@ -1784,3 +1784,40 @@ h4 { font-size: 1.125rem; }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+
+/* ===== PC BUILDER UI ===== */
+
+.pcBuildCard{
+  background: var(--card-bg, #111827);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0 16px 0;
+}
+.pcBuildHeader{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;margin-bottom:10px}
+.pcBuildTitle{font-weight:800;font-size:16px}
+.pcBuildSubtitle{opacity:.8;font-size:12px}
+.pcBuildControls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.pcBuildControls label{font-size:12px;opacity:.8}
+.pcBuildControls select{
+  background:#0b1220;color:#fff;border:1px solid rgba(255,255,255,.12);
+  padding:8px 10px;border-radius:10px;outline:none;
+}
+.pcCopyBtn{
+  background:#2563eb;color:#fff;border:0;padding:9px 12px;border-radius:10px;font-weight:700;
+  cursor:pointer;
+}
+.pcCopyBtn:active{transform:scale(.98)}
+.pcGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcGrid > div{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;
+  padding:10px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.pcGrid span{font-size:12px;opacity:.8}
+.pcGrid b{font-size:13px}
+.pcWarn{margin-top:10px;font-size:12px;opacity:.95}
+.pcWarn div{margin:4px 0}
