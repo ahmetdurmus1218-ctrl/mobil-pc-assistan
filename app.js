@@ -1,4 +1,4 @@
-// app.js - BASİTLEŞTİRİLMİŞ VERSİYON (Kategorisiz)
+// app.js - SİTE URL YAPILARI GÜNCELLENDİ
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -6,29 +6,111 @@ const $ = (id) => document.getElementById(id);
 // Sepet ve önbellek
 let cartItems = JSON.parse(localStorage.getItem('fiyattakip_cart') || '[]');
 let currentUser = null;
-let currentSearchType = 'all'; // 'all', 'new', 'secondhand'
-let currentPage = 1;
-let itemsPerPage = 4; // Her sayfada 4 site göster
+let currentSearchType = 'all';
 
-// ========== SADE SİTE LİSTESİ ==========
+// ========== SİTE LİSTESİ ve URL YAPILARI ==========
 const SITES = {
   new: [
-    { name: "Trendyol", icon: "🛍️", type: "new", domain: "trendyol.com" },
-    { name: "Hepsiburada", icon: "📦", type: "new", domain: "hepsiburada.com" },
-    { name: "Amazon TR", icon: "📦", type: "new", domain: "amazon.com.tr" },
-    { name: "n11", icon: "🏪", type: "new", domain: "n11.com" },
-    { name: "ÇiçekSepeti", icon: "🌸", type: "new", domain: "ciceksepeti.com" },
-    { name: "Teknosa", icon: "💻", type: "new", domain: "teknosa.com" },
-    { name: "Vatan Bilgisayar", icon: "💾", type: "new", domain: "vatanbilgisayar.com" },
-    { name: "MediaMarkt", icon: "📺", type: "new", domain: "mediamarkt.com.tr" },
-    { name: "İdefix", icon: "📚", type: "new", domain: "idefix.com" },
-    { name: "PTT AVM", icon: "📮", type: "new", domain: "pttavm.com" }
+    { 
+      name: "Trendyol", 
+      icon: "🛍️", 
+      type: "new", 
+      domain: "trendyol.com",
+      searchUrl: (query) => `https://www.trendyol.com/sr?q=${encodeURIComponent(query)}&sst=PRICE_BY_ASC`
+    },
+    { 
+      name: "Hepsiburada", 
+      icon: "📦", 
+      type: "new", 
+      domain: "hepsiburada.com",
+      searchUrl: (query) => `https://www.hepsiburada.com/ara?q=${encodeURIComponent(query)}&siralama=yorumsayisi-azalan`
+    },
+    { 
+      name: "Amazon TR", 
+      icon: "📦", 
+      type: "new", 
+      domain: "amazon.com.tr",
+      searchUrl: (query) => `https://www.amazon.com.tr/s?k=${encodeURIComponent(query)}&s=price-asc-rank`
+    },
+    { 
+      name: "n11", 
+      icon: "🏪", 
+      type: "new", 
+      domain: "n11.com",
+      searchUrl: (query) => `https://www.n11.com/arama?q=${encodeURIComponent(query)}&srt=PRICE_LOW`
+    },
+    { 
+      name: "ÇiçekSepeti", 
+      icon: "🌸", 
+      type: "new", 
+      domain: "ciceksepeti.com",
+      searchUrl: (query) => `https://www.ciceksepeti.com/arama?query=${encodeURIComponent(query)}&srt=PRICE_LOW`
+    },
+    { 
+      name: "Teknosa", 
+      icon: "💻", 
+      type: "new", 
+      domain: "teknosa.com",
+      searchUrl: (query) => `https://www.teknosa.com/arama/?s=${encodeURIComponent(query)}&srt=PRICE_LOW`
+    },
+    { 
+      name: "Vatan Bilgisayar", 
+      icon: "💾", 
+      type: "new", 
+      domain: "vatanbilgisayar.com",
+      searchUrl: (query) => `https://www.vatanbilgisayar.com/arama/?w=${encodeURIComponent(query)}&srt=PRICE_LOW`
+    },
+    { 
+      name: "MediaMarkt", 
+      icon: "📺", 
+      type: "new", 
+      domain: "mediamarkt.com.tr",
+      searchUrl: (query) => `https://www.mediamarkt.com.tr/tr/category/_?q=${encodeURIComponent(query)}&sort=price_low`
+    },
+    { 
+      name: "İdefix", 
+      icon: "📚", 
+      type: "new", 
+      domain: "idefix.com",
+      searchUrl: (query) => `https://www.idefix.com/search?q=${encodeURIComponent(query)}&srt=PRICE_LOW`
+    },
+    { 
+      name: "PTT AVM", 
+      icon: "📮", 
+      type: "new", 
+      domain: "pttavm.com",
+      searchUrl: (query) => `https://www.pttavm.com/arama?q=${encodeURIComponent(query)}&srt=price_asc`
+    }
   ],
   secondhand: [
-    { name: "Sahibinden", icon: "🏠", type: "secondhand", domain: "sahibinden.com" },
-    { name: "Dolap", icon: "👗", type: "secondhand", domain: "dolap.com" },
-    { name: "Letgo", icon: "🔄", type: "secondhand", domain: "letgo.com" },
-    { name: "Facebook Marketplace", icon: "📱", type: "secondhand", domain: "facebook.com/marketplace" }
+    { 
+      name: "Sahibinden", 
+      icon: "🏠", 
+      type: "secondhand", 
+      domain: "sahibinden.com",
+      searchUrl: (query) => `https://www.sahibinden.com/arama?query_text=${encodeURIComponent(query)}&sorting=price_asc`
+    },
+    { 
+      name: "Dolap", 
+      icon: "👗", 
+      type: "secondhand", 
+      domain: "dolap.com",
+      searchUrl: (query) => `https://dolap.com/ara?q=${encodeURIComponent(query)}&sira=artan-fiyat`
+    },
+    { 
+      name: "Letgo", 
+      icon: "🔄", 
+      type: "secondhand", 
+      domain: "letgo.com",
+      searchUrl: (query) => `https://www.letgo.com/arama?query_text=${encodeURIComponent(query)}&isSearchCall=true&sorting=desc-price`
+    },
+    { 
+      name: "Facebook Marketplace", 
+      icon: "📱", 
+      type: "secondhand", 
+      domain: "facebook.com/marketplace",
+      searchUrl: (query) => `https://www.facebook.com/marketplace/search/?query=${encodeURIComponent(query)}&sortBy=price_ascend`
+    }
   ]
 };
 
@@ -127,7 +209,7 @@ function showSearchResults(query) {
   let sitesToShow = [];
   
   if (currentSearchType === 'all') {
-    // Tüm siteleri birleştir
+    // Tüm siteleri birleştir (önce yeni, sonra ikinci el)
     sitesToShow = [...SITES.new, ...SITES.secondhand];
   } else if (currentSearchType === 'new') {
     // Sadece yeni ürün siteleri
@@ -141,10 +223,10 @@ function showSearchResults(query) {
   let html = '';
   
   sitesToShow.forEach((site, index) => {
-    const url = `https://${site.domain}/ara?q=${encodeURIComponent(query)}`;
+    const url = site.searchUrl(query);
     
     html += `
-      <div class="siteCard">
+      <div class="siteCard" style="animation-delay: ${index * 50}ms">
         <div class="siteHeader">
           <div class="siteIcon">${site.icon}</div>
           <div class="siteInfo">
@@ -176,6 +258,7 @@ function showSearchResults(query) {
         <div class="siteFooter">
           <span class="footerBadge">⬆️ En Düşük Fiyat</span>
           <span class="footerBadge">🎯 İlgili Sonuçlar</span>
+          <span class="footerBadge">${site.domain}</span>
         </div>
       </div>
     `;
@@ -191,9 +274,12 @@ function updateSearchStats(count, query) {
   const searchInfo = $("searchInfo");
   if (!searchInfo) return;
   
+  const typeText = currentSearchType === 'all' ? 'Tüm Siteler' : 
+                   currentSearchType === 'new' ? 'Yeni Ürün Siteleri' : 'İkinci El Siteleri';
+  
   searchInfo.innerHTML = `
     <div class="searchQuery">"${query}"</div>
-    <div class="searchStats">${count} sitede araştırılıyor</div>
+    <div class="searchStats">${count} sitede araştırılıyor (${typeText})</div>
   `;
 }
 
@@ -284,10 +370,7 @@ function renderFavoritesPage() {
     html += `
       <div class="siteCard">
         <div class="siteHeader">
-          <div class="siteIcon">${fav.siteName.includes('Sahibinden') ? '🏠' : 
-                                 fav.siteName.includes('Facebook') ? '📱' :
-                                 fav.siteName.includes('Dolap') ? '👗' :
-                                 fav.siteName.includes('Letgo') ? '🔄' : '🛍️'}</div>
+          <div class="siteIcon">${getSiteIcon(fav.siteName)}</div>
           <div class="siteInfo">
             <div class="siteName">${fav.siteName}</div>
             <div class="siteQuery">${fav.query}</div>
@@ -322,6 +405,27 @@ function renderFavoritesPage() {
   });
   
   favList.innerHTML = html;
+}
+
+function getSiteIcon(siteName) {
+  const iconMap = {
+    'Sahibinden': '🏠',
+    'Facebook Marketplace': '📱',
+    'Dolap': '👗',
+    'Letgo': '🔄',
+    'Trendyol': '🛍️',
+    'Hepsiburada': '📦',
+    'Amazon TR': '📦',
+    'n11': '🏪',
+    'ÇiçekSepeti': '🌸',
+    'Teknosa': '💻',
+    'Vatan Bilgisayar': '💾',
+    'MediaMarkt': '📺',
+    'İdefix': '📚',
+    'PTT AVM': '📮'
+  };
+  
+  return iconMap[siteName] || '🛒';
 }
 
 // ========== SEPET SİSTEMİ ==========
@@ -581,6 +685,11 @@ function setSearchType(type) {
   const activeBtn = document.querySelector(`.typeBtn[data-type="${type}"]`);
   if (activeBtn) {
     activeBtn.classList.add("active");
+  }
+  
+  // Eğer arama sayfasındaysak, sonuçları yenile
+  if ($("page-search")?.classList.contains("active") && $("qNormal").value.trim()) {
+    performSearch();
   }
   
   toast(`Arama tipi: ${type === 'all' ? 'Tüm Siteler' : type === 'new' ? 'Yeni Ürünler' : 'İkinci El'}`, "info");
