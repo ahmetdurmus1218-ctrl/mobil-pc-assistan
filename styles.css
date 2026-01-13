@@ -1786,33 +1786,66 @@ h4 { font-size: 1.125rem; }
 }
 
 
+/* ===== PC BUILDER UI ===== */
 
-/* ===== PC Toplama Motoru UI ===== */
-.pcBuildCard{border:1px solid rgba(148,163,184,.25); padding:14px; margin:12px 0; background:rgba(30,41,59,.85)}
-.pcBuildTop{display:flex; flex-direction:column; gap:6px; margin-bottom:10px}
-.pcBuildTitle{font-size:16px; font-weight:800}
-.pcBuildSub{font-size:12px; color:var(--text-secondary)}
-.pcBuildSelectors{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0}
-.pcSeg{flex:1; min-width:220px}
-.pcSegLabel{font-size:12px; color:var(--text-muted); margin-bottom:6px}
-.pcSegBtns{display:flex; gap:8px; flex-wrap:wrap}
-.pcBtn{padding:8px 10px; border-radius:10px; border:1px solid rgba(148,163,184,.25); background:rgba(15,23,42,.6); color:var(--text-primary); cursor:pointer; font-weight:700; font-size:12px}
-.pcBtn.active{background:rgba(96,165,250,.25); border-color:rgba(96,165,250,.6)}
-.pcBuildDetected{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0}
-.tag{display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; background:rgba(15,23,42,.55); border:1px solid rgba(148,163,184,.18); font-size:12px}
-.pcWarn{border-radius:12px; padding:10px 12px; margin:10px 0; font-size:13px; line-height:1.35}
-.pcWarn.hard{background:rgba(127,29,29,.55); border:1px solid rgba(239,68,68,.35)}
-.pcWarn.soft{background:rgba(120,53,15,.55); border:1px solid rgba(245,158,11,.35)}
-.pcOk{border-radius:12px; padding:10px 12px; margin:10px 0; background:rgba(20,83,45,.55); border:1px solid rgba(34,197,94,.25); font-size:13px}
-.pcBuildGrid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin-top:10px}
-@media (min-width:720px){ .pcBuildGrid{grid-template-columns:repeat(3, minmax(0,1fr));} }
-.pcLbl{font-size:11px; color:var(--text-muted); margin-bottom:4px}
-.pcVal{font-size:13px; font-weight:800}
-.pcBuildActions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
-.pcAction{padding:10px 12px; border-radius:12px; font-weight:800; cursor:pointer}
-.btnSecondary{background:rgba(15,23,42,.6); border:1px solid rgba(148,163,184,.25); color:var(--text-primary)}
-.pcProfilesAll{margin-top:12px}
-.pcProfileBox{border:1px solid rgba(148,163,184,.18); border-radius:14px; padding:12px; background:rgba(15,23,42,.45); margin-top:10px}
-.pcProfileHead{font-weight:900; margin-bottom:8px}
-.pcProfileLine{font-size:13px; margin:3px 0}
-.pcWhy{margin-top:8px; font-size:12px; color:var(--text-secondary)}
+.pcBuildCard{
+  background: var(--card-bg, #111827);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0 16px 0;
+}
+.pcBuildHeader{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;margin-bottom:10px}
+.pcBuildTitle{font-weight:800;font-size:16px}
+.pcBuildSubtitle{opacity:.8;font-size:12px}
+.pcBuildControls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.pcBuildControls label{font-size:12px;opacity:.8}
+.pcBuildControls select{
+  background:#0b1220;color:#fff;border:1px solid rgba(255,255,255,.12);
+  padding:8px 10px;border-radius:10px;outline:none;
+}
+.pcCopyBtn{
+  background:#2563eb;color:#fff;border:0;padding:9px 12px;border-radius:10px;font-weight:700;
+  cursor:pointer;
+}
+.pcCopyBtn:active{transform:scale(.98)}
+.pcGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcGrid > div{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;
+  padding:10px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.pcGrid span{font-size:12px;opacity:.8}
+.pcGrid b{font-size:13px}
+.pcWarn{margin-top:10px;font-size:12px;opacity:.95}
+.pcWarn div{margin:4px 0}
+
+
+/* ===== TYPEAHEAD (AUTOCOMPLETE) ===== */
+
+.typeaheadBox{
+  position: relative;
+  margin-top: 8px;
+  background: #0b1220;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.typeaheadBox.hidden{ display:none; }
+.typeaheadItem{
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.typeaheadItem span{ font-weight: 700; }
+.typeaheadItem small{ opacity: .75; font-size: 12px; }
+.typeaheadItem:hover, .typeaheadItem.active{
+  background: rgba(37, 99, 235, 0.18);
+}
