@@ -1786,66 +1786,124 @@ h4 { font-size: 1.125rem; }
 }
 
 
-/* ===== PC BUILDER UI ===== */
-
-.pcBuildCard{
-  background: var(--card-bg, #111827);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 12px;
-  margin: 10px 0 16px 0;
+/* ========== PC TOPLAMA MOTORU UI ========== */
+.buildCard{
+  border: 1px solid rgba(96,165,250,.25);
 }
-.pcBuildHeader{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;margin-bottom:10px}
-.pcBuildTitle{font-weight:800;font-size:16px}
-.pcBuildSubtitle{opacity:.8;font-size:12px}
-.pcBuildControls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-.pcBuildControls label{font-size:12px;opacity:.8}
-.pcBuildControls select{
-  background:#0b1220;color:#fff;border:1px solid rgba(255,255,255,.12);
-  padding:8px 10px;border-radius:10px;outline:none;
+.buildHeader{
+  padding: 14px 14px 6px 14px;
 }
-.pcCopyBtn{
-  background:#2563eb;color:#fff;border:0;padding:9px 12px;border-radius:10px;font-weight:700;
+.buildTitle{
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.2;
+}
+.buildSub{
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.pcChipsRow{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  padding: 8px 14px 12px 14px;
+}
+.pcChipGroup{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.pcChip{
+  border: 1px solid rgba(148,163,184,.35);
+  background: rgba(148,163,184,.08);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
   cursor:pointer;
 }
-.pcCopyBtn:active{transform:scale(.98)}
-.pcGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pcGrid > div{
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.06);
-  border-radius:12px;
-  padding:10px;
-  display:flex;flex-direction:column;gap:4px;
+.pcChip.active{
+  border-color: rgba(96,165,250,.7);
+  background: rgba(96,165,250,.18);
 }
-.pcGrid span{font-size:12px;opacity:.8}
-.pcGrid b{font-size:13px}
-.pcWarn{margin-top:10px;font-size:12px;opacity:.95}
-.pcWarn div{margin:4px 0}
-
-
-/* ===== TYPEAHEAD (AUTOCOMPLETE) ===== */
-
-.typeaheadBox{
-  position: relative;
-  margin-top: 8px;
-  background: #0b1220;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
-  overflow: hidden;
-  max-height: 320px;
-  overflow-y: auto;
+.pcMeta{
+  padding: 0 14px 10px 14px;
+  display:grid;
+  gap:4px;
 }
-.typeaheadBox.hidden{ display:none; }
-.typeaheadItem{
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  cursor: pointer;
+.pcMetaLine{
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.pcBuildGrid{
+  padding: 10px 14px 12px 14px;
+  display:grid;
+  gap:10px;
+}
+.pcBuildItem{
   display:flex;
-  flex-direction:column;
-  gap:2px;
+  justify-content:space-between;
+  gap:10px;
+  background: rgba(2,6,23,.35);
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 12px;
+  padding: 10px;
 }
-.typeaheadItem span{ font-weight: 700; }
-.typeaheadItem small{ opacity: .75; font-size: 12px; }
-.typeaheadItem:hover, .typeaheadItem.active{
-  background: rgba(37, 99, 235, 0.18);
+.pcBuildItem .k{
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.pcBuildItem .v{
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.pcWarn{
+  padding: 0 14px 12px 14px;
+  display:grid;
+  gap:6px;
+}
+.pcWarnItem{
+  background: rgba(239,68,68,.10);
+  border: 1px solid rgba(239,68,68,.25);
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.pcCopyWrap{
+  padding: 10px 14px 14px 14px;
+}
+.pcCopyTitle{
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.pcCopyList{
+  display:grid;
+  gap:8px;
+}
+.pcCopyRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background: rgba(148,163,184,.06);
+  border: 1px solid rgba(148,163,184,.14);
+  border-radius: 12px;
+  padding: 10px;
+}
+.pcCopyText{
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.2;
+}
+.pcCopyBtn{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,.25);
+  background: rgba(148,163,184,.10);
+  color: var(--text);
+  cursor:pointer;
 }
