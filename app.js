@@ -1583,7 +1583,7 @@ function detectPart(q){
       }
     });
 
-    box.addEventListener("mousedown", (e)=>{
+    box.addEventListener("click", (e)=>{
       const it = e.target.closest(".typeaheadItem");
       if(!it) return;
       const c = it.dataset.c;
@@ -1592,10 +1592,16 @@ function detectPart(q){
       hide();
     });
 
-    document.addEventListener("click", (e)=>{
-      if(e.target===input || box.contains(e.target)) return;
-      hide();
-    });
+    
+document.addEventListener("click", (e) => {
+  const input = document.getElementById("qNormal");
+  const box = document.querySelector(".typeaheadBox");
+  if (!box || !input) return;
+  if (e.target === input || e.target.closest(".typeaheadBox")) return;
+  box.classList.add("hidden");
+  box.innerHTML = "";
+});
+});
   }
 
   // Expose init
