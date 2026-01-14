@@ -1821,3 +1821,31 @@ h4 { font-size: 1.125rem; }
 .pcGrid b{font-size:13px}
 .pcWarn{margin-top:10px;font-size:12px;opacity:.95}
 .pcWarn div{margin:4px 0}
+
+
+/* ===== TYPEAHEAD (AUTOCOMPLETE) ===== */
+
+.typeaheadBox{
+  position: relative;
+  margin-top: 8px;
+  background: #0b1220;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.typeaheadBox.hidden{ display:none; }
+.typeaheadItem{
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.typeaheadItem span{ font-weight: 700; }
+.typeaheadItem small{ opacity: .75; font-size: 12px; }
+.typeaheadItem:hover, .typeaheadItem.active{
+  background: rgba(37, 99, 235, 0.18);
+}
