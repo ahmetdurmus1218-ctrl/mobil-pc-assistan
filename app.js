@@ -320,20 +320,20 @@ function recommendBuild(input){
       base.warnings.push("⚠️ Giriş seviye anakart: çok güçlü CPU'lar (Ryzen 9 / i9) verimsiz olabilir (VRM/ısı).");
     }
 
-    // Profil önerileri
+    // Profil önerileri - 8GB destekli
     base.profiles.budget = mkProfile(
-      p.socket.startsWith("AM") ? "Ryzen 5 3600 / Ryzen 5 5600" : "i5-10400 / i3-12100F",
+      p.socket.startsWith("AM") ? "Ryzen 3 3300X / Ryzen 5 3600" : "i3-12100F / i5-10400",
       input.model,
-      p.ram.includes("DDR5") ? "16GB DDR5 6000 (2x8)" : p.ram.includes("DDR4") ? "16GB DDR4 3200 (2x8)" : "16GB DDR3 1600 (2x8)",
-      p.level==="entry" ? "RX 580 / GTX 1660S" : "RX 6600 / RTX 3060",
-      p.level==="entry" ? "550W 80+ Bronze" : "650W 80+ Bronze"
+      p.ram.includes("DDR5") ? "8GB DDR5 6000 (1x8)" : p.ram.includes("DDR4") ? "8GB DDR4 3200 (1x8)" : "8GB DDR3 1600 (2x4)",
+      p.level==="entry" ? "RX 580 / GTX 1650" : "RX 6600 / GTX 1660 Super",
+      p.level==="entry" ? "450W 80+ Bronze" : "550W 80+ Bronze"
     );
     base.profiles.balanced = mkProfile(
       p.socket.startsWith("AM") ? (p.socket==="AM5" ? "Ryzen 5 7600" : "Ryzen 5 5600") : (p.socket==="LGA1700" ? "i5-12400F / i5-13400F" : "i5-10400F"),
       input.model,
-      p.ram.includes("DDR5") ? "32GB DDR5 6000 (2x16)" : p.ram.includes("DDR4") ? "32GB DDR4 3200 (2x16)" : "16GB DDR3 1600 (2x8)",
-      p.socket==="AM5" ? "RX 7700 XT / RTX 4070" : "RX 6700 XT / RTX 3060 Ti",
-      "650W 80+ Gold"
+      p.ram.includes("DDR5") ? "16GB DDR5 6000 (2x8)" : p.ram.includes("DDR4") ? "16GB DDR4 3200 (2x8)" : "16GB DDR3 1600 (2x8)",
+      p.socket==="AM5" ? "RX 7600 / RTX 4060" : "RX 6600 XT / RTX 3060",
+      "650W 80+ Bronze"
     );
     base.profiles.performance = mkProfile(
       p.socket.startsWith("AM") ? (p.socket==="AM5" ? "Ryzen 7 7800X3D" : "Ryzen 7 5800X3D") : (p.socket==="LGA1700" ? "i7-14700K" : "i7-9700K"),
@@ -394,7 +394,7 @@ function recommendBuild(input){
       base.infoLines.push(`• RAM: ${platformHint.ram}`);
     }
 
-    // DDR3 CPU'lar için özel öneriler
+    // DDR3 CPU'lar için özel öneriler - 8GB destekli
     if (cls.includes("ddr3")) {
       base.warnings.push("⚠️ DDR3 platform eski: modern ekran kartlarında ciddi darboğaz olabilir.");
       base.warnings.push("✅ DDR3 için öneri: GTX 1060/1660 veya RX 580 seviyesi GPU'lar");
@@ -424,26 +424,28 @@ function recommendBuild(input){
       return base;
     }
 
-    // Modern CPU'lar için öneriler
+    // Modern CPU'lar için öneriler - 8GB destekli
+    const isEntryLevel = cls === "entry" || input.model.toLowerCase().includes("i3") || input.model.toLowerCase().includes("r3");
+    
     base.profiles.budget = mkProfile(
       input.model,
-      platformHint ? platformHint.mobo : "Uygun chipset",
-      platformHint?.ram?.includes("DDR5") ? "16GB DDR5 6000" : platformHint?.ram?.includes("DDR4") ? "16GB DDR4 3200" : "16GB DDR3 1600",
-      cls==="entry" ? "RX 580 / GTX 1660S" : "RX 6600 / RTX 3060",
-      cls==="entry" ? "550W Bronze" : "650W Bronze"
+      isEntryLevel ? "B450 / H610" : "B550 / B660",
+      isEntryLevel ? "8GB DDR4 3200 (1x8)" : "16GB DDR4 3200 (2x8)",
+      isEntryLevel ? "RX 580 / GTX 1650" : "RX 6600 / RTX 3060",
+      isEntryLevel ? "550W Bronze" : "650W Bronze"
     );
     base.profiles.balanced = mkProfile(
       input.model,
-      platformHint ? platformHint.mobo : "Uygun chipset",
-      platformHint?.ram?.includes("DDR5") ? "32GB DDR5 6000" : platformHint?.ram?.includes("DDR4") ? "32GB DDR4 3200" : "16GB DDR3 1600",
-      cls==="high" ? "RTX 4070 Super / RX 7800 XT" : "RX 6700 XT / RTX 3060 Ti",
+      isEntryLevel ? "B550 / B660" : "B550 / B760",
+      "16GB DDR4 3200 (2x8)",
+      isEntryLevel ? "RX 6600 / RTX 3060" : "RX 6700 XT / RTX 3060 Ti",
       "650W Gold"
     );
     base.profiles.performance = mkProfile(
       input.model,
-      platformHint ? platformHint.mobo : "Uygun chipset",
-      platformHint?.ram?.includes("DDR5") ? "32GB DDR5 6000 CL30" : platformHint?.ram?.includes("DDR4") ? "32GB DDR4 3600" : "16GB DDR3 1866",
-      cls==="high" ? "RTX 4080 Super / RX 7900 XT" : "RTX 4070 / RX 7800 XT",
+      "B550 / B760 / B650",
+      "32GB DDR4 3200 / DDR5 6000",
+      isEntryLevel ? "RX 6700 XT / RTX 3070" : "RX 7800 XT / RTX 4070",
       "750W Gold"
     );
 
@@ -469,21 +471,21 @@ function recommendBuild(input){
       base.profiles.budget = mkProfile(
         "i5-2500K / FX-6300",
         "Z77 / 970 Chipset",
-        "8GB DDR3 1600",
+        "8GB DDR3 1600 (2x4)",
         input.model,
         "450W Bronze"
       );
       base.profiles.balanced = mkProfile(
         "i7-3770 / FX-8350",
         "Z77 / 990FX Chipset",
-        "16GB DDR3 1600",
+        "16GB DDR3 1600 (2x8)",
         input.model,
         "500W Bronze"
       );
       base.profiles.performance = mkProfile(
         "i7-4790K / FX-9590",
         "Z97 / 990FX Chipset",
-        "16GB DDR3 1866",
+        "16GB DDR3 1866 (2x8)",
         input.model,
         "550W Bronze"
       );
@@ -495,23 +497,41 @@ function recommendBuild(input){
     base.infoLines.push(`• Sınıf: ${cls === "entry" ? "Giriş" : cls === "mid" ? "Orta" : cls === "high" ? "Üst" : "Extreme"}`);
 
     // CPU önerileri (sınıfa göre)
-    const cpuBudget = cls==="entry" ? "i3-12100F / Ryzen 5 3600" : cls==="mid" ? "Ryzen 5 5600 / i5-12400F" : "Ryzen 7 7800X3D / i7-14700K";
-    const cpuBalanced = cls==="entry" ? "Ryzen 5 5600 / i5-12400F" : cls==="mid" ? "Ryzen 7 5700X / i5-13400F" : "Ryzen 7 7800X3D / i7-14700K";
+    const cpuBudget = cls==="entry" ? "Ryzen 3 3300X / i3-12100F" : cls==="mid" ? "Ryzen 5 5600 / i5-12400F" : "Ryzen 7 7800X3D / i7-14700K";
+    const cpuBalanced = cls==="entry" ? "Ryzen 5 5600 / i5-12400F" : cls==="mid" ? "Ryzen 7 5700X / i5-13400F" : "Ryzen 7 7800X3D / i5-14600K";
     const cpuPerf = cls==="entry" ? "Ryzen 5 7600 / i5-13600K" : cls==="mid" ? "Ryzen 7 7800X3D / i5-14600K" : "Ryzen 9 7950X / i9-14900K";
+
+    // RAM önerileri - 8GB destekli
+    const ramBudget = (cls==="entry") ? "8GB DDR4 3200 (1x8)" : 
+                     (cls==="mid") ? "16GB DDR4 3200 (2x8)" : 
+                     "32GB DDR5 6000 (2x16)";
+    const ramBalanced = (cls==="entry"||cls==="mid") ? "16GB DDR4 3200 (2x8)" : "32GB DDR5 6000 (2x16)";
+    const ramPerf = "32GB DDR5 6000 CL30 (2x16)";
 
     // Platform önerisi (DDR4/DDR5)
     const moboBudget = (cls==="entry"||cls==="mid") ? "B450/B550 (AM4) veya H610/B660 (LGA1700)" : "B650 (AM5) veya Z790 (LGA1700)";
-    const ramBudget = (cls==="entry"||cls==="mid") ? "16GB DDR4 3200 (2x8)" : "32GB DDR5 6000 (2x16)";
 
     // PSU önerisi
-    let psu = "650W 80+ Bronze";
-    if (cls==="entry") psu = "550W 80+ Bronze";
-    if (cls==="high") psu = "750W 80+ Gold";
-    if (cls==="extreme") psu = "850W+ 80+ Gold";
+    let psuBudget = "550W 80+ Bronze";
+    let psuBalanced = "650W 80+ Gold";
+    let psuPerf = "750W 80+ Gold";
+    
+    if (cls==="entry") {
+      psuBudget = "450W 80+ Bronze";
+      psuBalanced = "550W 80+ Bronze";
+    } else if (cls==="high") {
+      psuBudget = "650W 80+ Bronze";
+      psuBalanced = "750W 80+ Gold";
+      psuPerf = "850W 80+ Gold";
+    } else if (cls==="extreme") {
+      psuBudget = "750W 80+ Gold";
+      psuBalanced = "850W 80+ Gold";
+      psuPerf = "1000W 80+ Platinum";
+    }
 
-    base.profiles.budget = mkProfile(cpuBudget, moboBudget, ramBudget, input.model, psu);
-    base.profiles.balanced = mkProfile(cpuBalanced, moboBudget, cls==="entry" ? "32GB DDR4 3200" : "32GB DDR5 6000", input.model, psu);
-    base.profiles.performance = mkProfile(cpuPerf, "B650E/X670E veya Z790 (kaliteli VRM)", "32GB DDR5 6000 CL30", input.model, psu);
+    base.profiles.budget = mkProfile(cpuBudget, moboBudget, ramBudget, input.model, psuBudget);
+    base.profiles.balanced = mkProfile(cpuBalanced, moboBudget, ramBalanced, input.model, psuBalanced);
+    base.profiles.performance = mkProfile(cpuPerf, "B650E/X670E veya Z790 (kaliteli VRM)", ramPerf, input.model, psuPerf);
 
     // Uyarılar
     if (cls==="high" || cls==="extreme"){
@@ -527,30 +547,34 @@ function recommendBuild(input){
     if (input.size) base.infoLines.push(`• Kapasite: ${input.size}GB`);
     if (input.mhz) base.infoLines.push(`• Hız: ${input.mhz} MHz (yaklaşık)`);
     const ddr = input.ddr || "DDR4";
-
+    
+    // RAM boyutuna göre farklı profiller
+    const ramSize = input.size || 16;
+    
     // DDR3 için özel öneriler EKLENDİ
     if (ddr === "DDR3") {
       base.warnings.push("⚠️ DDR3 platform eski: sıfır almak mantıksız, 2. el daha mantıklı.");
-      base.warnings.push("🎯 DDR3 için en iyi GPU'lar: GTX 1660 / RTX 2060 / RX 580 (darboğaz olabilir)");
+      base.warnings.push("🎯 DDR3 için en iyi GPU'lar: GTX 1660 / RTX 2060 / RX 580");
       
+      // 8GB DDR3 için bütçe profili
       base.profiles.budget = mkProfile(
         "Intel i5-2500K / AMD FX-8350",
         "Z77 / 970 Chipset",
-        "16GB DDR3 1600 (2x8)",
+        ramSize <= 8 ? "8GB DDR3 1600 (2x4)" : "16GB DDR3 1600 (2x8)",
         "GTX 1050 Ti / RX 560",
         "500W Bronze"
       );
       base.profiles.balanced = mkProfile(
         "Intel i7-3770K / AMD FX-9590",
         "Z77 / 990FX Chipset",
-        "16GB DDR3 1866 (2x8)",
+        ramSize <= 8 ? "8GB DDR3 1600 (2x4)" : "16GB DDR3 1600 (2x8)",
         "GTX 1660 Super / RX 580 8GB",
         "600W Bronze"
       );
       base.profiles.performance = mkProfile(
         "Intel i7-4790K / İşlemci Değişimi Önerilir",
         "Z97 / Anakart Yenile Önerilir",
-        "16GB DDR3 1866 (2x8)",
+        ramSize <= 8 ? "8GB DDR3 1866 (2x4)" : "16GB DDR3 1866 (2x8)",
         "RTX 2060 / GTX 1080 Ti",
         "650W Gold"
       );
@@ -558,32 +582,75 @@ function recommendBuild(input){
       return base;
     }
 
-    // Platform önerisi
+    // DDR4 için 8GB destekli
+    if (ddr === "DDR4") {
+      const ramConfig = ramSize <= 8 ? "8GB DDR4 3200 (1x8)" : 
+                       ramSize <= 16 ? "16GB DDR4 3200 (2x8)" : "32GB DDR4 3200 (2x16)";
+      
+      base.profiles.budget = mkProfile(
+        "Ryzen 3 3300X / i3-12100F",
+        "B450 / H610 Chipset",
+        ramConfig,
+        "RX 580 / GTX 1650",
+        "550W Bronze"
+      );
+      base.profiles.balanced = mkProfile(
+        "Ryzen 5 5600 / i5-12400F",
+        "B550 / B660 Chipset",
+        ramConfig,
+        "RX 6600 / RTX 3060",
+        "650W Bronze"
+      );
+      base.profiles.performance = mkProfile(
+        "Ryzen 7 5800X3D / i5-13600K",
+        "B550 / B760 Chipset",
+        ramSize <= 16 ? "16GB DDR4 3600 (2x8)" : "32GB DDR4 3600 (2x16)",
+        "RX 6700 XT / RTX 4070",
+        "750W Gold"
+      );
+    }
+
+    // DDR5 için
+    if (ddr === "DDR5") {
+      const ramConfig = ramSize <= 16 ? "16GB DDR5 6000 (2x8)" : "32GB DDR5 6000 (2x16)";
+      
+      base.profiles.budget = mkProfile(
+        "Ryzen 5 7600",
+        "B650 Chipset",
+        ramConfig,
+        "RX 7600",
+        "650W Bronze"
+      );
+      base.profiles.balanced = mkProfile(
+        "Ryzen 5 7600X / i5-13600K",
+        "B650 / B760 Chipset",
+        ramConfig,
+        "RX 7700 XT / RTX 4070",
+        "750W Gold"
+      );
+      base.profiles.performance = mkProfile(
+        "Ryzen 7 7800X3D / i7-14700K",
+        "B650E / Z790 Chipset",
+        ramSize <= 16 ? "16GB DDR5 6000 CL30 (2x8)" : "32GB DDR5 6000 CL30 (2x16)",
+        "RX 7900 XT / RTX 4080",
+        "850W Gold"
+      );
+    }
+
+    // Genel platform önerisi
     let plat = ddr==="DDR5" ? "AM5 (B650/X670) veya LGA1700 (B760/Z790 DDR5)" :
                ddr==="DDR4" ? "AM4 (B450/B550) veya LGA1700 (H610/B660 DDR4)" :
                ddr==="DDR3" ? "LGA1155/LGA1150 veya AM3+ (eski sistem)" : "Eski sistem";
 
-    base.profiles.budget = mkProfile(
-      ddr==="DDR5" ? "Ryzen 5 7600" : ddr==="DDR4" ? "Ryzen 5 5600 / i3-12100F" : "i7-2600 / i5-4570",
-      plat,
-      ddr==="DDR5" ? "16GB DDR5 6000" : ddr==="DDR4" ? "16GB DDR4 3200" : "16GB DDR3 1600",
-      ddr==="DDR5" ? "RX 7700 XT" : "RX 6600",
-      ddr==="DDR5" ? "650W Gold" : "550W Bronze"
-    );
-    base.profiles.balanced = mkProfile(
-      ddr==="DDR5" ? "Ryzen 7 7800X3D / i5-14600K" : ddr==="DDR4" ? "Ryzen 5 5600 / i5-12400F" : "i7-4790K",
-      plat,
-      ddr==="DDR5" ? "32GB DDR5 6000" : ddr==="DDR4" ? "32GB DDR4 3200" : "16GB DDR3 1600",
-      ddr==="DDR5" ? "RTX 4070 Super" : "RX 6700 XT",
-      "650W Gold"
-    );
-    base.profiles.performance = mkProfile(
-      ddr==="DDR5" ? "Ryzen 9 7950X / i9-14900K" : ddr==="DDR4" ? "Ryzen 7 5800X3D / i7-13700K" : "i7-4790K",
-      ddr==="DDR5" ? "X670E/Z790" : ddr==="DDR4" ? "B550/X570 veya Z790 DDR4" : "Z97",
-      ddr==="DDR5" ? "32GB DDR5 6000 CL30" : ddr==="DDR4" ? "32GB DDR4 3600" : "16GB DDR3 1866",
-      ddr==="DDR5" ? "RTX 4080 Super" : "RTX 4070",
-      "750W Gold"
-    );
+    if (!base.profiles.budget) {
+      base.profiles.budget = mkProfile(
+        ddr==="DDR5" ? "Ryzen 5 7600" : ddr==="DDR4" ? "Ryzen 5 5600 / i3-12100F" : "i7-2600 / i5-4570",
+        plat,
+        ramSize <= 8 ? "8GB" : ramSize <= 16 ? "16GB" : "32GB",
+        ddr==="DDR5" ? "RX 7600" : "RX 6600",
+        ddr==="DDR5" ? "650W Gold" : "550W Bronze"
+      );
+    }
 
     if (ddr==="DDR3"){
       base.warnings.push("⚠️ DDR3 platform eski: sıfır almak mantıksız, 2. el daha mantıklı.");
@@ -604,9 +671,28 @@ function recommendBuild(input){
     const maxCls = w < 550 ? "entry" : w < 650 ? "mid" : w < 750 ? "high" : "extreme";
     base.infoLines.push(`• Yaklaşık GPU Sınırı: ${maxCls === "entry" ? "Giriş" : maxCls === "mid" ? "Orta" : maxCls === "high" ? "Üst" : "Extreme"}`);
 
-    base.profiles.budget = mkProfile("Ryzen 5 5600 / i3-12100F","B450/B550 veya H610","16GB DDR4 3200", maxCls==="entry" ? "RX 580 / GTX 1660S" : "RX 6600", `${Math.max(450,w)}W 80+ Bronze`);
-    base.profiles.balanced = mkProfile("Ryzen 5 7600 / i5-12400F","B650/B760","32GB DDR5 6000", maxCls==="mid" ? "RX 6700 XT / RTX 3060 Ti" : "RTX 4070", `${Math.max(650,w)}W 80+ Gold`);
-    base.profiles.performance = mkProfile("Ryzen 7 7800X3D / i7-14700K","X670E/Z790","32GB DDR5 6000 CL30", maxCls==="high" ? "RTX 4080 Super / RX 7900 XT" : "RTX 4090 / RX 7900 XTX", `${Math.max(750,w)}W 80+ Gold`);
+    // 8GB sistemler için bütçe profili
+    base.profiles.budget = mkProfile(
+      "Ryzen 3 3300X / i3-12100F",
+      "B450 / H610",
+      "8GB DDR4 3200",
+      maxCls==="entry" ? "RX 580 / GTX 1650" : "RX 6600", 
+      `${Math.max(450,w)}W 80+ Bronze`
+    );
+    base.profiles.balanced = mkProfile(
+      "Ryzen 5 5600 / i5-12400F",
+      "B650/B760",
+      "16GB DDR4 3200",
+      maxCls==="mid" ? "RX 6700 XT / RTX 3060 Ti" : "RTX 4070", 
+      `${Math.max(650,w)}W 80+ Gold`
+    );
+    base.profiles.performance = mkProfile(
+      "Ryzen 7 7800X3D / i7-14700K",
+      "X670E/Z790",
+      "32GB DDR5 6000 CL30",
+      maxCls==="high" ? "RTX 4080 Super / RX 7900 XT" : "RTX 4090 / RX 7900 XTX", 
+      `${Math.max(750,w)}W 80+ Gold`
+    );
     return base;
   }
 
@@ -893,7 +979,8 @@ function showPage(key) {
 
 // ========== ARAMA SİSTEMİ ==========
 function performSearch() {
-  const query = ($("qNormal")?.value || "").trim();
+  const input = $("qNormal");
+  const query = input?.value.trim();
   
   if (!query) {
     toast("Lütfen bir ürün adı girin", "error");
@@ -902,17 +989,34 @@ function performSearch() {
   
   console.log("Arama yapılıyor:", query);
   
+  // Kullanıcı typeahead'den seçti mi kontrol et
+  let searchQuery = query;
+  if (window.isSelectedFromTypeahead && window.isSelectedFromTypeahead()) {
+    // Typeahead'den seçildiyse, canonical değeri kullan
+    searchQuery = window.getUserTypedQuery ? window.getUserTypedQuery() : query;
+    console.log("Typeahead seçimi kullanılıyor:", searchQuery);
+  } else {
+    // Kullanıcı kendi yazdı, tam olarak yazdığını kullan
+    searchQuery = query.toLowerCase().trim();
+    console.log("Kullanıcının yazdığı kullanılıyor:", searchQuery);
+  }
+  
   // Son aramalara ekle
-  handleRecentSearch(query);
+  handleRecentSearch(searchQuery);
   
   // Arama sayfasına geç
   showPage("search");
   
   // Arama bilgisini güncelle
-  updateSearchInfo(query);
+  updateSearchInfo(searchQuery);
   
   // Sonuçları göster
-  showSearchResults(query);
+  showSearchResults(searchQuery);
+  
+  // Typeahead seçim durumunu sıfırla
+  if (window.setSelectedFromTypeahead) {
+    window.setSelectedFromTypeahead(false);
+  }
 }
 
 function updateSearchInfo(query) {
