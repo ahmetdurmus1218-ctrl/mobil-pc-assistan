@@ -39,6 +39,27 @@ function setPartCondition(key){
 // --- Model veri tabanı (genişletilebilir) ---
 // Kullanıcının yazdığı her şeyi bulabilmek için: (1) seri listeleri (2) regex tanıma (3) chipset/socket kuralları.
 const MODEL_DB = {
+  // DDR3 DESTEĞİ EKLENDİ
+  ddr3CompatibleGpus: {
+    "NVIDIA GTX 10 Serisi": ["GTX 1050 Ti", "GTX 1060 3GB", "GTX 1060 6GB", "GTX 1070", "GTX 1070 Ti", "GTX 1080", "GTX 1080 Ti"],
+    "NVIDIA GTX 16 Serisi": ["GTX 1650", "GTX 1650 Super", "GTX 1660", "GTX 1660 Super", "GTX 1660 Ti"],
+    "NVIDIA RTX 20 Serisi": ["RTX 2060", "RTX 2060 Super", "RTX 2070", "RTX 2070 Super", "RTX 2080", "RTX 2080 Super", "RTX 2080 Ti"],
+    "AMD RX 500 Serisi": ["RX 550", "RX 560", "RX 570", "RX 580", "RX 590"],
+    "AMD RX 400 Serisi": ["RX 460", "RX 470", "RX 480"],
+    "AMD R9 Serisi": ["R9 380", "R9 380X", "R9 390", "R9 390X", "R9 Fury", "R9 Fury X"],
+    "AMD R7 Serisi": ["R7 370", "R7 260X", "R7 360"],
+    "AMD HD Serisi": ["HD 7870", "HD 7950", "HD 7970"]
+  },
+  
+  ddr3CompatibleCpus: {
+    "Intel 2. Nesil (Sandy Bridge)": ["i3-2100", "i5-2500K", "i7-2600K", "i5-2400", "i7-2700K"],
+    "Intel 3. Nesil (Ivy Bridge)": ["i3-3220", "i5-3470", "i7-3770K", "i5-3570K", "i7-3770"],
+    "Intel 4. Nesil (Haswell)": ["i3-4130", "i5-4570", "i7-4770K", "i5-4670K", "i7-4790K"],
+    "AMD FX Serisi": ["FX-4300", "FX-6300", "FX-8320", "FX-8350", "FX-9370", "FX-9590"],
+    "AMD Phenom II": ["Phenom II X4 955", "Phenom II X6 1090T", "Phenom II X4 965"],
+    "AMD Athlon II": ["Athlon II X4 640", "Athlon II X4 645"]
+  },
+
   intelCpuSeries: {
     "Arrow Lake (15th Gen)": ["i9-15900K","i7-15700K","i5-15500","i3-15300"],
     "Raptor Lake (14th Gen)": ["i9-14900K","i7-14700K","i5-14600K","i3-14100"],
@@ -121,7 +142,12 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 // Seviye sınıflandırması (basit ama işe yarar)
 function perfClassFromGpu(model){
   const q = norm(model);
-  // Çok kaba sınıf: entry / mid / high / extreme
+  // DDR3 GPU'lar için özel sınıflandırma
+  if (q.includes("gtx 1050") || q.includes("gtx 1650") || q.includes("rx 560") || q.includes("hd 7970") || q.includes("r9 380")) return "ddr3_entry";
+  if (q.includes("gtx 1060") || q.includes("gtx 1660") || q.includes("rx 570") || q.includes("rx 580") || q.includes("r9 390")) return "ddr3_mid";
+  if (q.includes("gtx 1070") || q.includes("gtx 1080") || q.includes("rtx 2060") || q.includes("rx 590")) return "ddr3_high";
+  
+  // Modern GPU'lar
   if (q.includes("5090") || q.includes("4090") || q.includes("7900 xtx") || q.includes("5080")) return "extreme";
   if (q.includes("4080") || q.includes("5070 ti") || q.includes("7900 xt") || q.includes("7800 xt")) return "high";
   if (q.includes("4070") || q.includes("7700 xt") || q.includes("6800") || q.includes("3060 ti") || q.includes("6700 xt")) return "mid";
@@ -132,6 +158,12 @@ function perfClassFromGpu(model){
 // CPU sınıfını kabaca çıkar
 function perfClassFromCpu(model){
   const q = norm(model);
+  // DDR3 CPU'lar için özel sınıflandırma
+  if (q.includes("i3-2100") || q.includes("i3-3220") || q.includes("fx-4300") || q.includes("phenom ii") || q.includes("athlon ii")) return "ddr3_entry";
+  if (q.includes("i5-2500") || q.includes("i5-3470") || q.includes("fx-6300") || q.includes("fx-8320") || q.includes("i5-4570")) return "ddr3_mid";
+  if (q.includes("i7-2600") || q.includes("i7-3770") || q.includes("fx-8350") || q.includes("i7-4770") || q.includes("i7-4790")) return "ddr3_high";
+  
+  // Modern CPU'lar
   if (q.includes("i9") || q.includes("r9") || q.includes("9950") || q.includes("7950") || q.includes("5950")) return "high";
   if (q.includes("i7") || q.includes("r7") || q.includes("9900") || q.includes("5800") || q.includes("7700")) return "mid";
   if (q.includes("i5") || q.includes("r5") || q.includes("5600") || q.includes("3600") || q.includes("14600") || q.includes("13600")) return "mid";
@@ -168,6 +200,10 @@ function detectPart(query){
   // GPU
   const gpuN = q.match(/\b(rtx|gtx)\s*([0-9]{3,4})(\s*ti\s*super|\s*ti|\s*super)?\b/);
   const gpuA = q.match(/\brx\s*([0-9]{3,4})(\s*xtx|\s*xt)?\b/);
+  
+  // DDR3 GPU'ları için özel tespit EKLENDİ
+  const gpuDDR3 = q.match(/\b(hd\s*[0-9]{4}|r[79]\s*[0-9]{3}[x]?)\b/);
+  
   if (gpuN){
     const series = gpuN[2];
     const suffix = (gpuN[3]||"").trim().toUpperCase();
@@ -180,11 +216,22 @@ function detectPart(query){
     const model = `RX ${series}${suffix?(" "+suffix): ""}`.trim();
     return { type:"gpu", brand:"amd", model };
   }
+  if (gpuDDR3){
+    const model = gpuDDR3[0].toUpperCase().replace(/\s+/g, " ");
+    return { 
+      type: "gpu", 
+      brand: q.includes("hd") ? "amd" : (q.includes("r7") || q.includes("r9") ? "amd" : "unknown"),
+      model: model,
+      ddr3Compatible: true 
+    };
+  }
 
   // CPU
   const intel = q.match(/\b(i[3579])[\-\s]*([0-9]{4,5})([a-z]{0,3})\b/);
   const ryzen = q.match(/\b(r[3579])[\-\s]*([0-9]{4,5})(x3d|x|g)?\b/);
   const fx = q.match(/\bfx[\-\s]*([0-9]{4})\b/);
+  const ddr3Cpu = q.match(/\b(phenom|athlon|core\s*2)\b/);
+  
   if (intel){
     return { type:"cpu", brand:"intel", model: `${intel[1].toUpperCase()}-${intel[2]}${(intel[3]||"").toUpperCase()}` };
   }
@@ -193,6 +240,9 @@ function detectPart(query){
   }
   if (fx){
     return { type:"cpu", brand:"amd", model: `FX-${fx[1]}` };
+  }
+  if (ddr3Cpu){
+    return { type:"cpu", brand: q.includes("phenom") || q.includes("athlon") ? "amd" : "intel", model: query, ddr3Compatible: true };
   }
 
   // fallback: bileşen türü belirsiz
@@ -209,6 +259,9 @@ function platformFromChipset(chipset){
   }
   if (["B650","B650E","X670","X670E","A620"].includes(c)){
     return { socket:"AM5", ram:"DDR5", level: c==="A620" ? "entry" : "mid" };
+  }
+  if (["970","990FX","990X","760G","780G","785G","870","880G","890FX"].includes(c)){
+    return { socket:"AM3+", ram:"DDR3", level: c==="970" ? "entry" : "mid" };
   }
 
   // Intel
@@ -228,6 +281,9 @@ function platformFromChipset(chipset){
     return { socket:"LGA1150", ram:"DDR3", level: c.startsWith("H") ? "entry" : "mid" };
   }
   if (["H77","Z77","Z68","P67"].includes(c)){
+    return { socket:"LGA1155", ram:"DDR3", level: c.startsWith("H") ? "entry" : "mid" };
+  }
+  if (["H61","H67","P67","Z68","H77","Z77"].includes(c)){
     return { socket:"LGA1155", ram:"DDR3", level: c.startsWith("H") ? "entry" : "mid" };
   }
 
@@ -299,16 +355,29 @@ function recommendBuild(input){
   if (type === "cpu"){
     base.recognizedTitle = `🧠 CPU Tanındı: ${input.model}`;
     const cls = perfClassFromCpu(input.model);
-    base.infoLines.push(`• Sınıf: ${cls === "entry" ? "Giriş" : cls === "mid" ? "Orta" : "Üst"}`);
+    base.infoLines.push(`• Sınıf: ${cls === "entry" ? "Giriş" : cls === "mid" ? "Orta" : cls === "high" ? "Üst" : cls.includes("ddr3") ? "DDR3 " + cls.split("_")[1] : "Orta"}`);
+    
     // Socket tahmini (çok kaba)
     const q = norm(input.model);
     let platformHint = null;
-    if (q.includes("i3-12") || q.includes("i5-12") || q.includes("i7-12") || q.includes("i9-12") || q.includes("i3-13") || q.includes("i5-13") || q.includes("i7-13") || q.includes("i9-13") || q.includes("i3-14") || q.includes("i5-14") || q.includes("i7-14") || q.includes("i9-14")){
+    
+    // DDR3 CPU'lar için özel platform
+    if (cls.includes("ddr3")) {
+      if (q.includes("i7-2600") || q.includes("i5-2500") || q.includes("i3-2100")){
+        platformHint = { socket:"LGA1155", mobo: "Z77/H77/P67", ram:"DDR3" };
+      } else if (q.includes("i7-3770") || q.includes("i5-3470") || q.includes("i3-3220")){
+        platformHint = { socket:"LGA1155", mobo: "Z77/H77", ram:"DDR3" };
+      } else if (q.includes("i7-4770") || q.includes("i7-4790") || q.includes("i5-4570")){
+        platformHint = { socket:"LGA1150", mobo: "Z97/H97", ram:"DDR3" };
+      } else if (q.includes("fx-")){
+        platformHint = { socket:"AM3+", mobo:"970/990FX", ram:"DDR3" };
+      } else if (q.includes("phenom") || q.includes("athlon")){
+        platformHint = { socket:"AM3/AM3+", mobo:"970/990FX", ram:"DDR3" };
+      }
+    } else if (q.includes("i3-12") || q.includes("i5-12") || q.includes("i7-12") || q.includes("i9-12") || q.includes("i3-13") || q.includes("i5-13") || q.includes("i7-13") || q.includes("i9-13") || q.includes("i3-14") || q.includes("i5-14") || q.includes("i7-14") || q.includes("i9-14")){
       platformHint = { socket:"LGA1700", mobo: cls==="entry" ? "H610/B660" : cls==="mid" ? "B660/B760" : "Z690/Z790", ram:"DDR4/DDR5" };
     } else if (q.includes("i5-10") || q.includes("i7-10") || q.includes("i9-10") || q.includes("i5-11") || q.includes("i7-11") || q.includes("i9-11")){
       platformHint = { socket:"LGA1200", mobo: cls==="entry" ? "B460/H410" : "B560/Z590", ram:"DDR4" };
-    } else if (q.includes("2600") || q.includes("2500") || q.includes("2100")){
-      platformHint = { socket:"LGA1155", mobo:"Z77/H77/P67", ram:"DDR3" };
     } else if (q.includes("ryzen")){
       if (q.match(/\b(7|8|9)\d{3,4}\b/) || q.includes("7600") || q.includes("7700") || q.includes("7950") || q.includes("9700") || q.includes("9950")){
         platformHint = { socket:"AM5", mobo:"B650/X670", ram:"DDR5" };
@@ -325,7 +394,37 @@ function recommendBuild(input){
       base.infoLines.push(`• RAM: ${platformHint.ram}`);
     }
 
-    // Profil önerileri (GPU + PSU)
+    // DDR3 CPU'lar için özel öneriler
+    if (cls.includes("ddr3")) {
+      base.warnings.push("⚠️ DDR3 platform eski: modern ekran kartlarında ciddi darboğaz olabilir.");
+      base.warnings.push("✅ DDR3 için öneri: GTX 1060/1660 veya RX 580 seviyesi GPU'lar");
+      
+      base.profiles.budget = mkProfile(
+        input.model,
+        platformHint ? platformHint.mobo : "Uygun chipset",
+        "8GB DDR3 1600 (2x4)",
+        "GTX 1050 Ti / RX 560",
+        "450W Bronze"
+      );
+      base.profiles.balanced = mkProfile(
+        input.model,
+        platformHint ? platformHint.mobo : "Uygun chipset",
+        "16GB DDR3 1600 (2x8)",
+        "GTX 1060 6GB / RX 570 8GB",
+        "500W Bronze"
+      );
+      base.profiles.performance = mkProfile(
+        input.model,
+        platformHint ? platformHint.mobo : "Uygun chipset",
+        "16GB DDR3 1866 (2x8)",
+        "GTX 1660 Super / RX 580 8GB",
+        "550W Bronze"
+      );
+      
+      return base;
+    }
+
+    // Modern CPU'lar için öneriler
     base.profiles.budget = mkProfile(
       input.model,
       platformHint ? platformHint.mobo : "Uygun chipset",
@@ -359,6 +458,40 @@ function recommendBuild(input){
   if (type === "gpu"){
     base.recognizedTitle = `🎮 GPU Tanındı: ${input.model}`;
     const cls = perfClassFromGpu(input.model);
+    
+    // DDR3 GPU'lar için özel sınıflandırma
+    if (cls.includes("ddr3")) {
+      const level = cls.split("_")[1];
+      base.infoLines.push(`• Sınıf: DDR3 ${level === "entry" ? "Giriş" : level === "mid" ? "Orta" : "Üst"}`);
+      base.warnings.push("⚠️ Bu GPU DDR3 sistemler için uygundur");
+      base.warnings.push("✅ DDR3 CPU önerisi: i5-2500K / i7-3770 / FX-8350");
+      
+      base.profiles.budget = mkProfile(
+        "i5-2500K / FX-6300",
+        "Z77 / 970 Chipset",
+        "8GB DDR3 1600",
+        input.model,
+        "450W Bronze"
+      );
+      base.profiles.balanced = mkProfile(
+        "i7-3770 / FX-8350",
+        "Z77 / 990FX Chipset",
+        "16GB DDR3 1600",
+        input.model,
+        "500W Bronze"
+      );
+      base.profiles.performance = mkProfile(
+        "i7-4790K / FX-9590",
+        "Z97 / 990FX Chipset",
+        "16GB DDR3 1866",
+        input.model,
+        "550W Bronze"
+      );
+      
+      return base;
+    }
+    
+    // Modern GPU'lar için
     base.infoLines.push(`• Sınıf: ${cls === "entry" ? "Giriş" : cls === "mid" ? "Orta" : cls === "high" ? "Üst" : "Extreme"}`);
 
     // CPU önerileri (sınıfa göre)
@@ -395,6 +528,36 @@ function recommendBuild(input){
     if (input.mhz) base.infoLines.push(`• Hız: ${input.mhz} MHz (yaklaşık)`);
     const ddr = input.ddr || "DDR4";
 
+    // DDR3 için özel öneriler EKLENDİ
+    if (ddr === "DDR3") {
+      base.warnings.push("⚠️ DDR3 platform eski: sıfır almak mantıksız, 2. el daha mantıklı.");
+      base.warnings.push("🎯 DDR3 için en iyi GPU'lar: GTX 1660 / RTX 2060 / RX 580 (darboğaz olabilir)");
+      
+      base.profiles.budget = mkProfile(
+        "Intel i5-2500K / AMD FX-8350",
+        "Z77 / 970 Chipset",
+        "16GB DDR3 1600 (2x8)",
+        "GTX 1050 Ti / RX 560",
+        "500W Bronze"
+      );
+      base.profiles.balanced = mkProfile(
+        "Intel i7-3770K / AMD FX-9590",
+        "Z77 / 990FX Chipset",
+        "16GB DDR3 1866 (2x8)",
+        "GTX 1660 Super / RX 580 8GB",
+        "600W Bronze"
+      );
+      base.profiles.performance = mkProfile(
+        "Intel i7-4790K / İşlemci Değişimi Önerilir",
+        "Z97 / Anakart Yenile Önerilir",
+        "16GB DDR3 1866 (2x8)",
+        "RTX 2060 / GTX 1080 Ti",
+        "650W Gold"
+      );
+      
+      return base;
+    }
+
     // Platform önerisi
     let plat = ddr==="DDR5" ? "AM5 (B650/X670) veya LGA1700 (B760/Z790 DDR5)" :
                ddr==="DDR4" ? "AM4 (B450/B550) veya LGA1700 (H610/B660 DDR4)" :
@@ -424,6 +587,7 @@ function recommendBuild(input){
 
     if (ddr==="DDR3"){
       base.warnings.push("⚠️ DDR3 platform eski: sıfır almak mantıksız, 2. el daha mantıklı.");
+      base.warnings.push("❌ DDR5, AM4/B450 gibi DDR4 platformlarda çalışmaz.");
     }
     if (ddr==="DDR5"){
       base.warnings.push("❌ DDR5, AM4/B450 gibi DDR4 platformlarda çalışmaz.");
@@ -837,7 +1001,7 @@ function updateSearchStats(count, query) {
   if (!searchInfo) return;
   
   const typeText = currentSearchType === 'all' ? 'Tüm Siteler' : 
-                   currentSearchType === 'new' ? 'Yeni Ürün Siteleri' : 'İkinci El Siteleri';
+                   currentSearchType === 'new' ? 'Yeni Ürünler' : 'İkinci El';
   
   searchInfo.innerHTML = `
     <div class="searchQuery">"${query}"</div>
@@ -1377,6 +1541,27 @@ function wireUI() {
   $("loginPass")?.addEventListener("keypress", (e) => {
     if (e.key === "Enter") loginWithEmail();
   });
+  
+  // ========== TYPEAHEAD BAŞLATMA ==========
+  const searchInput = $("qNormal");
+  if (searchInput && window.initTypeahead) {
+    // Input'a otomatik tamamlama özelliği ekle
+    searchInput.setAttribute("autocomplete", "off");
+    searchInput.setAttribute("spellcheck", "false");
+    
+    // Typeahead başlat
+    window.initTypeahead(searchInput, (selectedItem) => {
+      console.log("Öneri seçildi:", selectedItem);
+      // Seçildiğinde otomatik arama yap
+      setTimeout(() => {
+        if (window.performSearch) {
+          performSearch();
+        }
+      }, 100);
+    });
+    
+    console.log("✅ Typeahead başlatıldı");
+  }
 }
 
 // ========== UYGULAMA BAŞLANGICI ==========
