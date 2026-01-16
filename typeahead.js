@@ -1,4 +1,4 @@
-// typeahead.js - GENİŞLETİLMİŞ OTOMATİK TAMAMLAMA
+// typeahead.js - GENİŞLETİLMİŞ OTOMATİK TAMAMLAMA (ENTER DÜZELTMESİ)
 
 (function(){
   // GENİŞ ÖNERİ VERİTABANI (PC bileşenleri + genel ürünler) - TÜM SERİLER EKLENDİ
@@ -487,6 +487,7 @@
     const box = createTypeaheadBox(input);
     let activeIndex = -1;
     let currentSuggestions = [];
+    let ignoreNextEnter = false; // ENTER düzeltmesi için
     
     function hide() {
       box.classList.add("hidden");
@@ -565,41 +566,49 @@
       
       lastValue = input.value;
       selectedFromTypeahead = false; // Kullanıcı yazmaya devam ediyor
+      ignoreNextEnter = false; // ENTER düzeltmesi
       const suggestions = getSuggestions(input.value);
       render(suggestions);
     });
     
+    // ENTER DÜZELTMESİ: Sadece aktif bir öğe seçiliyse seçim yap
     input.addEventListener("keydown", (e) => {
-      if (!box.classList.contains("hidden")) {
-        switch (e.key) {
-          case "ArrowDown":
-            e.preventDefault();
-            activeIndex = (activeIndex + 1) % currentSuggestions.length;
-            render(currentSuggestions);
-            break;
-            
-          case "ArrowUp":
-            e.preventDefault();
-            activeIndex = activeIndex <= 0 ? currentSuggestions.length - 1 : activeIndex - 1;
-            render(currentSuggestions);
-            break;
-            
-          case "Enter":
-            if (activeIndex >= 0) {
-              e.preventDefault();
-              selectItem(activeIndex);
-            } else if (currentSuggestions.length > 0 && !selectedFromTypeahead) {
-              // İlk öğeyi seç
-              e.preventDefault();
-              selectItem(0);
-            }
-            // Seçim yapılmadıysa, kullanıcının yazdığını kullan (normal arama)
-            break;
-            
-          case "Escape":
-            hide();
-            break;
+      if (e.key === "Enter") {
+        // Eğer typeahead açıksa ve aktif öğe varsa
+        if (!box.classList.contains("hidden") && activeIndex >= 0) {
+          e.preventDefault(); // Normal form submit'i engelle
+          selectItem(activeIndex);
+          ignoreNextEnter = true; // Bir sonraki ENTER'ı ignore et
+        } else if (!box.classList.contains("hidden") && currentSuggestions.length > 0) {
+          // Açık ve öneri var ama aktif öğe yok
+          // KULLANICI SEÇİM YAPMADI - ENTER'a basınca arama yapsın
+          // Burada seçim YAPMIYORUZ, sadece typeahead'i kapatıyoruz
+          e.preventDefault();
+          hide();
+          // Arama fonksiyonu kendi başına çalışacak
         }
+        // Eğer typeahead kapalıysa, normal ENTER davranışı (arama yap)
+      }
+      
+      // Diğer tuşlar (ok tuşları, Escape) normal çalışsın
+      if (box.classList.contains("hidden")) return;
+      
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          activeIndex = (activeIndex + 1) % currentSuggestions.length;
+          render(currentSuggestions);
+          break;
+          
+        case "ArrowUp":
+          e.preventDefault();
+          activeIndex = activeIndex <= 0 ? currentSuggestions.length - 1 : activeIndex - 1;
+          render(currentSuggestions);
+          break;
+          
+        case "Escape":
+          hide();
+          break;
       }
     });
     
