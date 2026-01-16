@@ -226,27 +226,83 @@ function detectPart(query){
     };
   }
 
-  // CPU
-  const intel = q.match(/\b(i[3579])[\-\s]*([0-9]{4,5})([a-z]{0,3})\b/);
-  const ryzen = q.match(/\b(r[3579])[\-\s]*([0-9]{4,5})(x3d|x|g)?\b/);
-  const fx = q.match(/\bfx[\-\s]*([0-9]{4})\b/);
-  const ddr3Cpu = q.match(/\b(phenom|athlon|core\s*2)\b/);
+  // ========== GÜNCELLENMİŞ CPU ALGILAMA ==========
+  const qLower = q.toLowerCase();
   
-  if (intel){
-    return { type:"cpu", brand:"intel", model: `${intel[1].toUpperCase()}-${intel[2]}${(intel[3]||"").toUpperCase()}` };
+  // 1. Intel CPU Pattern (daha basit)
+  const intelMatch = q.match(/\b(i[3579])[\-\s]*([0-9]{4,5})([a-z]{0,3})?\b/i);
+  if (intelMatch){
+    const model = `${intelMatch[1].toUpperCase()}-${intelMatch[2]}${(intelMatch[3]||"").toUpperCase()}`;
+    return { 
+      type:"cpu", 
+      brand:"intel", 
+      model: model,
+      rawQuery: query
+    };
   }
-  if (ryzen){
-    return { type:"cpu", brand:"amd", model: `Ryzen ${ryzen[1].toUpperCase().replace("R","")} ${ryzen[2]}${(ryzen[3]||"").toUpperCase()}`.replace(/\s+/g," ").trim() };
+  
+  // 2. AMD CPU Pattern (daha kapsamlı)
+  const ryzenMatch1 = q.match(/\bryzen\s*([3579])\s*(\d{3,4})\s*(x3d|x|g)?\b/i);
+  const ryzenMatch2 = q.match(/\br([3579])\s*(\d{3,4})\s*(x3d|x|g)?\b/i);
+  
+  if (ryzenMatch1 || ryzenMatch2){
+    const match = ryzenMatch1 || ryzenMatch2;
+    const series = match[1];
+    const modelNum = match[2];
+    const suffix = (match[3] || "").toUpperCase();
+    
+    let modelName = `Ryzen ${series} ${modelNum}${suffix}`.trim();
+    
+    return { 
+      type:"cpu", 
+      brand:"amd", 
+      model: modelName,
+      rawQuery: query
+    };
   }
-  if (fx){
-    return { type:"cpu", brand:"amd", model: `FX-${fx[1]}` };
+  
+  // 3. FX Serisi
+  if (qLower.includes("fx-") || qLower.includes("fx ")){
+    const fxMatch = q.match(/\bfx[-\s]*([0-9]{3,4})\b/i);
+    if (fxMatch){
+      return { 
+        type:"cpu", 
+        brand:"amd", 
+        model: `FX-${fxMatch[1]}`,
+        rawQuery: query
+      };
+    }
   }
-  if (ddr3Cpu){
-    return { type:"cpu", brand: q.includes("phenom") || q.includes("athlon") ? "amd" : "intel", model: query, ddr3Compatible: true };
+  
+  // 4. Eski CPU'lar
+  if (qLower.includes("phenom") || qLower.includes("athlon") || qLower.includes("core 2")){
+    return { 
+      type:"cpu", 
+      brand: qLower.includes("phenom") || qLower.includes("athlon") ? "amd" : "intel", 
+      model: query,
+      ddr3Compatible: true,
+      rawQuery: query
+    };
+  }
+  
+  // 5. Fallback: Eğer "ryzen", "i3", "i5", "i7", "i9" içeriyorsa CPU olarak kabul et
+  if (qLower.includes("ryzen") || qLower.includes("i3") || qLower.includes("i5") || 
+      qLower.includes("i7") || qLower.includes("i9") || qLower.includes("r3") || 
+      qLower.includes("r5") || qLower.includes("r7") || qLower.includes("r9")) {
+    return { 
+      type:"cpu", 
+      brand: qLower.includes("ryzen") || qLower.includes("r") ? "amd" : "intel", 
+      model: query,
+      rawQuery: query
+    };
   }
 
   // fallback: bileşen türü belirsiz
-  return { type:"unknown", model: query };
+  return { 
+    type:"unknown", 
+    model: query,
+    rawQuery: query
+  };
 }
 
 function platformFromChipset(chipset){
@@ -823,7 +879,8 @@ const SITES = {
       icon: "📦", 
       type: "new", 
       domain: "hepsiburada.com",
-      searchUrl: (query) => `https://www.hepsiburada.com/ara?q=${encodeURIComponent(query)}&siralama=yorumsayisi-azalan`
+      // DÜZELTME: Düşükten yükseğe sıralama eklendi
+      searchUrl: (query) => `https://www.hepsiburada.com/ara?q=${encodeURIComponent(query)}&siralama=artanfiyat`
     },
     { 
       name: "Amazon TR", 
@@ -859,7 +916,6 @@ const SITES = {
       type: "new", 
       domain: "vatanbilgisayar.com",
       searchUrl: (query) => {
-        // Boşluğu %20 ile değiştir
         const encodedQuery = query.replace(/ /g, '%20');
         return `https://www.vatanbilgisayar.com/arama/${encodedQuery}/?srt=UP`;
       }
@@ -905,7 +961,8 @@ const SITES = {
       icon: "👗", 
       type: "secondhand", 
       domain: "dolap.com",
-      searchUrl: (query) => `https://dolap.com/ara?q=${encodeURIComponent(query)}&sira=artan-fiyat`
+      // DÜZELTME: Düşükten yükseğe sıralama eklendi
+      searchUrl: (query) => `https://www.dolap.com/ara?q=${encodeURIComponent(query)}&sira=artan-fiyat`
     },
     { 
       name: "Letgo", 
@@ -987,18 +1044,20 @@ function performSearch() {
     return;
   }
   
-  console.log("Arama yapılıyor:", query);
+  console.log("Kullanıcı araması:", query);
   
-  // Kullanıcı typeahead'den seçti mi kontrol et
+  // ENTER DÜZELTMESİ: Typeahead'den SEÇİM YAPILMADIYSA, kullanıcının yazdığını direkt kullan
   let searchQuery = query;
+  
+  // Eğer typeahead'den seçim yapıldıysa canonical değerini kullan
+  // DEĞİLSE kullanıcının yazdığı tam metni kullan (ENTER düzeltmesi)
   if (window.isSelectedFromTypeahead && window.isSelectedFromTypeahead()) {
-    // Typeahead'den seçildiyse, canonical değeri kullan
     searchQuery = window.getUserTypedQuery ? window.getUserTypedQuery() : query;
     console.log("Typeahead seçimi kullanılıyor:", searchQuery);
   } else {
-    // Kullanıcı kendi yazdı, tam olarak yazdığını kullan
-    searchQuery = query.toLowerCase().trim();
-    console.log("Kullanıcının yazdığı kullanılıyor:", searchQuery);
+    // Kullanıcı kendi yazdı ve ENTER'a bastı, direkt yazdığını kullan
+    searchQuery = query;
+    console.log("Kullanıcı direkt yazdı/ENTER'a bastı:", searchQuery);
   }
   
   // Son aramalara ekle
