@@ -1,9 +1,10 @@
-const CACHE_NAME = 'fiyattakip-v2';
+const CACHE_NAME = 'fiyattakip-v1';
 const urlsToCache = [
-  '/',
+  
+  '/fps-engine.js',
+'/',
   '/index.html',
   '/styles.css',
-  '/fps-engine.js',
   '/app.js',
   '/firebase.js',
   '/manifest.json',

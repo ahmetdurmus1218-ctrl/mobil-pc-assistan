@@ -771,6 +771,82 @@ function buildSearchQueriesFor(part, profilePack){
 }
 
 function renderBuildCard(query){
+
+// ========== FPS HELPERS (OFFLINE) ==========
+function parseRamGBFromText(txt){
+  if(!txt) return 16;
+  const s = String(txt).toLowerCase();
+  let m = s.match(/(\d+)\s*(x|\*)\s*(\d+)\s*gb/);
+  if(m){
+    const a = parseInt(m[1],10), b = parseInt(m[3],10);
+    if(Number.isFinite(a)&&Number.isFinite(b)) return a*b;
+  }
+  m = s.match(/(\d+)\s*gb/);
+  if(m){
+    const n = parseInt(m[1],10);
+    if(Number.isFinite(n)) return n;
+  }
+  return 16;
+}
+
+function inferMbTagFromMobo(moboText){
+  const s = (moboText||"").toLowerCase();
+  // very rough heuristics
+  if(s.includes("h81") || s.includes("b85") || s.includes("a320")) return "weak_vrm";
+  // PCIe 3 hint in older chipsets (rough)
+  if(s.includes("b450") || s.includes("b365") || s.includes("h410") || s.includes("h510")) return "pcie3_limit";
+  return "ok";
+}
+
+function inferPsuTagFromPsu(psuText, gpuText){
+  const w = (psuText||"").match(/(\d{3,4})\s*w/i);
+  const watts = w ? parseInt(w[1],10) : 0;
+  const g = (gpuText||"").toLowerCase();
+  // estimate required watts by GPU tier (rough, safe)
+  let need = 450;
+  if(g.includes("4090")||g.includes("7900 xtx")) need = 850;
+  else if(g.includes("4080")||g.includes("7900 xt")) need = 750;
+  else if(g.includes("4070")||g.includes("7800 xt")||g.includes("7700 xt")||g.includes("3080")||g.includes("3090")) need = 650;
+  else if(g.includes("3070")||g.includes("3060 ti")||g.includes("6700 xt")||g.includes("6750 xt")) need = 600;
+  else if(g.includes("3060")||g.includes("6600")||g.includes("6650 xt")||g.includes("2060")) need = 550;
+  else need = 450;
+
+  if(watts && watts < need) return "insufficient";
+  if(watts && watts < need + 50) return "borderline";
+  return "good";
+}
+
+function renderFpsBoxForPack(pack){
+  try{
+    if(!window.FPSEngine || !window.FPSEngine.calculateFPS) return "";
+    if(!pack) return "";
+    const ramGB = parseRamGBFromText(pack.ram);
+    const mbTag = inferMbTagFromMobo(pack.mobo);
+    const psuTag = inferPsuTagFromPsu(pack.psu, pack.gpu);
+    const fps = window.FPSEngine.calculateFPS({
+      gpu: pack.gpu,
+      cpu: pack.cpu,
+      ramGB,
+      mbTag,
+      psuTag
+    });
+    if(!fps) return "";
+    return `
+      <div class="fpsBox">
+        <div class="fpsTitle">🎮 Tahmini FPS (Ultra / Ortalama)</div>
+        <div class="fpsRow"><span>1080p</span><b>${fps["1080p"]} FPS</b></div>
+        <div class="fpsRow"><span>1440p</span><b>${fps["1440p"]} FPS</b></div>
+        <div class="fpsRow"><span>4K</span><b>${fps["4k"]} FPS</b></div>
+        <div class="fpsMeta">GPU: ${escapeHtml(fps.gpuResolved)} • CPU: ${escapeHtml(fps.cpuResolved)} • RAM: ${fps.ramGB}GB</div>
+      </div>
+    `;
+  }catch(e){
+    console.warn("FPS render error", e);
+    return "";
+  }
+}
+
+
   const detected = detectPart(query);
   const rec = recommendBuild(detected);
 
@@ -798,13 +874,17 @@ function renderBuildCard(query){
     <div class="pcWarn">
       ${rec.warnings.map(w => `<div class="pcWarnItem">${escapeHtml(w)}</div>`).join("")}
     </div>
+    ${fpsBoxHtml}
   ` : "";
 
   const info = rec.infoLines && rec.infoLines.length ? `
     <div class="pcMeta">
       ${rec.infoLines.map(l => `<div class="pcMetaLine">${escapeHtml(l)}</div>`).join("")}
     </div>
+    ${fpsBoxHtml}
   ` : "";
+
+  const fpsBoxHtml = pack ? renderFpsBoxForPack(pack) : "";
 
   const build = pack ? `
     <div class="pcBuildGrid">
@@ -814,6 +894,7 @@ function renderBuildCard(query){
       <div class="pcBuildItem"><span class="k">GPU</span><span class="v">${escapeHtml(pack.gpu)}</span></div>
       <div class="pcBuildItem"><span class="k">PSU</span><span class="v">${escapeHtml(pack.psu)}</span></div>
     </div>
+    ${fpsBoxHtml}
   ` : "";
 
   const copyBlock = queries.length ? `
@@ -828,9 +909,8 @@ function renderBuildCard(query){
         `).join("")}
       </div>
     </div>
+    ${fpsBoxHtml}
   ` : "";
-
-  const fpsBlock = buildFpsBlock(pack);
 
   return `
     <div class="siteCard buildCard">
@@ -841,27 +921,8 @@ function renderBuildCard(query){
       ${chipsHtml}
       ${info}
       ${build}
-      ${fpsBlock}
       ${why}
       ${copyBlock}
-    </div>
-  `;
-}
-
-function buildFpsBlock(pack){
-  // FPS motoru: fps-engine.js global olarak window.FPS_ENGINE sağlar
-  if(!pack || !window.FPS_ENGINE || typeof window.FPS_ENGINE.estimate !== 'function') return "";
-  const r = window.FPS_ENGINE.estimate(pack);
-  if(!r) return "";
-  return `
-    <div class="fpsCard">
-      <div class="fpsTitle">🎮 Tahmini FPS (Ultra ort.)</div>
-      <div class="fpsGrid">
-        <div class="fpsBox"><div class="fpsRes">1080p</div><div class="fpsVal">${r.p1080}</div><div class="fpsUnit">FPS</div></div>
-        <div class="fpsBox"><div class="fpsRes">1440p</div><div class="fpsVal">${r.p1440}</div><div class="fpsUnit">FPS</div></div>
-        <div class="fpsBox"><div class="fpsRes">4K</div><div class="fpsVal">${r.p4k}</div><div class="fpsUnit">FPS</div></div>
-      </div>
-      <div class="fpsNote">• Bu değerler ortalama benchmark mantığıyla tahmini verilir (oyunlara göre değişir).</div>
     </div>
   `;
 }
