@@ -1951,3 +1951,44 @@ h4 { font-size: 1.125rem; }
   color: var(--text);
   cursor:pointer;
 }
+
+/* ===== PC FPS Box (offline estimator) ===== */
+.pcFpsBox{
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.pcFpsTitle{ font-weight: 700; margin-bottom: 8px; }
+.pcFpsGrid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.pcFpsGrid > div{
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  text-align: center;
+}
+.pcFpsGrid span{ display:block; opacity:.85; font-size: 12px; }
+.pcFpsGrid strong{ display:block; font-size: 16px; margin-top: 2px; }
+.pcFpsMeta{ opacity:.85; margin-top: 8px; font-size: 12px; }
+.pcFpsWarn{ margin-top: 8px; font-size: 12px; opacity: .95; }
+
+/* ===== Cart manual edit fields ===== */
+.cartEdit{ margin-top: 10px; display: grid; gap: 8px; }
+.cartEditRow{ display: grid; grid-template-columns: 70px 1fr auto; gap: 8px; align-items: center; }
+.cartEditRow label{ font-size: 12px; opacity: .8; }
+.cartEditRow input, .cartEditRow select{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  outline: none;
+}
+.btn.small{ padding: 8px 10px; border-radius: 12px; font-size: 12px; }
