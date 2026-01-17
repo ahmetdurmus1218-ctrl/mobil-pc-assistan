@@ -816,60 +816,44 @@ function renderBuildCard(query){
     </div>
   ` : "";
 
-  // FPS tahmini (offline): fps-engine.js gerekir.
-  const fpsBlock = pack && window.FPSEngine ? (function(){
-    function numFrom(s){
-      const m = String(s||"").match(/(\d{2,4})\s*W/i);
-      return m ? parseInt(m[1],10) : 0;
-    }
-    function ramGBFrom(s){
-      const m = String(s||"").match(/(\d{1,2})\s*GB/i);
-      return m ? parseInt(m[1],10) : 0;
-    }
-    function ramTypeFrom(s){
-      const u = String(s||"").toUpperCase();
-      if (u.includes("DDR5")) return "DDR5";
-      if (u.includes("DDR4")) return "DDR4";
-      if (u.includes("DDR3")) return "DDR3";
-      return "";
-    }
-    function moboTierFrom(s){
-      const u = String(s||"").toUpperCase();
-      // Basit tier tahmini: H/A = budget, B = mid, Z/X = high
-      if (u.includes("H610") || u.includes("A320") || u.includes("A520") || u.includes("A620")) return "BUDGET";
-      if (u.includes("B450") || u.includes("B550") || u.includes("B650") || u.includes("B660") || u.includes("B760")) return "MID";
-      if (u.includes("Z690") || u.includes("Z790") || u.includes("X570") || u.includes("X670")) return "HIGH";
-      return "MID";
-    }
+  // ========== FPS (offline) ==========
+  // Not: UI'da "RX 6600 / RTX 3060" gibi alternatifler gorunebilir.
+  // FPS motoruna HER ZAMAN TEK model gonderiyoruz (ilk alternatif).
+  const primaryModel = (s) => String(s||"").split("/")[0].trim();
+  const parseRamGB = (s) => {
+    const m = String(s||"").match(/(\d+)\s*GB/i);
+    return m ? Number(m[1]) : 16;
+  };
+  const parsePsuW = (s) => {
+    const m = String(s||"").match(/(\d+)\s*W/i);
+    return m ? Number(m[1]) : 0;
+  };
 
-    const est = window.FPSEngine.estimate({
-      cpu: pack.cpu,
-      gpu: pack.gpu,
-      ramGB: ramGBFrom(pack.ram),
-      ramType: ramTypeFrom(pack.ram),
-      moboTier: moboTierFrom(pack.mobo),
-      psuWatt: numFrom(pack.psu)
+  let fps = null;
+  if (pack && window.FPSEngine && typeof window.FPSEngine.calculate === 'function'){
+    fps = window.FPSEngine.calculate({
+      gpu: primaryModel(pack.gpu),
+      cpu: primaryModel(pack.cpu),
+      ramGB: parseRamGB(pack.ram),
+      motherboard: primaryModel(pack.mobo),
+      psuWatts: parsePsuW(pack.psu)
     });
+  }
 
-    const warn = est.warnings && est.warnings.length ? `
-      <div class="pcFpsWarn">
-        ${est.warnings.map(w => `<div>• ${escapeHtml(w)}</div>`).join("")}
+  const fpsBox = pack ? `
+    <div class="pcFpsWrap">
+      <div class="pcFpsTitle">🎮 Tahmini FPS (Ultra ort.)</div>
+      <div class="pcFpsGrid">
+        <div class="pcFpsCell"><div class="t">1080p</div><div class="v">${fps ? fps["1080p"] : "—"}</div><div class="u">FPS</div></div>
+        <div class="pcFpsCell"><div class="t">1440p</div><div class="v">${fps ? fps["1440p"] : "—"}</div><div class="u">FPS</div></div>
+        <div class="pcFpsCell"><div class="t">4K</div><div class="v">${fps ? fps["4k"] : "—"}</div><div class="u">FPS</div></div>
       </div>
-    ` : "";
-
-    return `
-      <div class="pcFpsBox">
-        <div class="pcFpsTitle">🎮 Tahmini FPS (Ultra ort.)</div>
-        <div class="pcFpsGrid">
-          <div><span>1080p</span><strong>${est.fps1080} FPS</strong></div>
-          <div><span>1440p</span><strong>${est.fps1440} FPS</strong></div>
-          <div><span>4K</span><strong>${est.fps4k} FPS</strong></div>
-        </div>
-        ${est.vramGB ? `<div class="pcFpsMeta">VRAM: ${est.vramGB}GB</div>` : ""}
-        ${warn}
+      <div class="pcFpsNote">
+        <div>• Bu degerler ortalama benchmark mantigiyla tahmini verilir (oyunlara gore degisir).</div>
+        ${parseRamGB(pack.ram) <= 8 ? `<div>• 8GB RAM bazi oyunlarda takilma/min FPS dususu yapabilir; 16GB onerilir.</div>` : ""}
       </div>
-    `;
-  })() : "";
+    </div>
+  ` : "";
 
   const copyBlock = queries.length ? `
     <div class="pcCopyWrap">
@@ -894,7 +878,7 @@ function renderBuildCard(query){
       ${chipsHtml}
       ${info}
       ${build}
-      ${fpsBlock}
+      ${fpsBox}
       ${why}
       ${copyBlock}
     </div>
@@ -1249,9 +1233,6 @@ function addFavorite(siteName, query, url, type) {
     query: query,
     url: url,
     type: type,
-    manualLink: url,
-    manualPrice: null,
-    condition: type === 'secondhand' ? 'secondhand' : 'new',
     addedAt: new Date().toISOString()
   };
   
@@ -1285,30 +1266,6 @@ function clearFavorites() {
     renderFavoritesPage();
   }
 }
-
-function editFavorite(favoriteId){
-  let favorites = JSON.parse(localStorage.getItem('fiyattakip_favorites') || '[]');
-  const idx = favorites.findIndex(f => f.id === favoriteId);
-  if (idx < 0) return;
-
-  const curLink = favorites[idx].manualLink || favorites[idx].url || '';
-  const curPrice = favorites[idx].manualPrice || '';
-
-  const newLink = prompt('Ürün linki (boş bırakma)', curLink);
-  if (newLink === null) return;
-  const newPrice = prompt('Manuel fiyat (TL) - boş bırakabilirsin', String(curPrice));
-  if (newPrice === null) return;
-
-  favorites[idx].manualLink = String(newLink||'').trim() || favorites[idx].url;
-  const n = Number(String(newPrice||'').replace(/[^0-9.]/g,''));
-  favorites[idx].manualPrice = (Number.isFinite(n) && n > 0) ? n : null;
-
-  localStorage.setItem('fiyattakip_favorites', JSON.stringify(favorites));
-  toast('Favori güncellendi ✅', 'success');
-  renderFavoritesPage();
-}
-
-window.editFavorite = editFavorite;
 
 function renderFavoritesPage() {
   const favList = $("favList");
@@ -1368,14 +1325,9 @@ function renderFavoritesPage() {
             <span class="btnIcon">🛒</span>
             <span>Sepet</span>
           </button>
-          <button class="actionBtn btnGhost" onclick="editFavorite('${fav.id}')">
-            <span class="btnIcon">✏️</span>
-            <span>Düzenle</span>
-          </button>
         </div>
         <div class="siteFooter">
           <span class="footerBadge">${new Date(fav.addedAt).toLocaleDateString('tr-TR')}</span>
-          ${fav.manualPrice ? `<span class="footerBadge">Fiyat: ${Number(fav.manualPrice).toLocaleString('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0})}</span>` : ''}
         </div>
       </div>
     `;
@@ -1409,12 +1361,9 @@ function getSiteIcon(siteName) {
 function addToCartFromSite(siteName, query, url) {
   const product = {
     title: `${siteName}: ${query}`,
-    price: "", // manuel girilecek
+    price: "₺???",
     site: siteName,
     link: url,
-    manualPrice: null,
-    manualLink: url,
-    condition: currentSearchType === 'secondhand' ? 'secondhand' : 'new',
     addedAt: new Date().toISOString()
   };
   
@@ -1432,12 +1381,9 @@ function addToCart(product) {
     const cartItem = {
       id: 'cart_' + Date.now() + Math.random().toString(36).substr(2, 9),
       title: product.title,
-      price: product.price || "",
+      price: product.price,
       site: product.site,
       link: product.link,
-      manualPrice: (product.manualPrice ?? null),
-      manualLink: (product.manualLink || product.link || ""),
-      condition: product.condition || 'new',
       quantity: 1,
       addedAt: new Date().toISOString()
     };
@@ -1515,52 +1461,18 @@ function renderCartPage() {
     return;
   }
   
-  function fmtTL(n){
-    const v = Number(n||0);
-    return v.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 });
-  }
-  function parseMoney(s){
-    if (typeof s === 'number') return s;
-    const t = String(s||"").replace(/[^0-9,\.]/g,'').replace(/\./g,'').replace(',', '.');
-    const v = Number(t);
-    return Number.isFinite(v) ? v : 0;
-  }
-
-  // Render cart items (manuel link + manuel fiyat)
+  // Render cart items
   let html = '';
   cartItems.forEach(item => {
-    const priceVal = (typeof item.manualPrice === 'number') ? item.manualPrice : (item.manualPrice ? parseMoney(item.manualPrice) : 0);
-    const linkVal = item.manualLink || item.link || '';
-    const cond = item.condition || 'new';
-
     html += `
       <div class="cartItem">
         <div class="cartItemHeader">
-          <div class="cartItemTitle">${escapeHtml(item.title)}</div>
+          <div class="cartItemTitle">${item.title}</div>
           <button class="cartItemRemove" onclick="removeFromCart('${item.id}')">✕</button>
         </div>
         <div class="cartItemDetails">
-          <div class="cartItemSite">${escapeHtml(item.site || '')}</div>
-          <div class="cartItemPrice">${priceVal ? fmtTL(priceVal) : (item.price || '₺—')}</div>
-        </div>
-
-        <div class="cartEdit">
-          <div class="cartEditRow">
-            <label>Durum</label>
-            <select onchange="updateCartItemField('${item.id}','condition', this.value)">
-              <option value="new" ${cond==='new' ? 'selected' : ''}>🛍️ Sıfır</option>
-              <option value="secondhand" ${cond==='secondhand' ? 'selected' : ''}>🔄 2. El</option>
-            </select>
-          </div>
-          <div class="cartEditRow">
-            <label>Link</label>
-            <input type="url" placeholder="Ürün linki yapıştır" value="${escapeHtml(linkVal)}" oninput="updateCartItemField('${item.id}','manualLink', this.value)" />
-            <button class="btn ghost small" onclick="openCartItemLink('${item.id}')">Aç</button>
-          </div>
-          <div class="cartEditRow">
-            <label>Fiyat (TL)</label>
-            <input type="number" min="0" step="1" placeholder="örn: 12500" value="${priceVal || ''}" oninput="updateCartItemField('${item.id}','manualPrice', this.value)" />
-          </div>
+          <div class="cartItemSite">${item.site}</div>
+          <div class="cartItemPrice">${item.price}</div>
         </div>
       </div>
     `;
@@ -1568,55 +1480,17 @@ function renderCartPage() {
   
   cartList.innerHTML = html;
   
-  // Update summary (yalnızca manuel fiyatı girilenler hesaplanır)
-  const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
-  const total = cartItems.reduce((sum, item) => {
-    const p = (typeof item.manualPrice === 'number') ? item.manualPrice : parseMoney(item.manualPrice);
-    return sum + (p > 0 ? p * (item.quantity || 1) : 0);
-  }, 0);
+  // Update summary
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   
-  if (cartSubtotal) cartSubtotal.textContent = total ? fmtTL(total) : "Fiyat girilmedi";
-  if (cartTotalPrice) cartTotalPrice.textContent = total ? fmtTL(total) : "Fiyat girilmedi";
+  if (cartSubtotal) cartSubtotal.textContent = "₺???";
+  if (cartTotalPrice) cartTotalPrice.textContent = "₺???";
   if (cartItemCount) cartItemCount.textContent = `${totalItems} ürün`;
   if (tabCartCount) {
     tabCartCount.textContent = totalItems > 9 ? "9+" : totalItems.toString();
     tabCartCount.classList.remove("hidden");
   }
 }
-
-// Sepet içindeki manuel alanları güncelle (link / fiyat / durum)
-function updateCartItemField(itemId, field, value){
-  const idx = cartItems.findIndex(x => x.id === itemId);
-  if (idx < 0) return;
-
-  if (field === 'manualPrice'){
-    const n = Number(String(value||'').replace(/[^0-9.]/g,''));
-    cartItems[idx].manualPrice = Number.isFinite(n) && n > 0 ? n : null;
-  } else if (field === 'manualLink'){
-    cartItems[idx].manualLink = String(value||'').trim();
-  } else if (field === 'condition'){
-    cartItems[idx].condition = value === 'secondhand' ? 'secondhand' : 'new';
-  } else {
-    cartItems[idx][field] = value;
-  }
-
-  localStorage.setItem('fiyattakip_cart', JSON.stringify(cartItems));
-  // Özet güncellenmesi için re-render
-  renderCartPage();
-}
-
-function openCartItemLink(itemId){
-  const item = cartItems.find(x => x.id === itemId);
-  const url = (item && (item.manualLink || item.link)) ? (item.manualLink || item.link) : '';
-  if (!url){
-    toast('Link ekleyin', 'info');
-    return;
-  }
-  window.open(url, '_blank');
-}
-
-window.updateCartItemField = updateCartItemField;
-window.openCartItemLink = openCartItemLink;
 
 function updateCartCounter() {
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -1795,10 +1669,6 @@ function wireUI() {
   $("btnClearCache")?.addEventListener("click", () => {
     if (confirm("Tüm önbelleği temizlemek istediğinize emin misiniz?")) {
       localStorage.clear();
-      // Service Worker cache temizle (varsa)
-      if (window.caches && caches.keys) {
-        caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(()=>{});
-      }
       cartItems = [];
       updateCartCounter();
       renderRecentSearches();

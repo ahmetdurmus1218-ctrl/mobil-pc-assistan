@@ -1,180 +1,115 @@
-/*
-  FPS ENGINE (offline / free)
-
-  Base GPU FPS values are taken from Tom's Hardware "GPU Benchmarks Hierarchy 2026"
-  rasterization table (1080p Ultra / 1440p Ultra / 4K Ultra FPS shown in parentheses).
-
-  This is an estimator, not a guarantee.
-*/
+// fps-engine.js
+// Offline FPS Engine (2025/2026) - Ultra preset ortalama
+// Not: Bu motor "tahmini" FPS verir. Canli veri / ucretli API yoktur.
 
 (function(){
-  "use strict";
+  const GPU_FPS = {
+    // Eski / giris
+    "RX 580":     { "1080p": 55,  "1440p": 35, "4k": 18 },
+    "GTX 1650":   { "1080p": 50,  "1440p": 30, "4k": 15 },
 
-  // Base FPS geometric mean @ Ultra presets.
-  // (1080p Ultra, 1440p Ultra, 4K Ultra)
-  const GPU_DB = {
-    "RTX 4060":         { fps1080: 46.5, fps1440: 29.4, fps4k: 12.8, vram: 8, recoPSU: 450 },
-    "RTX 3060 12GB":    { fps1080: 42.7, fps1440: 28.5, fps4k: 14.6, vram: 12, recoPSU: 550 },
-    "RTX 4060 Ti 8GB":  { fps1080: 59.3, fps1440: 38.3, fps4k: 15.9, vram: 8, recoPSU: 550 },
-    "RTX 5060":         { fps1080: 55.8, fps1440: 32.8, fps4k: 12.6, vram: 8, recoPSU: 500 },
-    "RTX 5060 Ti 8GB":  { fps1080: 66.1, fps1440: 37.6, fps4k: 14.5, vram: 8, recoPSU: 550 },
-    "RX 7600":          { fps1080: 28.7, fps1440: 16.2, fps4k: 8.1,  vram: 8, recoPSU: 450 },
-    "RX 7600 XT":       { fps1080: 40.6, fps1440: 26.9, fps4k: 13.3, vram: 16, recoPSU: 550 },
-    "RX 6600":          { fps1080: 27.5, fps1440: 14.5, fps4k: 7.0,  vram: 8, recoPSU: 450 },
-    "Arc A770 16GB":    { fps1080: 45.1, fps1440: 32.5, fps4k: 17.3, vram: 16, recoPSU: 650 },
-    "Arc A750":         { fps1080: 38.7, fps1440: 26.3, fps4k: 10.8, vram: 8,  recoPSU: 650 },
-    "Arc B580":         { fps1080: 58.1, fps1440: 41.0, fps4k: 21.1, vram: 12, recoPSU: 600 },
-    "RX 7700 XT":       { fps1080: 64.6, fps1440: 44.6, fps4k: 21.3, vram: 12, recoPSU: 650 }
+    // Orta
+    "RX 6600":    { "1080p": 95,  "1440p": 65, "4k": 35 },
+    "RTX 3060":   { "1080p": 90,  "1440p": 60, "4k": 34 },
+
+    // Ust
+    "RX 6700 XT": { "1080p": 130, "1440p": 90, "4k": 55 },
+    "RTX 4070":   { "1080p": 150, "1440p": 110,"4k": 65 }
   };
 
-  // CPU tiers -> index. 1.00 = modern mid-tier baseline.
-  const CPU_INDEX = {
-    "R7 9800X3D": 1.08,
-    "R9 9950X3D": 1.07,
-    "R7 7800X3D": 1.06,
-    "i9-14900K":  1.05,
-    "i7-14700K":  1.03,
-    "R7 9700X":   1.02,
-    "R5 9600X":   1.00,
-    "R5 7600":    0.99,
-    "R5 5600":    0.92,
-    "i5-12400F":  0.92,
-    "i3-12100F":  0.86
+  // CPU scaling: 1080p en cok etkilenir, 4K en az
+  const CPU_SCALING = {
+    "Ryzen 3 3300X": 0.95,
+    "i3-12100F": 1.00,
+    "Ryzen 5 5600": 1.05,
+    "i5-12400F": 1.05,
+    "Ryzen 7 5800X3D": 1.10,
+    "i5-13600K": 1.10
   };
 
-  function norm(s){
-    return String(s||"").toLowerCase().replace(/\s+/g," ").trim();
+  // RAM scaling: 8GB ceza (min FPS / stutter), 16 ideal
+  const RAM_SCALING = {
+    8: 0.90,
+    16: 1.00,
+    32: 1.02
+  };
+
+  // Anakart cezasi (dolayli): zayif VRM / pcie limit vb.
+  function motherboardPenalty(moboStr, gpuStr){
+    const m = (moboStr || "").toLowerCase();
+    const g = (gpuStr || "").toLowerCase();
+
+    // H610 gibi giris chipset + guclu GPU'larda minik ceza
+    if (m.includes("h610") && (g.includes("4070") || g.includes("6700"))) return -0.04;
+
+    // Eski B450 + guclu GPU -> PCIe/VRM mix
+    if (m.includes("b450") && (g.includes("4070") || g.includes("6700"))) return -0.03;
+
+    // Default: ceza yok
+    return 0;
   }
 
-  function matchGPU(name){
-    const n = norm(name);
-    if (!n) return null;
-    // direct
-    for (const k of Object.keys(GPU_DB)) {
-      if (n === norm(k)) return k;
-    }
-    // contains
-    for (const k of Object.keys(GPU_DB)) {
-      if (n.includes(norm(k))) return k;
-    }
-    // loose patterns
-    if (n.includes("rtx") && n.includes("4060") && n.includes("ti")) return "RTX 4060 Ti 8GB";
-    if (n.includes("rtx") && n.includes("4060")) return "RTX 4060";
-    if (n.includes("rtx") && n.includes("3060")) return "RTX 3060 12GB";
-    if (n.includes("rx") && n.includes("7700") && n.includes("xt")) return "RX 7700 XT";
-    if (n.includes("rx") && n.includes("7600") && n.includes("xt")) return "RX 7600 XT";
-    if (n.includes("rx") && n.includes("7600")) return "RX 7600";
-    if (n.includes("rx") && n.includes("6600")) return "RX 6600";
-    if (n.includes("a770")) return "Arc A770 16GB";
-    if (n.includes("a750")) return "Arc A750";
-    if (n.includes("b580")) return "Arc B580";
-    return null;
+  // PSU cezasi: yetersiz watt / sinirda watt
+  function psuPenalty(psuWatts, gpuStr){
+    const w = Number(psuWatts || 0);
+    const g = (gpuStr || "").toLowerCase();
+
+    // GPU sinifina gore tahmini min PSU (tahmini)
+    let need = 500;
+    if (g.includes("1650") || g.includes("580")) need = 450;
+    if (g.includes("6600") || g.includes("3060")) need = 550;
+    if (g.includes("6700") || g.includes("4070")) need = 650;
+
+    if (w <= 0) return 0;
+    if (w < need) return -0.15;
+    if (w < need + 50) return -0.07;
+    return 0;
   }
 
-  function matchCPU(name){
-    const n = norm(name);
-    if (!n) return { key: null, index: 0.95 };
-    const hit = Object.keys(CPU_INDEX).find(k => n.includes(norm(k)));
-    if (hit) return { key: hit, index: CPU_INDEX[hit] };
-
-    // heuristics
-    if (n.includes("x3d")) return { key: null, index: 1.05 };
-    if (n.match(/i9\-|i9 /)) return { key: null, index: 1.04 };
-    if (n.match(/i7\-|i7 /)) return { key: null, index: 1.02 };
-    if (n.match(/i5\-|i5 /)) return { key: null, index: 0.96 };
-    if (n.match(/ryzen 7|r7/)) return { key: null, index: 1.01 };
-    if (n.match(/ryzen 5|r5/)) return { key: null, index: 0.96 };
-    return { key: null, index: 0.92 };
+  function clampFloor(v){
+    // Koruma: null/NaN vs.
+    if (!isFinite(v)) return null;
+    return Math.max(1, Math.round(v * 10) / 10);
   }
 
-  function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
-
-  function cpuFactor(idx, res){
-    // more CPU-bound at 1080p, less at 4K
-    const w = res === "1080" ? 0.70 : (res === "1440" ? 0.45 : 0.25);
-    return (1 - w) + (idx * w);
+  function calcResolution(cpuMul, ramMul, mbPen, psuPen, base){
+    const mult = cpuMul * ramMul * (1 + mbPen) * (1 + psuPen);
+    return clampFloor(base * mult);
   }
 
-  function ramFactor(ramGB, ramType){
-    const w = [];
-    let f = 1.0;
-    const gb = Number(ramGB || 0);
-    if (gb && gb < 16) { f *= 0.85; w.push("8GB RAM bazı oyunlarda takılma/min FPS düşüşü yapabilir; 16GB önerilir."); }
-    if (gb && gb >= 32) f *= 1.02;
-    const t = norm(ramType);
-    if (t.includes("ddr5")) f *= 1.02;
-    return { f, w };
-  }
+  function calculate({ gpu, cpu, ramGB, motherboard, psuWatts }){
+    if (!gpu || !cpu) return null;
+    if (!GPU_FPS[gpu] || !CPU_SCALING[cpu]) return null;
 
-  function psuFactor(psuW, gpuKey){
-    const w = [];
-    let f = 1.0;
-    const need = GPU_DB[gpuKey]?.recoPSU || 450;
-    const watt = Number(psuW || 0);
-    if (watt && watt < need) {
-      f *= 0.70;
-      w.push(`PSU ${watt}W, önerilen ${need}W altında: güç limiti/kararsızlık riski.`);
-    } else if (watt && watt < need + 50) {
-      f *= 0.95;
-      w.push(`PSU ${watt}W sınırda; kaliteli model ve pay bırakmak daha iyi.`);
-    }
-    return { f, w, need };
-  }
+    const ram = Number(ramGB) || 16;
+    const ramMul = RAM_SCALING[ram] || 1.0;
 
-  function moboFactor(tier){
-    const t = norm(tier);
-    if (t.includes("high")) return 1.01;
-    if (t.includes("mid")) return 1.00;
-    if (t.includes("budget")) return 0.98;
-    return 1.0;
-  }
+    // CPU mul: 1080p > 1440p > 4k
+    const cpuMul1080 = CPU_SCALING[cpu];
+    const cpuMul1440 = 1 + (CPU_SCALING[cpu] - 1) * 0.6;
+    const cpuMul4k   = 1 + (CPU_SCALING[cpu] - 1) * 0.3;
 
-  function round1(x){ return Math.round(x * 10) / 10; }
-
-  function estimate(build){
-    const warnings = [];
-    const gpuKey = matchGPU(build?.gpu);
-    if (!gpuKey) {
-      return {
-        ok: false,
-        fps1080: null,
-        fps1440: null,
-        fps4k: null,
-        warnings: ["GPU tanınamadı; FPS tahmini için bilinen bir GPU modeli seçin."],
-        matched: { gpu: null, cpu: null }
-      };
-    }
-
-    const base = GPU_DB[gpuKey];
-    const cpu = matchCPU(build?.cpu);
-
-    const rf = ramFactor(build?.ramGB, build?.ramType);
-    warnings.push(...rf.w);
-
-    const pf = psuFactor(build?.psuWatt, gpuKey);
-    warnings.push(...pf.w);
-
-    const mf = moboFactor(build?.moboTier);
-
-    // combine
-    const f1080 = cpuFactor(cpu.index, "1080") * rf.f * pf.f * mf;
-    const f1440 = cpuFactor(cpu.index, "1440") * rf.f * pf.f * mf;
-    const f4k = cpuFactor(cpu.index, "4k") * rf.f * pf.f * mf;
-
-    // VRAM soft warning
-    if (base.vram && base.vram <= 8) {
-      warnings.push("8GB VRAM yeni oyunlarda 2K/4K'da doku ayarlarında sınıra dayanabilir.");
-    }
+    const mbPen = motherboardPenalty(motherboard, gpu);
+    const psuPen = psuPenalty(psuWatts, gpu);
 
     return {
-      ok: true,
-      fps1080: round1(base.fps1080 * f1080),
-      fps1440: round1(base.fps1440 * f1440),
-      fps4k: round1(base.fps4k * f4k),
-      warnings,
-      matched: { gpu: gpuKey, cpu: cpu.key }
+      "1080p": calcResolution(cpuMul1080, ramMul, mbPen, psuPen, GPU_FPS[gpu]["1080p"]),
+      "1440p": calcResolution(cpuMul1440, ramMul, mbPen, psuPen, GPU_FPS[gpu]["1440p"]),
+      "4k":    calcResolution(cpuMul4k,   ramMul, mbPen, psuPen, GPU_FPS[gpu]["4k"]),
+      meta: {
+        gpu, cpu, ramGB: ram,
+        motherboard: motherboard || "",
+        psuWatts: Number(psuWatts) || 0,
+        penalties: { motherboard: mbPen, psu: psuPen }
+      }
     };
   }
 
-  window.FPSEngine = { estimate, matchGPU };
+  // Global export (classic script)
+  window.FPSEngine = {
+    GPU_FPS,
+    CPU_SCALING,
+    RAM_SCALING,
+    calculate
+  };
 })();
