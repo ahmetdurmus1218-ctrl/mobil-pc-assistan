@@ -776,6 +776,8 @@ function buildSearchQueriesFor(part, profilePack){
   return [cpuQ, mbQ, ramQ, gpuQ, psuQ];
 }
 
+// app.js içindeki renderBuildCard fonksiyonunu güncelle:
+
 function renderBuildCard(query){
   const detected = detectPart(query);
   const rec = recommendBuild(detected);
@@ -812,6 +814,83 @@ function renderBuildCard(query){
     </div>
   ` : "";
 
+  // ========== FPS HESAPLAMA ==========
+  let fpsBoxHtml = '';
+  if (pack && window.FPSEngine && window.FPSEngine.calculateFPS) {
+    try {
+      // RAM boyutunu parse et
+      function parseRamGBFromText(txt){
+        if(!txt) return 16;
+        const s = String(txt).toLowerCase();
+        let m = s.match(/(\d+)\s*(x|\*)\s*(\d+)\s*gb/);
+        if(m){
+          const a = parseInt(m[1],10), b = parseInt(m[3],10);
+          if(Number.isFinite(a)&&Number.isFinite(b)) return a*b;
+        }
+        m = s.match(/(\d+)\s*gb/);
+        if(m){
+          const n = parseInt(m[1],10);
+          if(Number.isFinite(n)) return n;
+        }
+        return 16;
+      }
+
+      // Anakart tag'i tahmini
+      function inferMbTagFromMobo(moboText){
+        const s = (moboText||"").toLowerCase();
+        if(s.includes("h81") || s.includes("b85") || s.includes("a320")) return "weak_vrm";
+        if(s.includes("b450") || s.includes("b365") || s.includes("h410") || s.includes("h510")) return "pcie3_limit";
+        return "ok";
+      }
+
+      // PSU tag'i tahmini
+      function inferPsuTagFromPsu(psuText, gpuText){
+        const w = (psuText||"").match(/(\d{3,4})\s*w/i);
+        const watts = w ? parseInt(w[1],10) : 0;
+        const g = (gpuText||"").toLowerCase();
+        
+        let need = 450;
+        if(g.includes("4090")||g.includes("7900 xtx")) need = 850;
+        else if(g.includes("4080")||g.includes("7900 xt")) need = 750;
+        else if(g.includes("4070")||g.includes("7800 xt")||g.includes("7700 xt")||g.includes("3080")||g.includes("3090")) need = 650;
+        else if(g.includes("3070")||g.includes("3060 ti")||g.includes("6700 xt")||g.includes("6750 xt")) need = 600;
+        else if(g.includes("3060")||g.includes("6600")||g.includes("6650 xt")||g.includes("2060")) need = 550;
+        else need = 450;
+
+        if(watts && watts < need) return "insufficient";
+        if(watts && watts < need + 50) return "borderline";
+        return "good";
+      }
+
+      const ramGB = parseRamGBFromText(pack.ram);
+      const mbTag = inferMbTagFromMobo(pack.mobo);
+      const psuTag = inferPsuTagFromPsu(pack.psu, pack.gpu);
+      
+      const fps = window.FPSEngine.calculateFPS({
+        gpu: pack.gpu,
+        cpu: pack.cpu,
+        ramGB: ramGB,
+        mbTag: mbTag,
+        psuTag: psuTag
+      });
+
+      if (fps) {
+        fpsBoxHtml = `
+          <div class="fpsBox">
+            <div class="fpsTitle">🎮 Tahmini FPS (Ultra / Ortalama)</div>
+            <div class="fpsRow"><span>1080p</span><b>${fps["1080p"]} FPS</b></div>
+            <div class="fpsRow"><span>1440p</span><b>${fps["1440p"]} FPS</b></div>
+            <div class="fpsRow"><span>4K</span><b>${fps["4k"]} FPS</b></div>
+            <div class="fpsMeta">GPU: ${escapeHtml(fps.gpuResolved)} • CPU: ${escapeHtml(fps.cpuResolved)} • RAM: ${fps.ramGB}GB</div>
+          </div>
+        `;
+      }
+    } catch(e) {
+      console.warn("FPS render error", e);
+    }
+  }
+  // ========== FPS HESAPLAMA SONU ==========
+
   const build = pack ? `
     <div class="pcBuildGrid">
       <div class="pcBuildItem"><span class="k">CPU</span><span class="v">${escapeHtml(pack.cpu)}</span></div>
@@ -820,6 +899,7 @@ function renderBuildCard(query){
       <div class="pcBuildItem"><span class="k">GPU</span><span class="v">${escapeHtml(pack.gpu)}</span></div>
       <div class="pcBuildItem"><span class="k">PSU</span><span class="v">${escapeHtml(pack.psu)}</span></div>
     </div>
+    ${fpsBoxHtml}
   ` : "";
 
   const copyBlock = queries.length ? `
@@ -850,7 +930,7 @@ function renderBuildCard(query){
     </div>
   `;
 }
-
+  
 function escapeHtml(s){
   return String(s||"")
     .replace(/&/g,"&amp;")
