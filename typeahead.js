@@ -1,4 +1,4 @@
-// typeahead.js - GENİŞLETİLMİŞ OTOMATİK TAMAMLAMA (ENTER DÜZELTMESİ)
+// typeahead.js - GENİŞLETİLMİŞ OTOMATİK TAMAMLAMA (ENTER DÜZELTMESİ) - TAM VERSİYON
 
 (function(){
   // GENİŞ ÖNERİ VERİTABANI (PC bileşenleri + genel ürünler) - TÜM SERİLER EKLENDİ
@@ -400,15 +400,12 @@
     { label: "iPad Pro", canonical: "ipad pro" }
   ];
 
-  let userTypedQuery = ''; // Kullanıcının yazdığı orijinal sorgu
-  let selectedFromTypeahead = false; // Typeahead'den seçim yapıldı mı?
+  let typeaheadSelectionLabel = '';
 
   function getSuggestions(query, limit = 10) {
     if (!query || query.length < 2) return [];
     
     const q = query.toLowerCase().trim();
-    userTypedQuery = q; // Kullanıcının yazdığını sakla
-    selectedFromTypeahead = false; // Yeni yazım başladı, seçim sıfırla
     
     const results = [];
     
@@ -487,7 +484,6 @@
     const box = createTypeaheadBox(input);
     let activeIndex = -1;
     let currentSuggestions = [];
-    let ignoreNextEnter = false; // ENTER düzeltmesi için
     
     function hide() {
       box.classList.add("hidden");
@@ -549,13 +545,26 @@
     function selectItem(index) {
       if (index >= 0 && index < currentSuggestions.length) {
         const item = currentSuggestions[index];
-        selectedFromTypeahead = true; // Typeahead'den seçildiğini işaretle
+        typeaheadSelectionLabel = item.label; // Seçilen label'i sakla
+        
+        // App.js'deki fonksiyonu çağır
+        if (window.setTypeaheadSelection) {
+          window.setTypeaheadSelection(true, item.canonical, item.label);
+        }
+        
+        // Callback'i çağır
         onSelect?.(item);
-        input.value = item.label; // Label'i göster (canonical değil)
+        
+        // Input'u güncelle
+        input.value = item.label;
         hide();
         
-        // Typeahead seçimi yapıldı, artık kullanıcının yazdığını değil seçimi kullan
-        userTypedQuery = item.canonical;
+        // Hemen arama yap
+        setTimeout(() => {
+          if (window.performSearch) {
+            window.performSearch();
+          }
+        }, 50);
       }
     }
     
@@ -565,32 +574,28 @@
       if (input.value === lastValue) return;
       
       lastValue = input.value;
-      selectedFromTypeahead = false; // Kullanıcı yazmaya devam ediyor
-      ignoreNextEnter = false; // ENTER düzeltmesi
+      
+      // Kullanıcı yazmaya başladı, typeahead seçimini sıfırla
+      if (window.setTypeaheadSelection) {
+        window.setTypeaheadSelection(false, '', '');
+      }
+      
       const suggestions = getSuggestions(input.value);
       render(suggestions);
     });
     
-    // ENTER DÜZELTMESİ: Sadece aktif bir öğe seçiliyse seçim yap
+    // ENTER tuşu işlemi
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         // Eğer typeahead açıksa ve aktif öğe varsa
         if (!box.classList.contains("hidden") && activeIndex >= 0) {
-          e.preventDefault(); // Normal form submit'i engelle
-          selectItem(activeIndex);
-          ignoreNextEnter = true; // Bir sonraki ENTER'ı ignore et
-        } else if (!box.classList.contains("hidden") && currentSuggestions.length > 0) {
-          // Açık ve öneri var ama aktif öğe yok
-          // KULLANICI SEÇİM YAPMADI - ENTER'a basınca arama yapsın
-          // Burada seçim YAPMIYORUZ, sadece typeahead'i kapatıyoruz
           e.preventDefault();
-          hide();
-          // Arama fonksiyonu kendi başına çalışacak
+          selectItem(activeIndex);
         }
-        // Eğer typeahead kapalıysa, normal ENTER davranışı (arama yap)
+        // Typeahead kapalıysa veya aktif öğe yoksa, normal ENTER davranışı
       }
       
-      // Diğer tuşlar (ok tuşları, Escape) normal çalışsın
+      // Diğer tuşlar (ok tuşları, Escape)
       if (box.classList.contains("hidden")) return;
       
       switch (e.key) {
@@ -629,7 +634,6 @@
     
     // Input blur olunca (odak kaybolunca)
     input.addEventListener("blur", () => {
-      // Kısa süreli blur'lar için hemen kapatma
       setTimeout(() => {
         if (!box.contains(document.activeElement)) {
           hide();
@@ -640,9 +644,7 @@
 
   // Global fonksiyonlar
   window.initTypeahead = initTypeahead;
-  window.getUserTypedQuery = () => userTypedQuery;
-  window.isSelectedFromTypeahead = () => selectedFromTypeahead;
-  window.setSelectedFromTypeahead = (value) => { selectedFromTypeahead = value; };
+  window.getTypeaheadSelectionLabel = () => typeaheadSelectionLabel;
   
   // Sayfa yüklendiğinde otomatik başlat
   document.addEventListener('DOMContentLoaded', () => {
