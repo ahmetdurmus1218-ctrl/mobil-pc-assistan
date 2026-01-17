@@ -1,10 +1,10 @@
-const CACHE_NAME = 'fiyattakip-v1';
+const CACHE_NAME = 'fiyattakip-v2';
 const urlsToCache = [
   '/',
   '/index.html',
   '/styles.css',
-  '/app.js',
   '/fps-engine.js',
+  '/app.js',
   '/firebase.js',
   '/manifest.json',
   'https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js',

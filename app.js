@@ -816,45 +816,6 @@ function renderBuildCard(query){
     </div>
   ` : "";
 
-  // ========== FPS (offline) ==========
-  // Not: UI'da "RX 6600 / RTX 3060" gibi alternatifler gorunebilir.
-  // FPS motoruna HER ZAMAN TEK model gonderiyoruz (ilk alternatif).
-  const primaryModel = (s) => String(s||"").split("/")[0].trim();
-  const parseRamGB = (s) => {
-    const m = String(s||"").match(/(\d+)\s*GB/i);
-    return m ? Number(m[1]) : 16;
-  };
-  const parsePsuW = (s) => {
-    const m = String(s||"").match(/(\d+)\s*W/i);
-    return m ? Number(m[1]) : 0;
-  };
-
-  let fps = null;
-  if (pack && window.FPSEngine && typeof window.FPSEngine.calculate === 'function'){
-    fps = window.FPSEngine.calculate({
-      gpu: primaryModel(pack.gpu),
-      cpu: primaryModel(pack.cpu),
-      ramGB: parseRamGB(pack.ram),
-      motherboard: primaryModel(pack.mobo),
-      psuWatts: parsePsuW(pack.psu)
-    });
-  }
-
-  const fpsBox = pack ? `
-    <div class="pcFpsWrap">
-      <div class="pcFpsTitle">🎮 Tahmini FPS (Ultra ort.)</div>
-      <div class="pcFpsGrid">
-        <div class="pcFpsCell"><div class="t">1080p</div><div class="v">${fps ? fps["1080p"] : "—"}</div><div class="u">FPS</div></div>
-        <div class="pcFpsCell"><div class="t">1440p</div><div class="v">${fps ? fps["1440p"] : "—"}</div><div class="u">FPS</div></div>
-        <div class="pcFpsCell"><div class="t">4K</div><div class="v">${fps ? fps["4k"] : "—"}</div><div class="u">FPS</div></div>
-      </div>
-      <div class="pcFpsNote">
-        <div>• Bu degerler ortalama benchmark mantigiyla tahmini verilir (oyunlara gore degisir).</div>
-        ${parseRamGB(pack.ram) <= 8 ? `<div>• 8GB RAM bazi oyunlarda takilma/min FPS dususu yapabilir; 16GB onerilir.</div>` : ""}
-      </div>
-    </div>
-  ` : "";
-
   const copyBlock = queries.length ? `
     <div class="pcCopyWrap">
       <div class="pcCopyTitle">📋 Kopyala & Ara (${partCondition==='secondhand' ? '2. el' : 'sıfır'})</div>
@@ -869,6 +830,8 @@ function renderBuildCard(query){
     </div>
   ` : "";
 
+  const fpsBlock = buildFpsBlock(pack);
+
   return `
     <div class="siteCard buildCard">
       <div class="buildHeader">
@@ -878,9 +841,27 @@ function renderBuildCard(query){
       ${chipsHtml}
       ${info}
       ${build}
-      ${fpsBox}
+      ${fpsBlock}
       ${why}
       ${copyBlock}
+    </div>
+  `;
+}
+
+function buildFpsBlock(pack){
+  // FPS motoru: fps-engine.js global olarak window.FPS_ENGINE sağlar
+  if(!pack || !window.FPS_ENGINE || typeof window.FPS_ENGINE.estimate !== 'function') return "";
+  const r = window.FPS_ENGINE.estimate(pack);
+  if(!r) return "";
+  return `
+    <div class="fpsCard">
+      <div class="fpsTitle">🎮 Tahmini FPS (Ultra ort.)</div>
+      <div class="fpsGrid">
+        <div class="fpsBox"><div class="fpsRes">1080p</div><div class="fpsVal">${r.p1080}</div><div class="fpsUnit">FPS</div></div>
+        <div class="fpsBox"><div class="fpsRes">1440p</div><div class="fpsVal">${r.p1440}</div><div class="fpsUnit">FPS</div></div>
+        <div class="fpsBox"><div class="fpsRes">4K</div><div class="fpsVal">${r.p4k}</div><div class="fpsUnit">FPS</div></div>
+      </div>
+      <div class="fpsNote">• Bu değerler ortalama benchmark mantığıyla tahmini verilir (oyunlara göre değişir).</div>
     </div>
   `;
 }
