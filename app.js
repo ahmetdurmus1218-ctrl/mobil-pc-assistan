@@ -1,4 +1,4 @@
-// app.js - TÜM SİTE URL'LERİ DÜZELTİLDİ (Ürünler Açılacak) + FPS MOTORU DAHİL
+// app.js - TÜM SİTE URL'LERİ DÜZELTİLDİ (Ürünler Açılacak) - TYPEAHEAD DÜZELTİLDİ
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -7,6 +7,13 @@ const $ = (id) => document.getElementById(id);
 let cartItems = JSON.parse(localStorage.getItem('fiyattakip_cart') || '[]');
 let currentUser = null;
 let currentSearchType = 'all';
+
+// ========== TYPEAHEAD STATE ==========
+let typeaheadSelection = {
+  isSelected: false,
+  query: ''
+};
+
 // ========== PC TOPLAMA MOTORU (KURAL TABANLI) ==========
 // Not: Canlı veri/scraper & AI yokmuş gibi çalışır. Sadece "tanıma + uyumluluk + öneri" üretir.
 // Kullanıcı tercihi (profil + parça durumu)
@@ -37,7 +44,6 @@ function setPartCondition(key){
 }
 
 // --- Model veri tabanı (genişletilebilir) ---
-// Kullanıcının yazdığı her şeyi bulabilmek için: (1) seri listeleri (2) regex tanıma (3) chipset/socket kuralları.
 const MODEL_DB = {
   // DDR3 DESTEĞİ EKLENDİ
   ddr3CompatibleGpus: {
@@ -770,636 +776,8 @@ function buildSearchQueriesFor(part, profilePack){
   return [cpuQ, mbQ, ramQ, gpuQ, psuQ];
 }
 
-// ========== FPS HESAPLAMA SİSTEMİ ==========
+// app.js içindeki renderBuildCard fonksiyonunu güncelle:
 
-// FPS motorunu başlat
-function initFPSEngine() {
-  if (typeof window.FPSEngine === 'undefined') {
-    console.warn('FPS Engine yüklenmedi! fps-engine.js dosyasını kontrol edin.');
-    return false;
-  }
-  return true;
-}
-
-// Tüm bileşenlerden FPS parametreleri oluştur - GÜNCELLENMİŞ VERSİYON
-function createFPSParamsFromBuild(buildProfile) {
-  if (!buildProfile) return null;
-  
-  const params = {
-    cpu: '',
-    gpu: '',
-    ramGB: 16,
-    mbTag: 'ok',
-    psuTag: 'good'
-  };
-  
-  // 1. CPU TANIMLAMA (TÜM MODELLER) - GÜNCELLENMİŞ
-  if (buildProfile.cpu) {
-    const cpuText = buildProfile.cpu.toLowerCase();
-    
-    // DDR3 CPU'lar için özel eşleme
-    if (cpuText.includes('i3-2100')) params.cpu = 'i3-2100';
-    else if (cpuText.includes('i5-2500')) params.cpu = 'i5-2500K';
-    else if (cpuText.includes('i7-2600')) params.cpu = 'i7-2600K';
-    else if (cpuText.includes('i5-3470')) params.cpu = 'i5-3470';
-    else if (cpuText.includes('i7-3770')) params.cpu = 'i7-3770K';
-    else if (cpuText.includes('i5-4570')) params.cpu = 'i5-4570';
-    else if (cpuText.includes('i7-4770')) params.cpu = 'i7-4770K';
-    else if (cpuText.includes('i7-4790')) params.cpu = 'i7-4790K';
-    else if (cpuText.includes('fx-6300')) params.cpu = 'FX-6300';
-    else if (cpuText.includes('fx-8350')) params.cpu = 'FX-8350';
-    else if (cpuText.includes('fx-9590')) params.cpu = 'FX-9590';
-    
-    // INTEL
-    else if (cpuText.includes('i9-14900') || cpuText.includes('14900k')) params.cpu = 'i9-14900K';
-    else if (cpuText.includes('i9-13900') || cpuText.includes('13900k')) params.cpu = 'i9-13900K';
-    else if (cpuText.includes('i9-12900') || cpuText.includes('12900k')) params.cpu = 'i9-12900K';
-    
-    else if (cpuText.includes('i7-14700') || cpuText.includes('14700k')) params.cpu = 'i7-14700K';
-    else if (cpuText.includes('i7-13700') || cpuText.includes('13700k')) params.cpu = 'i7-13700K';
-    else if (cpuText.includes('i7-12700') || cpuText.includes('12700k')) params.cpu = 'i7-12700K';
-    else if (cpuText.includes('i7-11700') || cpuText.includes('11700k')) params.cpu = 'i7-11700K';
-    else if (cpuText.includes('i7-10700') || cpuText.includes('10700k')) params.cpu = 'i7-10700K';
-    else if (cpuText.includes('i7-9700') || cpuText.includes('9700k')) params.cpu = 'i7-9700K';
-    else if (cpuText.includes('i7-8700') || cpuText.includes('8700k')) params.cpu = 'i7-8700K';
-    else if (cpuText.includes('i7-7700') || cpuText.includes('7700k')) params.cpu = 'i7-7700K';
-    else if (cpuText.includes('i7-6700') || cpuText.includes('6700k')) params.cpu = 'i7-6700K';
-    
-    else if (cpuText.includes('i5-14600') || cpuText.includes('14600k')) params.cpu = 'i5-14600K';
-    else if (cpuText.includes('i5-13600') || cpuText.includes('13600k')) params.cpu = 'i5-13600K';
-    else if (cpuText.includes('i5-12600') || cpuText.includes('12600k')) params.cpu = 'i5-12600K';
-    else if (cpuText.includes('i5-11600') || cpuText.includes('11600k')) params.cpu = 'i5-11600K';
-    else if (cpuText.includes('i5-10600') || cpuText.includes('10600k')) params.cpu = 'i5-10600K';
-    else if (cpuText.includes('i5-9600') || cpuText.includes('9600k')) params.cpu = 'i5-9600K';
-    else if (cpuText.includes('i5-8600') || cpuText.includes('8600k')) params.cpu = 'i5-8600K';
-    else if (cpuText.includes('i5-7600') || cpuText.includes('7600k')) params.cpu = 'i5-7600K';
-    else if (cpuText.includes('i5-6600') || cpuText.includes('6600k')) params.cpu = 'i5-6600K';
-    else if (cpuText.includes('i5-4690') || cpuText.includes('4690k')) params.cpu = 'i5-4690K';
-    else if (cpuText.includes('i5-4590')) params.cpu = 'i5-4590';
-    
-    else if (cpuText.includes('i3-14100')) params.cpu = 'i3-14100';
-    else if (cpuText.includes('i3-13100')) params.cpu = 'i3-13100';
-    else if (cpuText.includes('i3-12100')) params.cpu = 'i3-12100';
-    else if (cpuText.includes('i3-10100')) params.cpu = 'i3-10100';
-    else if (cpuText.includes('i3-9100')) params.cpu = 'i3-9100';
-    else if (cpuText.includes('i3-8100')) params.cpu = 'i3-8100';
-    else if (cpuText.includes('i3-7100')) params.cpu = 'i3-7100';
-    else if (cpuText.includes('i3-6100')) params.cpu = 'i3-6100';
-    else if (cpuText.includes('i3-4160')) params.cpu = 'i3-4160';
-    else if (cpuText.includes('i3-3220')) params.cpu = 'i3-3220';
-    
-    // AMD RYZEN
-    else if (cpuText.includes('7950x') || cpuText.includes('r9 7950')) params.cpu = 'Ryzen 9 7950X';
-    else if (cpuText.includes('7900x') || cpuText.includes('r9 7900')) params.cpu = 'Ryzen 9 7900X';
-    else if (cpuText.includes('7800x3d') || cpuText.includes('r7 7800')) params.cpu = 'Ryzen 7 7800X3D';
-    else if (cpuText.includes('7700x') || cpuText.includes('r7 7700')) params.cpu = 'Ryzen 7 7700X';
-    else if (cpuText.includes('7600x') || cpuText.includes('r5 7600')) params.cpu = 'Ryzen 5 7600X';
-    
-    else if (cpuText.includes('5950x') || cpuText.includes('r9 5950')) params.cpu = 'Ryzen 9 5950X';
-    else if (cpuText.includes('5900x') || cpuText.includes('r9 5900')) params.cpu = 'Ryzen 9 5900X';
-    else if (cpuText.includes('5800x3d') || cpuText.includes('r7 5800x3d')) params.cpu = 'Ryzen 7 5800X3D';
-    else if (cpuText.includes('5800x') || cpuText.includes('r7 5800')) params.cpu = 'Ryzen 7 5800X';
-    else if (cpuText.includes('5700x') || cpuText.includes('r7 5700')) params.cpu = 'Ryzen 7 5700X';
-    else if (cpuText.includes('5600x') || cpuText.includes('r5 5600x')) params.cpu = 'Ryzen 5 5600X';
-    else if (cpuText.includes('5600') || cpuText.includes('r5 5600')) params.cpu = 'Ryzen 5 5600';
-    else if (cpuText.includes('5500') || cpuText.includes('r5 5500')) params.cpu = 'Ryzen 5 5500';
-    
-    else if (cpuText.includes('3950x') || cpuText.includes('r9 3950')) params.cpu = 'Ryzen 9 3950X';
-    else if (cpuText.includes('3900x') || cpuText.includes('r9 3900')) params.cpu = 'Ryzen 9 3900X';
-    else if (cpuText.includes('3800x') || cpuText.includes('r7 3800')) params.cpu = 'Ryzen 7 3800X';
-    else if (cpuText.includes('3700x') || cpuText.includes('r7 3700')) params.cpu = 'Ryzen 7 3700X';
-    else if (cpuText.includes('3600x') || cpuText.includes('r5 3600x')) params.cpu = 'Ryzen 5 3600X';
-    else if (cpuText.includes('3600') || cpuText.includes('r5 3600')) params.cpu = 'Ryzen 5 3600';
-    
-    else if (cpuText.includes('2700x') || cpuText.includes('r7 2700')) params.cpu = 'Ryzen 7 2700X';
-    else if (cpuText.includes('2600x') || cpuText.includes('r5 2600x')) params.cpu = 'Ryzen 5 2600X';
-    else if (cpuText.includes('2600') || cpuText.includes('r5 2600')) params.cpu = 'Ryzen 5 2600';
-    
-    else if (cpuText.includes('1800x') || cpuText.includes('r7 1800')) params.cpu = 'Ryzen 7 1800X';
-    else if (cpuText.includes('1700x') || cpuText.includes('r7 1700')) params.cpu = 'Ryzen 7 1700X';
-    else if (cpuText.includes('1600x') || cpuText.includes('r5 1600x')) params.cpu = 'Ryzen 5 1600X';
-    else if (cpuText.includes('1600') || cpuText.includes('r5 1600')) params.cpu = 'Ryzen 5 1600';
-    
-    // Genel eşleme
-    else if (cpuText.includes('i9') || cpuText.includes('r9')) params.cpu = 'i9-14900K';
-    else if (cpuText.includes('i7') || cpuText.includes('r7')) params.cpu = 'i7-14700K';
-    else if (cpuText.includes('i5') || cpuText.includes('r5')) params.cpu = 'i5-13600K';
-    else if (cpuText.includes('i3') || cpuText.includes('r3')) params.cpu = 'i3-13100';
-    else if (cpuText.includes('fx')) params.cpu = 'FX-8350';
-    else if (cpuText.includes('ryzen')) params.cpu = 'Ryzen 5 5600';
-    else if (cpuText.includes('celeron') || cpuText.includes('pentium')) params.cpu = 'i3-10100';
-    else params.cpu = 'i5-12400F'; // Varsayılan
-  }
-  
-  // 2. GPU TANIMLAMA (TÜM MODELLER) - GÜNCELLENMİŞ
-  if (buildProfile.gpu) {
-    const gpuText = buildProfile.gpu.toLowerCase();
-    
-    // NVIDIA RTX 40 SERİSİ
-    if (gpuText.includes('rtx 4090')) params.gpu = 'RTX 4090';
-    else if (gpuText.includes('rtx 4080 super')) params.gpu = 'RTX 4080 Super';
-    else if (gpuText.includes('rtx 4080')) params.gpu = 'RTX 4080';
-    else if (gpuText.includes('rtx 4070 ti super')) params.gpu = 'RTX 4070 Ti Super';
-    else if (gpuText.includes('rtx 4070 super')) params.gpu = 'RTX 4070 Super';
-    else if (gpuText.includes('rtx 4070 ti')) params.gpu = 'RTX 4070 Ti';
-    else if (gpuText.includes('rtx 4070')) params.gpu = 'RTX 4070';
-    else if (gpuText.includes('rtx 4060 ti')) params.gpu = 'RTX 4060 Ti';
-    else if (gpuText.includes('rtx 4060')) params.gpu = 'RTX 4060';
-    else if (gpuText.includes('rtx 4050')) params.gpu = 'RTX 4060'; // Yaklaşık
-    
-    // NVIDIA RTX 30 SERİSİ
-    else if (gpuText.includes('rtx 3090 ti')) params.gpu = 'RTX 3090 Ti';
-    else if (gpuText.includes('rtx 3090')) params.gpu = 'RTX 3090';
-    else if (gpuText.includes('rtx 3080 ti')) params.gpu = 'RTX 3080 Ti';
-    else if (gpuText.includes('rtx 3080')) params.gpu = 'RTX 3080';
-    else if (gpuText.includes('rtx 3070 ti')) params.gpu = 'RTX 3070 Ti';
-    else if (gpuText.includes('rtx 3070')) params.gpu = 'RTX 3070';
-    else if (gpuText.includes('rtx 3060 ti')) params.gpu = 'RTX 3060 Ti';
-    else if (gpuText.includes('rtx 3060')) params.gpu = 'RTX 3060';
-    else if (gpuText.includes('rtx 3050')) params.gpu = 'RTX 3050';
-    
-    // NVIDIA RTX 20 SERİSİ
-    else if (gpuText.includes('rtx 2080 ti')) params.gpu = 'RTX 2080 Ti';
-    else if (gpuText.includes('rtx 2080 super')) params.gpu = 'RTX 2080 Super';
-    else if (gpuText.includes('rtx 2080')) params.gpu = 'RTX 2080';
-    else if (gpuText.includes('rtx 2070 super')) params.gpu = 'RTX 2070 Super';
-    else if (gpuText.includes('rtx 2070')) params.gpu = 'RTX 2070';
-    else if (gpuText.includes('rtx 2060 super')) params.gpu = 'RTX 2060 Super';
-    else if (gpuText.includes('rtx 2060')) params.gpu = 'RTX 2060';
-    
-    // NVIDIA GTX 16 SERİSİ
-    else if (gpuText.includes('gtx 1660 ti')) params.gpu = 'GTX 1660 Ti';
-    else if (gpuText.includes('gtx 1660 super')) params.gpu = 'GTX 1660 Super';
-    else if (gpuText.includes('gtx 1660')) params.gpu = 'GTX 1660';
-    else if (gpuText.includes('gtx 1650 super')) params.gpu = 'GTX 1650 Super';
-    else if (gpuText.includes('gtx 1650')) params.gpu = 'GTX 1650';
-    
-    // NVIDIA GTX 10 SERİSİ
-    else if (gpuText.includes('gtx 1080 ti')) params.gpu = 'GTX 1080 Ti';
-    else if (gpuText.includes('gtx 1080')) params.gpu = 'GTX 1080';
-    else if (gpuText.includes('gtx 1070 ti')) params.gpu = 'GTX 1070 Ti';
-    else if (gpuText.includes('gtx 1070')) params.gpu = 'GTX 1070';
-    else if (gpuText.includes('gtx 1060 6gb')) params.gpu = 'GTX 1060 6GB';
-    else if (gpuText.includes('gtx 1060 3gb')) params.gpu = 'GTX 1060 3GB';
-    else if (gpuText.includes('gtx 1060')) params.gpu = 'GTX 1060 6GB';
-    else if (gpuText.includes('gtx 1050 ti')) params.gpu = 'GTX 1050 Ti';
-    else if (gpuText.includes('gtx 1050')) params.gpu = 'GTX 1050';
-    
-    // NVIDIA GTX 9 SERİSİ
-    else if (gpuText.includes('gtx 980 ti')) params.gpu = 'GTX 980 Ti';
-    else if (gpuText.includes('gtx 980')) params.gpu = 'GTX 980';
-    else if (gpuText.includes('gtx 970')) params.gpu = 'GTX 970';
-    else if (gpuText.includes('gtx 960')) params.gpu = 'GTX 960';
-    
-    // AMD RX 7000 SERİSİ
-    else if (gpuText.includes('rx 7900 xtx')) params.gpu = 'RX 7900 XTX';
-    else if (gpuText.includes('rx 7900 xt')) params.gpu = 'RX 7900 XT';
-    else if (gpuText.includes('rx 7800 xt')) params.gpu = 'RX 7800 XT';
-    else if (gpuText.includes('rx 7700 xt')) params.gpu = 'RX 7700 XT';
-    else if (gpuText.includes('rx 7600 xt')) params.gpu = 'RX 7600 XT';
-    else if (gpuText.includes('rx 7600')) params.gpu = 'RX 7600';
-    
-    // AMD RX 6000 SERİSİ
-    else if (gpuText.includes('rx 6950 xt')) params.gpu = 'RX 6950 XT';
-    else if (gpuText.includes('rx 6900 xt')) params.gpu = 'RX 6900 XT';
-    else if (gpuText.includes('rx 6800 xt')) params.gpu = 'RX 6800 XT';
-    else if (gpuText.includes('rx 6800')) params.gpu = 'RX 6800';
-    else if (gpuText.includes('rx 6750 xt')) params.gpu = 'RX 6750 XT';
-    else if (gpuText.includes('rx 6700 xt')) params.gpu = 'RX 6700 XT';
-    else if (gpuText.includes('rx 6650 xt')) params.gpu = 'RX 6650 XT';
-    else if (gpuText.includes('rx 6600 xt')) params.gpu = 'RX 6600 XT';
-    else if (gpuText.includes('rx 6600')) params.gpu = 'RX 6600';
-    else if (gpuText.includes('rx 6500 xt')) params.gpu = 'RX 6500 XT';
-    else if (gpuText.includes('rx 6400')) params.gpu = 'RX 6400';
-    
-    // AMD RX 5000 SERİSİ
-    else if (gpuText.includes('rx 5700 xt')) params.gpu = 'RX 5700 XT';
-    else if (gpuText.includes('rx 5700')) params.gpu = 'RX 5700';
-    else if (gpuText.includes('rx 5600 xt')) params.gpu = 'RX 5600 XT';
-    else if (gpuText.includes('rx 5500 xt')) params.gpu = 'RX 5500 XT';
-    
-    // AMD RX 500/400 SERİSİ
-    else if (gpuText.includes('rx 590')) params.gpu = 'RX 590';
-    else if (gpuText.includes('rx 580')) params.gpu = 'RX 580';
-    else if (gpuText.includes('rx 570')) params.gpu = 'RX 570';
-    else if (gpuText.includes('rx 560')) params.gpu = 'RX 560';
-    else if (gpuText.includes('rx 550')) params.gpu = 'RX 550';
-    else if (gpuText.includes('rx 480')) params.gpu = 'RX 480';
-    else if (gpuText.includes('rx 470')) params.gpu = 'RX 470';
-    else if (gpuText.includes('rx 460')) params.gpu = 'RX 460';
-    
-    // AMD R9/R7 SERİSİ
-    else if (gpuText.includes('r9 390x')) params.gpu = 'RX 580'; // Yaklaşık
-    else if (gpuText.includes('r9 390')) params.gpu = 'RX 580'; // Yaklaşık
-    else if (gpuText.includes('r9 380x')) params.gpu = 'RX 570'; // Yaklaşık
-    else if (gpuText.includes('r9 380')) params.gpu = 'RX 570'; // Yaklaşık
-    else if (gpuText.includes('r9 290x')) params.gpu = 'RX 480'; // Yaklaşık
-    else if (gpuText.includes('r9 290')) params.gpu = 'RX 480'; // Yaklaşık
-    else if (gpuText.includes('r7 370')) params.gpu = 'RX 460'; // Yaklaşık
-    
-    // AMD HD SERİSİ
-    else if (gpuText.includes('hd 7970')) params.gpu = 'RX 570'; // Yaklaşık
-    else if (gpuText.includes('hd 7950')) params.gpu = 'RX 560'; // Yaklaşık
-    else if (gpuText.includes('hd 7870')) params.gpu = 'RX 550'; // Yaklaşık
-    
-    // DDR3 GPU'lar için özel eşleme
-    else if (gpuText.includes('gtx 1050 ti') || gpuText.includes('1050 ti')) params.gpu = 'GTX 1050 Ti';
-    else if (gpuText.includes('gtx 1060') && (gpuText.includes('6gb') || !gpuText.includes('3gb'))) params.gpu = 'GTX 1060 6GB';
-    else if (gpuText.includes('gtx 1060 3gb')) params.gpu = 'GTX 1060 3GB';
-    else if (gpuText.includes('gtx 1070')) params.gpu = 'GTX 1070';
-    else if (gpuText.includes('gtx 1080')) params.gpu = 'GTX 1080';
-    else if (gpuText.includes('rx 580')) params.gpu = 'RX 580';
-    else if (gpuText.includes('rx 570')) params.gpu = 'RX 570';
-    else if (gpuText.includes('rx 560')) params.gpu = 'RX 560';
-    else if (gpuText.includes('hd 7970')) params.gpu = 'HD 7970';
-    else if (gpuText.includes('r9 380')) params.gpu = 'R9 380';
-    else if (gpuText.includes('r9 390')) params.gpu = 'R9 390';
-    
-    // Genel eşleme
-    else if (gpuText.includes('rtx 40')) params.gpu = 'RTX 4060';
-    else if (gpuText.includes('rtx 30')) params.gpu = 'RTX 3060';
-    else if (gpuText.includes('rtx 20')) params.gpu = 'RTX 2060';
-    else if (gpuText.includes('gtx 16')) params.gpu = 'GTX 1660 Super';
-    else if (gpuText.includes('gtx 10')) params.gpu = 'GTX 1060 6GB';
-    else if (gpuText.includes('rx 7')) params.gpu = 'RX 7600';
-    else if (gpuText.includes('rx 6')) params.gpu = 'RX 6600';
-    else if (gpuText.includes('rx 5')) params.gpu = 'RX 580';
-    else if (gpuText.includes('r9')) params.gpu = 'RX 580';
-    else if (gpuText.includes('hd')) params.gpu = 'RX 570';
-    else params.gpu = 'RTX 4060'; // Varsayılan
-  }
-  
-  // 3. RAM BOYUTU
-  if (buildProfile.ram) {
-    const ramText = buildProfile.ram.toLowerCase();
-    const ramMatch = ramText.match(/(\d+)\s*gb/i);
-    if (ramMatch) {
-      params.ramGB = parseInt(ramMatch[1], 10);
-    }
-    
-    // Çift kanal kontrolü
-    if (ramText.includes('2x') || ramText.includes('2 x') || ramText.includes('dual')) {
-      params.ramGB = Math.max(params.ramGB, 16); // Çift kanal için minimum 16GB varsay
-    }
-  }
-  
-  // 4. ANAKART KALİTESİ
-  if (buildProfile.mobo) {
-    const moboText = buildProfile.mobo.toLowerCase();
-    
-    // DDR3 anakartlar için özel tag
-    if (moboText.includes('z77') || moboText.includes('z97') || 
-        moboText.includes('990fx') || moboText.includes('970') ||
-        moboText.includes('z87') || moboText.includes('h97') ||
-        moboText.includes('z68') || moboText.includes('p67')) {
-      params.mbTag = 'pcie3_limit';
-    }
-    // Üst seviye anakartlar
-    else if (moboText.includes('x670e') || moboText.includes('z790') || 
-        moboText.includes('z690') || moboText.includes('x570')) {
-      params.mbTag = 'ok';
-    }
-    // Orta seviye anakartlar
-    else if (moboText.includes('b650') || moboText.includes('b760') || 
-             moboText.includes('b550') || moboText.includes('b660')) {
-      params.mbTag = 'ok';
-    }
-    // Giriş seviye anakartlar
-    else if (moboText.includes('a620') || moboText.includes('h610') || 
-             moboText.includes('b450') || moboText.includes('a520')) {
-      params.mbTag = 'weak_vrm';
-    }
-  }
-  
-  // 5. PSU KALİTESİ
-  if (buildProfile.psu) {
-    const psuText = buildProfile.psu.toLowerCase();
-    
-    // DDR3 sistemler için PSU
-    if (psuText.includes('450w') || psuText.includes('500w') || psuText.includes('550w') || 
-        psuText.includes('bronze')) {
-      params.psuTag = 'borderline';
-    }
-    // Platinum/Gold = iyi
-    else if (psuText.includes('platinum') || psuText.includes('platinyum')) {
-      params.psuTag = 'good';
-    }
-    // Gold = iyi
-    else if (psuText.includes('gold') || psuText.includes('altın')) {
-      params.psuTag = 'good';
-    }
-    // Silver/Bronze = orta
-    else if (psuText.includes('silver') || psuText.includes('gümüş') || 
-             psuText.includes('bronze') || psuText.includes('bronz')) {
-      params.psuTag = 'borderline';
-    }
-    // Düşük watt
-    else if (parseInt(psuText.match(/\d+/)?.[0] || '0') < 600) {
-      params.psuTag = 'borderline';
-    }
-    // Yüksek watt +80
-    else if (psuText.includes('80+')) {
-      params.psuTag = 'good';
-    }
-  }
-  
-  return params;
-}
-
-// FPS hesapla ve göster
-function calculateAndShowFPS(buildProfile, containerId) {
-  if (!initFPSEngine()) {
-    console.error('FPS Engine kullanılamıyor');
-    return;
-  }
-  
-  const fpsParams = createFPSParamsFromBuild(buildProfile);
-  if (!fpsParams || !fpsParams.cpu || !fpsParams.gpu) {
-    console.warn('FPS parametreleri oluşturulamadı:', fpsParams);
-    return;
-  }
-  
-  console.log('FPS Parametreleri:', fpsParams);
-  
-  const fpsResult = window.FPSEngine.calculateFPS(fpsParams);
-  if (!fpsResult) {
-    console.warn('FPS hesaplanamadı');
-    return;
-  }
-  
-  displayFPSResults(fpsResult, containerId);
-}
-
-// FPS sonuçlarını HTML'e çevir
-function displayFPSResults(fpsResult, containerId) {
-  const container = $(containerId);
-  if (!container) return;
-  
-  // FPS değerlerine göre renk belirle
-  const getFPSColor = (fps) => {
-    if (fps >= 120) return '#10b981'; // Yeşil (çok iyi)
-    if (fps >= 60) return '#3b82f6';   // Mavi (iyi)
-    if (fps >= 30) return '#f59e0b';   // Sarı (orta)
-    return '#ef4444';                  // Kırmızı (düşük)
-  };
-  
-  const getFPSText = (fps) => {
-    if (fps >= 120) return 'Mükemmel';
-    if (fps >= 90) return 'Çok İyi';
-    if (fps >= 60) return 'İyi';
-    if (fps >= 45) return 'Oynanabilir';
-    if (fps >= 30) return 'Sınırda';
-    return 'Düşük';
-  };
-  
-  const html = `
-    <div class="fpsResults">
-      <div class="fpsHeader">
-        <div class="fpsTitle">
-          <span class="fpsIcon">🎮</span>
-          <span class="fpsTitleText">Oyun Performans Tahmini</span>
-        </div>
-        <div class="fpsSubtitle">
-          ${fpsResult.cpuResolved} + ${fpsResult.gpuResolved}
-        </div>
-      </div>
-      
-      <div class="fpsGrid">
-        <div class="fpsItem">
-          <div class="fpsResolution">
-            <span class="resIcon">🖥️</span>
-            <span class="resText">1080p</span>
-          </div>
-          <div class="fpsValue" style="color: ${getFPSColor(fpsResult["1080p"])}">
-            ${fpsResult["1080p"]} FPS
-          </div>
-          <div class="fpsBar">
-            <div class="fpsFill" style="width: ${Math.min(fpsResult["1080p"] / 2.4, 100)}%; background: ${getFPSColor(fpsResult["1080p"])}"></div>
-          </div>
-          <div class="fpsRating">${getFPSText(fpsResult["1080p"])}</div>
-        </div>
-        
-        <div class="fpsItem">
-          <div class="fpsResolution">
-            <span class="resIcon">📺</span>
-            <span class="resText">1440p</span>
-          </div>
-          <div class="fpsValue" style="color: ${getFPSColor(fpsResult["1440p"])}">
-            ${fpsResult["1440p"]} FPS
-          </div>
-          <div class="fpsBar">
-            <div class="fpsFill" style="width: ${Math.min(fpsResult["1440p"] / 2.4, 100)}%; background: ${getFPSColor(fpsResult["1440p"])}"></div>
-          </div>
-          <div class="fpsRating">${getFPSText(fpsResult["1440p"])}</div>
-        </div>
-        
-        <div class="fpsItem">
-          <div class="fpsResolution">
-            <span class="resIcon">📡</span>
-            <span class="resText">4K</span>
-          </div>
-          <div class="fpsValue" style="color: ${getFPSColor(fpsResult["4k"])}">
-            ${fpsResult["4k"]} FPS
-          </div>
-          <div class="fpsBar">
-            <div class="fpsFill" style="width: ${Math.min(fpsResult["4k"] / 2.4, 100)}%; background: ${getFPSColor(fpsResult["4k"])}"></div>
-          </div>
-          <div class="fpsRating">${getFPSText(fpsResult["4k"])}</div>
-        </div>
-      </div>
-      
-      <div class="fpsInfo">
-        <div class="fpsNote">
-          <span class="infoIcon">ℹ️</span>
-          <span class="infoText">AAA oyunlar • Ultra ayarlar • DLSS/FSR kapalı</span>
-        </div>
-        <div class="fpsSpecs">
-          <span class="specItem">RAM: ${fpsResult.ramGB}GB</span>
-          <span class="specDivider">•</span>
-          <span class="specItem">${fpsResult.cpuResolved}</span>
-          <span class="specDivider">•</span>
-          <span class="specItem">${fpsResult.gpuResolved}</span>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  container.innerHTML = html;
-}
-
-// ========== CSS STİLLERİ EKLEME ==========
-function addFPSStyles() {
-  if (!document.getElementById('fps-styles')) {
-    const style = document.createElement('style');
-    style.id = 'fps-styles';
-    style.textContent = `
-      .fpsContainer {
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(148, 163, 184, 0.2);
-      }
-      
-      .fpsResults {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
-        border: 1px solid rgba(96, 165, 250, 0.3);
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      }
-      
-      .fpsHeader {
-        text-align: center;
-        margin-bottom: 24px;
-      }
-      
-      .fpsTitle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        margin-bottom: 8px;
-      }
-      
-      .fpsIcon {
-        font-size: 24px;
-      }
-      
-      .fpsTitleText {
-        font-size: 18px;
-        font-weight: 800;
-        background: linear-gradient(135deg, #60a5fa, #3b82f6);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      
-      .fpsSubtitle {
-        font-size: 14px;
-        color: var(--text-muted);
-        font-weight: 500;
-      }
-      
-      .fpsGrid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
-      }
-      
-      @media (max-width: 480px) {
-        .fpsGrid {
-          grid-template-columns: 1fr;
-          gap: 20px;
-        }
-      }
-      
-      .fpsItem {
-        background: rgba(2, 6, 23, 0.5);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 14px;
-        padding: 20px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
-      
-      .fpsItem:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-      }
-      
-      .fpsResolution {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-      
-      .resIcon {
-        font-size: 20px;
-      }
-      
-      .resText {
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--text-primary);
-      }
-      
-      .fpsValue {
-        font-size: 32px;
-        font-weight: 800;
-        margin-bottom: 16px;
-        line-height: 1;
-      }
-      
-      .fpsBar {
-        height: 8px;
-        background: rgba(148, 163, 184, 0.2);
-        border-radius: 4px;
-        overflow: hidden;
-        margin-bottom: 12px;
-      }
-      
-      .fpsFill {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 1s ease-out;
-      }
-      
-      .fpsRating {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-      
-      .fpsInfo {
-        padding-top: 16px;
-        border-top: 1px solid rgba(148, 163, 184, 0.1);
-      }
-      
-      .fpsNote {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-      
-      .infoIcon {
-        font-size: 16px;
-      }
-      
-      .infoText {
-        font-size: 12px;
-        color: var(--text-muted);
-        font-weight: 500;
-      }
-      
-      .fpsSpecs {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        font-size: 12px;
-        color: var(--text-muted);
-      }
-      
-      .specItem {
-        font-weight: 600;
-      }
-      
-      .specDivider {
-        color: rgba(148, 163, 184, 0.5);
-      }
-    `;
-    document.head.appendChild(style);
-  }
-}
-
-// ========== RENDER BUILD CARD GÜNCELLEMESİ ==========
 function renderBuildCard(query){
   const detected = detectPart(query);
   const rec = recommendBuild(detected);
@@ -1424,17 +802,94 @@ function renderBuildCard(query){
     </div>
   `;
 
+  const info = rec.infoLines && rec.infoLines.length ? `
+    <div class="pcMeta">
+      ${rec.infoLines.map(l => `<div class="pcMetaLine">${escapeHtml(l)}</div>`).join("")}
+    </div>
+  ` : "";
+
   const why = rec.warnings && rec.warnings.length ? `
     <div class="pcWarn">
       ${rec.warnings.map(w => `<div class="pcWarnItem">${escapeHtml(w)}</div>`).join("")}
     </div>
   ` : "";
 
-  const info = rec.infoLines && rec.infoLines.length ? `
-    <div class="pcMeta">
-      ${rec.infoLines.map(l => `<div class="pcMetaLine">${escapeHtml(l)}</div>`).join("")}
-    </div>
-  ` : "";
+  // ========== FPS HESAPLAMA ==========
+  let fpsBoxHtml = '';
+  if (pack && window.FPSEngine && window.FPSEngine.calculateFPS) {
+    try {
+      // RAM boyutunu parse et
+      function parseRamGBFromText(txt){
+        if(!txt) return 16;
+        const s = String(txt).toLowerCase();
+        let m = s.match(/(\d+)\s*(x|\*)\s*(\d+)\s*gb/);
+        if(m){
+          const a = parseInt(m[1],10), b = parseInt(m[3],10);
+          if(Number.isFinite(a)&&Number.isFinite(b)) return a*b;
+        }
+        m = s.match(/(\d+)\s*gb/);
+        if(m){
+          const n = parseInt(m[1],10);
+          if(Number.isFinite(n)) return n;
+        }
+        return 16;
+      }
+
+      // Anakart tag'i tahmini
+      function inferMbTagFromMobo(moboText){
+        const s = (moboText||"").toLowerCase();
+        if(s.includes("h81") || s.includes("b85") || s.includes("a320")) return "weak_vrm";
+        if(s.includes("b450") || s.includes("b365") || s.includes("h410") || s.includes("h510")) return "pcie3_limit";
+        return "ok";
+      }
+
+      // PSU tag'i tahmini
+      function inferPsuTagFromPsu(psuText, gpuText){
+        const w = (psuText||"").match(/(\d{3,4})\s*w/i);
+        const watts = w ? parseInt(w[1],10) : 0;
+        const g = (gpuText||"").toLowerCase();
+        
+        let need = 450;
+        if(g.includes("4090")||g.includes("7900 xtx")) need = 850;
+        else if(g.includes("4080")||g.includes("7900 xt")) need = 750;
+        else if(g.includes("4070")||g.includes("7800 xt")||g.includes("7700 xt")||g.includes("3080")||g.includes("3090")) need = 650;
+        else if(g.includes("3070")||g.includes("3060 ti")||g.includes("6700 xt")||g.includes("6750 xt")) need = 600;
+        else if(g.includes("3060")||g.includes("6600")||g.includes("6650 xt")||g.includes("2060")) need = 550;
+        else need = 450;
+
+        if(watts && watts < need) return "insufficient";
+        if(watts && watts < need + 50) return "borderline";
+        return "good";
+      }
+
+      const ramGB = parseRamGBFromText(pack.ram);
+      const mbTag = inferMbTagFromMobo(pack.mobo);
+      const psuTag = inferPsuTagFromPsu(pack.psu, pack.gpu);
+      
+      const fps = window.FPSEngine.calculateFPS({
+        gpu: pack.gpu,
+        cpu: pack.cpu,
+        ramGB: ramGB,
+        mbTag: mbTag,
+        psuTag: psuTag
+      });
+
+      if (fps) {
+        fpsBoxHtml = `
+          <div class="fpsBox">
+            <div class="fpsTitle">🎮 Tahmini FPS (Ultra / Ortalama)</div>
+            <div class="fpsRow"><span>1080p</span><b>${fps["1080p"]} FPS</b></div>
+            <div class="fpsRow"><span>1440p</span><b>${fps["1440p"]} FPS</b></div>
+            <div class="fpsRow"><span>4K</span><b>${fps["4k"]} FPS</b></div>
+            <div class="fpsMeta">GPU: ${escapeHtml(fps.gpuResolved)} • CPU: ${escapeHtml(fps.cpuResolved)} • RAM: ${fps.ramGB}GB</div>
+          </div>
+        `;
+      }
+    } catch(e) {
+      console.warn("FPS render error", e);
+    }
+  }
+  // ========== FPS HESAPLAMA SONU ==========
 
   const build = pack ? `
     <div class="pcBuildGrid">
@@ -1444,6 +899,7 @@ function renderBuildCard(query){
       <div class="pcBuildItem"><span class="k">GPU</span><span class="v">${escapeHtml(pack.gpu)}</span></div>
       <div class="pcBuildItem"><span class="k">PSU</span><span class="v">${escapeHtml(pack.psu)}</span></div>
     </div>
+    ${fpsBoxHtml}
   ` : "";
 
   const copyBlock = queries.length ? `
@@ -1460,9 +916,6 @@ function renderBuildCard(query){
     </div>
   ` : "";
 
-  // FPS Container ID oluştur
-  const fpsId = 'fps_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
   return `
     <div class="siteCard buildCard">
       <div class="buildHeader">
@@ -1474,25 +927,10 @@ function renderBuildCard(query){
       ${build}
       ${why}
       ${copyBlock}
-      
-      <!-- FPS Container -->
-      <div id="${fpsId}" class="fpsContainer"></div>
     </div>
-    
-    <script>
-      // FPS hesaplamayı gecikmeli başlat
-      setTimeout(() => {
-        if (typeof calculateAndShowFPS === 'function' && window.FPSEngine) {
-          const pack = ${JSON.stringify(pack)};
-          if (pack) {
-            calculateAndShowFPS(pack, '${fpsId}');
-          }
-        }
-      }, 150);
-    </script>
   `;
 }
-
+  
 function escapeHtml(s){
   return String(s||"")
     .replace(/&/g,"&amp;")
@@ -1501,6 +939,7 @@ function escapeHtml(s){
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
 }
+
 function escapeJs(s){
   return String(s||"")
     .replace(/\\/g,"\\\\")
@@ -1680,7 +1119,7 @@ function showPage(key) {
   }
 }
 
-// ========== ARAMA SİSTEMİ ==========
+// ========== ARAMA SİSTEMİ - DÜZELTİLDİ ==========
 function performSearch() {
   const input = $("qNormal");
   const query = input?.value.trim();
@@ -1690,20 +1129,22 @@ function performSearch() {
     return;
   }
   
-  console.log("Kullanıcı araması:", query);
+  console.log("Kullanıcı araması:", query, "Typeahead seçimi mi?", typeaheadSelection.isSelected);
   
-  // ENTER DÜZELTMESİ: Typeahead'den SEÇİM YAPILMADIYSA, kullanıcının yazdığını direkt kullan
+  // ENTER DÜZELTMESİ: Typeahead'den SEÇİM YAPILDIYSA, canonical değerini kullan
   let searchQuery = query;
   
-  // Eğer typeahead'den seçim yapıldıysa canonical değerini kullan
-  // DEĞİLSE kullanıcının yazdığı tam metni kullan (ENTER düzeltmesi)
-  if (window.isSelectedFromTypeahead && window.isSelectedFromTypeahead()) {
-    searchQuery = window.getUserTypedQuery ? window.getUserTypedQuery() : query;
-    console.log("Typeahead seçimi kullanılıyor:", searchQuery);
+  if (typeaheadSelection.isSelected && typeaheadSelection.query) {
+    // Typeahead'den seçim yapıldı, canonical değeri kullan
+    searchQuery = typeaheadSelection.query;
+    console.log("Typeahead seçimi kullanılıyor (canonical):", searchQuery);
+    
+    // Input'u canonical değerle güncelle (görsel için)
+    input.value = window.getTypeaheadSelectionLabel ? window.getTypeaheadSelectionLabel() : query;
   } else {
-    // Kullanıcı kendi yazdı ve ENTER'a bastı, direkt yazdığını kullan
+    // Kullanıcı kendi yazdı, direkt yazdığını kullan
     searchQuery = query;
-    console.log("Kullanıcı direkt yazdı/ENTER'a bastı:", searchQuery);
+    console.log("Kullanıcı direkt yazdı:", searchQuery);
   }
   
   // Son aramalara ekle
@@ -1719,9 +1160,8 @@ function performSearch() {
   showSearchResults(searchQuery);
   
   // Typeahead seçim durumunu sıfırla
-  if (window.setSelectedFromTypeahead) {
-    window.setSelectedFromTypeahead(false);
-  }
+  typeaheadSelection.isSelected = false;
+  typeaheadSelection.query = '';
 }
 
 function updateSearchInfo(query) {
@@ -1814,6 +1254,18 @@ function updateSearchStats(count, query) {
     <div class="searchQuery">"${query}"</div>
     <div class="searchStats">${count} sitede araştırılıyor (${typeText})</div>
   `;
+}
+
+// ========== TYPEAHEAD DÜZELTME FONKSİYONLARI ==========
+function setTypeaheadSelection(isSelected, query, label) {
+  typeaheadSelection.isSelected = isSelected;
+  typeaheadSelection.query = query || '';
+  
+  // Input'u güncelle
+  const input = $("qNormal");
+  if (input && label) {
+    input.value = label;
+  }
 }
 
 // ========== COPY LINK ==========
@@ -2358,12 +1810,12 @@ function wireUI() {
     
     // Typeahead başlat
     window.initTypeahead(searchInput, (selectedItem) => {
-      console.log("Öneri seçildi:", selectedItem);
-      // Seçildiğinde otomatik arama yap
+      console.log("Typeahead önerisi seçildi:", selectedItem);
+      setTypeaheadSelection(true, selectedItem.canonical, selectedItem.label);
+      
+      // Hemen arama yap
       setTimeout(() => {
-        if (window.performSearch) {
-          performSearch();
-        }
+        performSearch();
       }, 100);
     });
     
@@ -2390,9 +1842,6 @@ window.addEventListener("DOMContentLoaded", () => {
   // Kullanıcı bilgisini güncelle
   updateUserInfo();
   
-  // FPS stillerini ekle
-  addFPSStyles();
-  
   console.log("✅ Uygulama hazır!");
 });
 
@@ -2412,6 +1861,4 @@ window.hideLoginModal = hideLoginModal;
 window.loginWithEmail = loginWithEmail;
 window.logout = logout;
 window.setSearchType = setSearchType;
-window.setBuildProfile = setBuildProfile;
-window.setPartCondition = setPartCondition;
-window.calculateAndShowFPS = calculateAndShowFPS;
+window.setTypeaheadSelection = setTypeaheadSelection;
