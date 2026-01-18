@@ -1,4 +1,4 @@
-// app.js - TÜM SİTE URL'LERİ DÜZELTİLDİ (Ürünler Açılacak) - TYPEAHEAD DÜZELTİLDİ
+// app.js - TÜM SİTE URL'LERİ DÜZELTİLDİ (Ürünler Açılacak)
 
 // ========== GLOBAL DEĞİŞKENLER ==========
 const $ = (id) => document.getElementById(id);
@@ -7,13 +7,6 @@ const $ = (id) => document.getElementById(id);
 let cartItems = JSON.parse(localStorage.getItem('fiyattakip_cart') || '[]');
 let currentUser = null;
 let currentSearchType = 'all';
-
-// ========== TYPEAHEAD STATE ==========
-let typeaheadSelection = {
-  isSelected: false,
-  query: ''
-};
-
 // ========== PC TOPLAMA MOTORU (KURAL TABANLI) ==========
 // Not: Canlı veri/scraper & AI yokmuş gibi çalışır. Sadece "tanıma + uyumluluk + öneri" üretir.
 // Kullanıcı tercihi (profil + parça durumu)
@@ -44,6 +37,7 @@ function setPartCondition(key){
 }
 
 // --- Model veri tabanı (genişletilebilir) ---
+// Kullanıcının yazdığı her şeyi bulabilmek için: (1) seri listeleri (2) regex tanıma (3) chipset/socket kuralları.
 const MODEL_DB = {
   // DDR3 DESTEĞİ EKLENDİ
   ddr3CompatibleGpus: {
@@ -776,8 +770,6 @@ function buildSearchQueriesFor(part, profilePack){
   return [cpuQ, mbQ, ramQ, gpuQ, psuQ];
 }
 
-// app.js içindeki renderBuildCard fonksiyonunu güncelle:
-
 function renderBuildCard(query){
   const detected = detectPart(query);
   const rec = recommendBuild(detected);
@@ -802,94 +794,17 @@ function renderBuildCard(query){
     </div>
   `;
 
-  const info = rec.infoLines && rec.infoLines.length ? `
-    <div class="pcMeta">
-      ${rec.infoLines.map(l => `<div class="pcMetaLine">${escapeHtml(l)}</div>`).join("")}
-    </div>
-  ` : "";
-
   const why = rec.warnings && rec.warnings.length ? `
     <div class="pcWarn">
       ${rec.warnings.map(w => `<div class="pcWarnItem">${escapeHtml(w)}</div>`).join("")}
     </div>
   ` : "";
 
-  // ========== FPS HESAPLAMA ==========
-  let fpsBoxHtml = '';
-  if (pack && window.FPSEngine && window.FPSEngine.calculateFPS) {
-    try {
-      // RAM boyutunu parse et
-      function parseRamGBFromText(txt){
-        if(!txt) return 16;
-        const s = String(txt).toLowerCase();
-        let m = s.match(/(\d+)\s*(x|\*)\s*(\d+)\s*gb/);
-        if(m){
-          const a = parseInt(m[1],10), b = parseInt(m[3],10);
-          if(Number.isFinite(a)&&Number.isFinite(b)) return a*b;
-        }
-        m = s.match(/(\d+)\s*gb/);
-        if(m){
-          const n = parseInt(m[1],10);
-          if(Number.isFinite(n)) return n;
-        }
-        return 16;
-      }
-
-      // Anakart tag'i tahmini
-      function inferMbTagFromMobo(moboText){
-        const s = (moboText||"").toLowerCase();
-        if(s.includes("h81") || s.includes("b85") || s.includes("a320")) return "weak_vrm";
-        if(s.includes("b450") || s.includes("b365") || s.includes("h410") || s.includes("h510")) return "pcie3_limit";
-        return "ok";
-      }
-
-      // PSU tag'i tahmini
-      function inferPsuTagFromPsu(psuText, gpuText){
-        const w = (psuText||"").match(/(\d{3,4})\s*w/i);
-        const watts = w ? parseInt(w[1],10) : 0;
-        const g = (gpuText||"").toLowerCase();
-        
-        let need = 450;
-        if(g.includes("4090")||g.includes("7900 xtx")) need = 850;
-        else if(g.includes("4080")||g.includes("7900 xt")) need = 750;
-        else if(g.includes("4070")||g.includes("7800 xt")||g.includes("7700 xt")||g.includes("3080")||g.includes("3090")) need = 650;
-        else if(g.includes("3070")||g.includes("3060 ti")||g.includes("6700 xt")||g.includes("6750 xt")) need = 600;
-        else if(g.includes("3060")||g.includes("6600")||g.includes("6650 xt")||g.includes("2060")) need = 550;
-        else need = 450;
-
-        if(watts && watts < need) return "insufficient";
-        if(watts && watts < need + 50) return "borderline";
-        return "good";
-      }
-
-      const ramGB = parseRamGBFromText(pack.ram);
-      const mbTag = inferMbTagFromMobo(pack.mobo);
-      const psuTag = inferPsuTagFromPsu(pack.psu, pack.gpu);
-      
-      const fps = window.FPSEngine.calculateFPS({
-        gpu: pack.gpu,
-        cpu: pack.cpu,
-        ramGB: ramGB,
-        mbTag: mbTag,
-        psuTag: psuTag
-      });
-
-      if (fps) {
-        fpsBoxHtml = `
-          <div class="fpsBox">
-            <div class="fpsTitle">🎮 Tahmini FPS (Ultra / Ortalama)</div>
-            <div class="fpsRow"><span>1080p</span><b>${fps["1080p"]} FPS</b></div>
-            <div class="fpsRow"><span>1440p</span><b>${fps["1440p"]} FPS</b></div>
-            <div class="fpsRow"><span>4K</span><b>${fps["4k"]} FPS</b></div>
-            <div class="fpsMeta">GPU: ${escapeHtml(fps.gpuResolved)} • CPU: ${escapeHtml(fps.cpuResolved)} • RAM: ${fps.ramGB}GB</div>
-          </div>
-        `;
-      }
-    } catch(e) {
-      console.warn("FPS render error", e);
-    }
-  }
-  // ========== FPS HESAPLAMA SONU ==========
+  const info = rec.infoLines && rec.infoLines.length ? `
+    <div class="pcMeta">
+      ${rec.infoLines.map(l => `<div class="pcMetaLine">${escapeHtml(l)}</div>`).join("")}
+    </div>
+  ` : "";
 
   const build = pack ? `
     <div class="pcBuildGrid">
@@ -899,7 +814,6 @@ function renderBuildCard(query){
       <div class="pcBuildItem"><span class="k">GPU</span><span class="v">${escapeHtml(pack.gpu)}</span></div>
       <div class="pcBuildItem"><span class="k">PSU</span><span class="v">${escapeHtml(pack.psu)}</span></div>
     </div>
-    ${fpsBoxHtml}
   ` : "";
 
   const copyBlock = queries.length ? `
@@ -930,7 +844,7 @@ function renderBuildCard(query){
     </div>
   `;
 }
-  
+
 function escapeHtml(s){
   return String(s||"")
     .replace(/&/g,"&amp;")
@@ -939,17 +853,16 @@ function escapeHtml(s){
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
 }
-
 function escapeJs(s){
   return String(s||"")
     .replace(/\\/g,"\\\\")
     .replace(/'/g,"\\'")
     .replace(/\n/g," ");
 }
-
 // global
 window.setBuildProfile = setBuildProfile;
 window.setPartCondition = setPartCondition;
+
 
 // ========== DÜZELTİLMİŞ SİTE URL YAPILARI ==========
 const SITES = {
@@ -966,6 +879,7 @@ const SITES = {
       icon: "📦", 
       type: "new", 
       domain: "hepsiburada.com",
+      // DÜZELTME: Düşükten yükseğe sıralama eklendi
       searchUrl: (query) => `https://www.hepsiburada.com/ara?q=${encodeURIComponent(query)}&siralama=artanfiyat`
     },
     { 
@@ -1047,6 +961,7 @@ const SITES = {
       icon: "👗", 
       type: "secondhand", 
       domain: "dolap.com",
+      // DÜZELTME: Düşükten yükseğe sıralama eklendi
       searchUrl: (query) => `https://www.dolap.com/ara?q=${encodeURIComponent(query)}&sira=artan-fiyat`
     },
     { 
@@ -1119,7 +1034,7 @@ function showPage(key) {
   }
 }
 
-// ========== ARAMA SİSTEMİ - DÜZELTİLDİ ==========
+// ========== ARAMA SİSTEMİ ==========
 function performSearch() {
   const input = $("qNormal");
   const query = input?.value.trim();
@@ -1129,22 +1044,20 @@ function performSearch() {
     return;
   }
   
-  console.log("Kullanıcı araması:", query, "Typeahead seçimi mi?", typeaheadSelection.isSelected);
+  console.log("Kullanıcı araması:", query);
   
-  // ENTER DÜZELTMESİ: Typeahead'den SEÇİM YAPILDIYSA, canonical değerini kullan
+  // ENTER DÜZELTMESİ: Typeahead'den SEÇİM YAPILMADIYSA, kullanıcının yazdığını direkt kullan
   let searchQuery = query;
   
-  if (typeaheadSelection.isSelected && typeaheadSelection.query) {
-    // Typeahead'den seçim yapıldı, canonical değeri kullan
-    searchQuery = typeaheadSelection.query;
-    console.log("Typeahead seçimi kullanılıyor (canonical):", searchQuery);
-    
-    // Input'u canonical değerle güncelle (görsel için)
-    input.value = window.getTypeaheadSelectionLabel ? window.getTypeaheadSelectionLabel() : query;
+  // Eğer typeahead'den seçim yapıldıysa canonical değerini kullan
+  // DEĞİLSE kullanıcının yazdığı tam metni kullan (ENTER düzeltmesi)
+  if (window.isSelectedFromTypeahead && window.isSelectedFromTypeahead()) {
+    searchQuery = window.getUserTypedQuery ? window.getUserTypedQuery() : query;
+    console.log("Typeahead seçimi kullanılıyor:", searchQuery);
   } else {
-    // Kullanıcı kendi yazdı, direkt yazdığını kullan
+    // Kullanıcı kendi yazdı ve ENTER'a bastı, direkt yazdığını kullan
     searchQuery = query;
-    console.log("Kullanıcı direkt yazdı:", searchQuery);
+    console.log("Kullanıcı direkt yazdı/ENTER'a bastı:", searchQuery);
   }
   
   // Son aramalara ekle
@@ -1160,8 +1073,9 @@ function performSearch() {
   showSearchResults(searchQuery);
   
   // Typeahead seçim durumunu sıfırla
-  typeaheadSelection.isSelected = false;
-  typeaheadSelection.query = '';
+  if (window.setSelectedFromTypeahead) {
+    window.setSelectedFromTypeahead(false);
+  }
 }
 
 function updateSearchInfo(query) {
@@ -1194,6 +1108,8 @@ function showSearchResults(query) {
   
   // Her site için kart oluştur
   let html = renderBuildCard(query) || '';
+  // Site kartları aşağıya eklenecek
+
   
   sitesToShow.forEach((site, index) => {
     const url = site.searchUrl(query);
@@ -1254,18 +1170,6 @@ function updateSearchStats(count, query) {
     <div class="searchQuery">"${query}"</div>
     <div class="searchStats">${count} sitede araştırılıyor (${typeText})</div>
   `;
-}
-
-// ========== TYPEAHEAD DÜZELTME FONKSİYONLARI ==========
-function setTypeaheadSelection(isSelected, query, label) {
-  typeaheadSelection.isSelected = isSelected;
-  typeaheadSelection.query = query || '';
-  
-  // Input'u güncelle
-  const input = $("qNormal");
-  if (input && label) {
-    input.value = label;
-  }
 }
 
 // ========== COPY LINK ==========
@@ -1810,12 +1714,12 @@ function wireUI() {
     
     // Typeahead başlat
     window.initTypeahead(searchInput, (selectedItem) => {
-      console.log("Typeahead önerisi seçildi:", selectedItem);
-      setTypeaheadSelection(true, selectedItem.canonical, selectedItem.label);
-      
-      // Hemen arama yap
+      console.log("Öneri seçildi:", selectedItem);
+      // Seçildiğinde otomatik arama yap
       setTimeout(() => {
-        performSearch();
+        if (window.performSearch) {
+          performSearch();
+        }
       }, 100);
     });
     
@@ -1861,4 +1765,3 @@ window.hideLoginModal = hideLoginModal;
 window.loginWithEmail = loginWithEmail;
 window.logout = logout;
 window.setSearchType = setSearchType;
-window.setTypeaheadSelection = setTypeaheadSelection;
