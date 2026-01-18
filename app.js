@@ -781,7 +781,7 @@ function initFPSEngine() {
   return true;
 }
 
-// Tüm bileşenlerden FPS parametreleri oluştur
+// Tüm bileşenlerden FPS parametreleri oluştur - GÜNCELLENMİŞ VERSİYON
 function createFPSParamsFromBuild(buildProfile) {
   if (!buildProfile) return null;
   
@@ -793,16 +793,27 @@ function createFPSParamsFromBuild(buildProfile) {
     psuTag: 'good'
   };
   
-  // 1. CPU TANIMLAMA (TÜM MODELLER)
+  // 1. CPU TANIMLAMA (TÜM MODELLER) - GÜNCELLENMİŞ
   if (buildProfile.cpu) {
     const cpuText = buildProfile.cpu.toLowerCase();
     
+    // DDR3 CPU'lar için özel eşleme
+    if (cpuText.includes('i3-2100')) params.cpu = 'i3-2100';
+    else if (cpuText.includes('i5-2500')) params.cpu = 'i5-2500K';
+    else if (cpuText.includes('i7-2600')) params.cpu = 'i7-2600K';
+    else if (cpuText.includes('i5-3470')) params.cpu = 'i5-3470';
+    else if (cpuText.includes('i7-3770')) params.cpu = 'i7-3770K';
+    else if (cpuText.includes('i5-4570')) params.cpu = 'i5-4570';
+    else if (cpuText.includes('i7-4770')) params.cpu = 'i7-4770K';
+    else if (cpuText.includes('i7-4790')) params.cpu = 'i7-4790K';
+    else if (cpuText.includes('fx-6300')) params.cpu = 'FX-6300';
+    else if (cpuText.includes('fx-8350')) params.cpu = 'FX-8350';
+    else if (cpuText.includes('fx-9590')) params.cpu = 'FX-9590';
+    
     // INTEL
-    if (cpuText.includes('i9-14900') || cpuText.includes('14900k')) params.cpu = 'i9-14900K';
+    else if (cpuText.includes('i9-14900') || cpuText.includes('14900k')) params.cpu = 'i9-14900K';
     else if (cpuText.includes('i9-13900') || cpuText.includes('13900k')) params.cpu = 'i9-13900K';
     else if (cpuText.includes('i9-12900') || cpuText.includes('12900k')) params.cpu = 'i9-12900K';
-    else if (cpuText.includes('i9-11900') || cpuText.includes('11900k')) params.cpu = 'i9-11900K';
-    else if (cpuText.includes('i9-10900') || cpuText.includes('10900k')) params.cpu = 'i9-10900K';
     
     else if (cpuText.includes('i7-14700') || cpuText.includes('14700k')) params.cpu = 'i7-14700K';
     else if (cpuText.includes('i7-13700') || cpuText.includes('13700k')) params.cpu = 'i7-13700K';
@@ -813,10 +824,6 @@ function createFPSParamsFromBuild(buildProfile) {
     else if (cpuText.includes('i7-8700') || cpuText.includes('8700k')) params.cpu = 'i7-8700K';
     else if (cpuText.includes('i7-7700') || cpuText.includes('7700k')) params.cpu = 'i7-7700K';
     else if (cpuText.includes('i7-6700') || cpuText.includes('6700k')) params.cpu = 'i7-6700K';
-    else if (cpuText.includes('i7-4790') || cpuText.includes('4790k')) params.cpu = 'i7-4790K';
-    else if (cpuText.includes('i7-4770') || cpuText.includes('4770k')) params.cpu = 'i7-4770K';
-    else if (cpuText.includes('i7-3770') || cpuText.includes('3770k')) params.cpu = 'i7-3770K';
-    else if (cpuText.includes('i7-2600') || cpuText.includes('2600k')) params.cpu = 'i7-2600K';
     
     else if (cpuText.includes('i5-14600') || cpuText.includes('14600k')) params.cpu = 'i5-14600K';
     else if (cpuText.includes('i5-13600') || cpuText.includes('13600k')) params.cpu = 'i5-13600K';
@@ -829,11 +836,6 @@ function createFPSParamsFromBuild(buildProfile) {
     else if (cpuText.includes('i5-6600') || cpuText.includes('6600k')) params.cpu = 'i5-6600K';
     else if (cpuText.includes('i5-4690') || cpuText.includes('4690k')) params.cpu = 'i5-4690K';
     else if (cpuText.includes('i5-4590')) params.cpu = 'i5-4590';
-    else if (cpuText.includes('i5-4570')) params.cpu = 'i5-4570';
-    else if (cpuText.includes('i5-3570') || cpuText.includes('3570k')) params.cpu = 'i5-3570K';
-    else if (cpuText.includes('i5-3470')) params.cpu = 'i5-3470';
-    else if (cpuText.includes('i5-2500') || cpuText.includes('2500k')) params.cpu = 'i5-2500K';
-    else if (cpuText.includes('i5-2400')) params.cpu = 'i5-2400';
     
     else if (cpuText.includes('i3-14100')) params.cpu = 'i3-14100';
     else if (cpuText.includes('i3-13100')) params.cpu = 'i3-13100';
@@ -845,7 +847,6 @@ function createFPSParamsFromBuild(buildProfile) {
     else if (cpuText.includes('i3-6100')) params.cpu = 'i3-6100';
     else if (cpuText.includes('i3-4160')) params.cpu = 'i3-4160';
     else if (cpuText.includes('i3-3220')) params.cpu = 'i3-3220';
-    else if (cpuText.includes('i3-2100')) params.cpu = 'i3-2100';
     
     // AMD RYZEN
     else if (cpuText.includes('7950x') || cpuText.includes('r9 7950')) params.cpu = 'Ryzen 9 7950X';
@@ -869,7 +870,6 @@ function createFPSParamsFromBuild(buildProfile) {
     else if (cpuText.includes('3700x') || cpuText.includes('r7 3700')) params.cpu = 'Ryzen 7 3700X';
     else if (cpuText.includes('3600x') || cpuText.includes('r5 3600x')) params.cpu = 'Ryzen 5 3600X';
     else if (cpuText.includes('3600') || cpuText.includes('r5 3600')) params.cpu = 'Ryzen 5 3600';
-    else if (cpuText.includes('3500x') || cpuText.includes('r5 3500')) params.cpu = 'Ryzen 5 3500X';
     
     else if (cpuText.includes('2700x') || cpuText.includes('r7 2700')) params.cpu = 'Ryzen 7 2700X';
     else if (cpuText.includes('2600x') || cpuText.includes('r5 2600x')) params.cpu = 'Ryzen 5 2600X';
@@ -879,19 +879,6 @@ function createFPSParamsFromBuild(buildProfile) {
     else if (cpuText.includes('1700x') || cpuText.includes('r7 1700')) params.cpu = 'Ryzen 7 1700X';
     else if (cpuText.includes('1600x') || cpuText.includes('r5 1600x')) params.cpu = 'Ryzen 5 1600X';
     else if (cpuText.includes('1600') || cpuText.includes('r5 1600')) params.cpu = 'Ryzen 5 1600';
-    
-    // AMD FX ve ESKİ
-    else if (cpuText.includes('fx-9590')) params.cpu = 'FX-9590';
-    else if (cpuText.includes('fx-9370')) params.cpu = 'FX-9370';
-    else if (cpuText.includes('fx-8350')) params.cpu = 'FX-8350';
-    else if (cpuText.includes('fx-8320')) params.cpu = 'FX-8320';
-    else if (cpuText.includes('fx-8300')) params.cpu = 'FX-8300';
-    else if (cpuText.includes('fx-6300')) params.cpu = 'FX-6300';
-    else if (cpuText.includes('fx-4300')) params.cpu = 'FX-4300';
-    
-    else if (cpuText.includes('phenom ii x6')) params.cpu = 'FX-6300'; // Yaklaşık
-    else if (cpuText.includes('phenom ii x4')) params.cpu = 'FX-4300'; // Yaklaşık
-    else if (cpuText.includes('athlon ii x4')) params.cpu = 'FX-4300'; // Yaklaşık
     
     // Genel eşleme
     else if (cpuText.includes('i9') || cpuText.includes('r9')) params.cpu = 'i9-14900K';
@@ -904,7 +891,7 @@ function createFPSParamsFromBuild(buildProfile) {
     else params.cpu = 'i5-12400F'; // Varsayılan
   }
   
-  // 2. GPU TANIMLAMA (TÜM MODELLER)
+  // 2. GPU TANIMLAMA (TÜM MODELLER) - GÜNCELLENMİŞ
   if (buildProfile.gpu) {
     const gpuText = buildProfile.gpu.toLowerCase();
     
@@ -1015,10 +1002,18 @@ function createFPSParamsFromBuild(buildProfile) {
     else if (gpuText.includes('hd 7950')) params.gpu = 'RX 560'; // Yaklaşık
     else if (gpuText.includes('hd 7870')) params.gpu = 'RX 550'; // Yaklaşık
     
-    // INTEL ARC
-    else if (gpuText.includes('arc a770')) params.gpu = 'RTX 3060'; // Yaklaşık
-    else if (gpuText.includes('arc a750')) params.gpu = 'RTX 3050'; // Yaklaşık
-    else if (gpuText.includes('arc a580')) params.gpu = 'RTX 3050'; // Yaklaşık
+    // DDR3 GPU'lar için özel eşleme
+    else if (gpuText.includes('gtx 1050 ti') || gpuText.includes('1050 ti')) params.gpu = 'GTX 1050 Ti';
+    else if (gpuText.includes('gtx 1060') && (gpuText.includes('6gb') || !gpuText.includes('3gb'))) params.gpu = 'GTX 1060 6GB';
+    else if (gpuText.includes('gtx 1060 3gb')) params.gpu = 'GTX 1060 3GB';
+    else if (gpuText.includes('gtx 1070')) params.gpu = 'GTX 1070';
+    else if (gpuText.includes('gtx 1080')) params.gpu = 'GTX 1080';
+    else if (gpuText.includes('rx 580')) params.gpu = 'RX 580';
+    else if (gpuText.includes('rx 570')) params.gpu = 'RX 570';
+    else if (gpuText.includes('rx 560')) params.gpu = 'RX 560';
+    else if (gpuText.includes('hd 7970')) params.gpu = 'HD 7970';
+    else if (gpuText.includes('r9 380')) params.gpu = 'R9 380';
+    else if (gpuText.includes('r9 390')) params.gpu = 'R9 390';
     
     // Genel eşleme
     else if (gpuText.includes('rtx 40')) params.gpu = 'RTX 4060';
@@ -1052,8 +1047,15 @@ function createFPSParamsFromBuild(buildProfile) {
   if (buildProfile.mobo) {
     const moboText = buildProfile.mobo.toLowerCase();
     
+    // DDR3 anakartlar için özel tag
+    if (moboText.includes('z77') || moboText.includes('z97') || 
+        moboText.includes('990fx') || moboText.includes('970') ||
+        moboText.includes('z87') || moboText.includes('h97') ||
+        moboText.includes('z68') || moboText.includes('p67')) {
+      params.mbTag = 'pcie3_limit';
+    }
     // Üst seviye anakartlar
-    if (moboText.includes('x670e') || moboText.includes('z790') || 
+    else if (moboText.includes('x670e') || moboText.includes('z790') || 
         moboText.includes('z690') || moboText.includes('x570')) {
       params.mbTag = 'ok';
     }
@@ -1067,20 +1069,19 @@ function createFPSParamsFromBuild(buildProfile) {
              moboText.includes('b450') || moboText.includes('a520')) {
       params.mbTag = 'weak_vrm';
     }
-    // DDR3 anakartlar (eski)
-    else if (moboText.includes('z77') || moboText.includes('z97') || 
-             moboText.includes('990fx') || moboText.includes('970') ||
-             moboText.includes('z87') || moboText.includes('h97')) {
-      params.mbTag = 'pcie3_limit';
-    }
   }
   
   // 5. PSU KALİTESİ
   if (buildProfile.psu) {
     const psuText = buildProfile.psu.toLowerCase();
     
+    // DDR3 sistemler için PSU
+    if (psuText.includes('450w') || psuText.includes('500w') || psuText.includes('550w') || 
+        psuText.includes('bronze')) {
+      params.psuTag = 'borderline';
+    }
     // Platinum/Gold = iyi
-    if (psuText.includes('platinum') || psuText.includes('platinyum')) {
+    else if (psuText.includes('platinum') || psuText.includes('platinyum')) {
       params.psuTag = 'good';
     }
     // Gold = iyi
@@ -1093,8 +1094,7 @@ function createFPSParamsFromBuild(buildProfile) {
       params.psuTag = 'borderline';
     }
     // Düşük watt
-    else if (psuText.includes('450w') || psuText.includes('500w') || 
-             psuText.includes('550w') || parseInt(psuText.match(/\d+/)?.[0] || '0') < 600) {
+    else if (parseInt(psuText.match(/\d+/)?.[0] || '0') < 600) {
       params.psuTag = 'borderline';
     }
     // Yüksek watt +80
