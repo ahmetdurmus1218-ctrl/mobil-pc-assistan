@@ -1962,7 +1962,26 @@ h4 { font-size: 1.125rem; }
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.10);
 }
-.fpsTitle{ font-weight: 700; margin-bottom: 8px; }
-.fpsRow{ display:flex; justify-content: space-between; padding: 4px 0; opacity: 0.95; }
-.fpsRow b{ font-weight: 800; }
-.fpsMeta{ margin-top: 8px; font-size: 12px; opacity: 0.75; }
+.fpsTitle{ 
+  font-weight: 700; 
+  margin-bottom: 8px; 
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.fpsRow{ 
+  display:flex; 
+  justify-content: space-between; 
+  padding: 4px 0; 
+  opacity: 0.95;
+  font-size: 13px;
+}
+.fpsRow b{ 
+  font-weight: 800;
+  color: var(--primary);
+}
+.fpsMeta{ 
+  margin-top: 8px; 
+  font-size: 11px; 
+  opacity: 0.75;
+  color: var(--text-muted);
+}
